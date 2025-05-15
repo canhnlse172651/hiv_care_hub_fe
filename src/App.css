@@ -1,0 +1,71 @@
+.modal-backdrop.fade.show {
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+  }
+  
+  .modal-backdrop.fade.show.hide {
+    opacity: 0;
+  }
+  
+
+  .custom-control-input {
+    position: relative;
+    z-index: 1;
+     opacity: 1;
+     margin-right: 15px;
+     margin-top: 7px;
+  }
+
+
+  .noUi-horizontal .noUi-handle {
+    width: 24px !important;
+    height: 20px !important;
+    top: -3px !important;
+}
+
+.noUi-horizontal {
+    height: 6px !important;
+}
+
+.noUi-horizontal .noUi-tooltip{
+  margin-top: 6px !important;
+  height: 22px !important;
+}
+
+.share-link {
+  margin-right: 8px;
+  
+}
+
+
+.zoom-overlay {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+
+
+.show {
+  padding-right: 19px !important;
+  display: block !important;
+}
+
+.modal-open .modal {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 1050 !important;
+  display: none ;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  outline: 0 !important;
+}
+
+.fade {
+  transition: opacity .15s linear !important;
+}
