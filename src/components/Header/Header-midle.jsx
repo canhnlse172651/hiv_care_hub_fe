@@ -75,7 +75,7 @@ const HeaderMidle = () => {
 
         {/* Login Button */}
         <Button color="primary" variant="solid" shape="round" size={50} className="header-middle__login-button">
-          <span className="login-text">Đăng nhập/Đăng ký</span>
+          <span className="login-text">ĐĂNG NHẬP/ĐĂNG KÝ</span>
         </Button>
 
         {/* Shopping Cart Button */}
