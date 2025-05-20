@@ -6,7 +6,7 @@ function MainLayout() {
   return (
     <MainContextProvider>
       {/* <AuthenContextProvider> */}
-        <div className="page-wrapper">
+        <div className="page-wrapper" style={{ paddingTop: "120px" }}>
           <Header />
           <Outlet />
           <Footter />
