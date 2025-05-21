@@ -23,10 +23,10 @@ export const PATHS = {
         PROFILE_ORDER : PROFILE_ORDER,
         PROFILE_WISHLIST : PROFILE_WISHLIST,
         PROFILE_ADDRESS : PROFILE_ADDRESS
-    },
-    BLOG : "/blog",
+    },    BLOG : "/blog",
     BLOG_DETAIL: "/blog/:slug",
     CONTACT : "/contact",
-    ABOUT : "/about"
+    ABOUT : "/about",
+    HOIDAP : "/hoidap"
 
 }
