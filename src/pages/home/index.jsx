@@ -26,7 +26,7 @@ const dichVu = [
   },
   {
     key: 'service-5',
-    title: 'Dự phòng sau phơi nhiễm HIV –  PEP',
+    title: 'Dự phòng sau phơi nhiễm HIV – PEP',
     description: 'PEP là phương pháp dự phòng HIV sau khi tiếp xúc với nguy cơ phơi nhiễm, để không bị nhiễm HIV.'
   },
   {
@@ -80,17 +80,23 @@ const HomePage = () => {
         </Title>
         <div className="services-container">
           <Row gutter={[32, 32]}>
-            <Col xs={24} lg={12}>
+            <Col xs={24} lg={15}>
               <Row gutter={[24, 24]}>
                 {dichVu.map((service) => (
                   <Col xs={24} sm={12} key={service.key}>
                     <div className="service-item">
-                      <img src="/assets/virus-icon.png" alt="Service Icon" className="service-item-icon" />
-                      <Title level={4}>{service.title}</Title>
-                      <Paragraph>{service.description}</Paragraph>
-                      <div className="service-item-buttons">
-                        <Button type="primary">Đăng ký</Button>
-                        <Button type="link">Xem thêm</Button>
+                      <div style={{ display: 'flex' }}>
+                        <div style={{ marginRight: '1rem', alignSelf: 'flex-start' }}>
+                          <img src="/assets/virus-icon.png" alt="Service Icon" className="service-item-icon" />
+                        </div>
+                        <div>
+                          <Title level={4} style={{ margin: 0, marginBottom: '0.5rem' }}>{service.title}</Title>
+                          <Paragraph>{service.description}</Paragraph>
+                          <div className="service-item-buttons">
+                            <Button type="primary">Đăng ký</Button>
+                            <Button type="link">Xem thêm</Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </Col>
@@ -98,7 +104,7 @@ const HomePage = () => {
               </Row>
             </Col>
 
-            <Col xs={24} lg={12}>
+            <Col xs={24} lg={9}>
               <div className="service-carousel-container">
                 <Carousel autoplay className="service-carousel">
                   <div>
@@ -132,29 +138,61 @@ const HomePage = () => {
           </div>
         </div>
 
-        <div className="info-stats">
-          <div className="info-stat-row">
-            <div className="stat-item">
-              <Title level={3}>2017</Title>
-              <div className="stat-label">Phòng khám đa khoa GALANT ra đời</div>
-            </div>
-
-            <div className="stat-item">
-              <Title level={3}>20000+</Title>
-              <div className="stat-label">Khách hàng đã khám chữa bệnh</div>
-            </div>
-
-            <div className="stat-item">
-              <Title level={3}>10000+</Title>
-              <div className="stat-label">Bác sĩ có chuyên môn cao</div>
-            </div>
-
-            <div className="stat-item">
-              <Title level={3}>100000+</Title>
-              <div className="stat-label">Người được cung cấp kiến thức</div>
-            </div>
+        <div className="info-stats">          <div className="info-stat-grid">
+            <Row gutter={[24, 24]}>
+              <Col xs={24} md={12}>
+                <div className="stat-item stat-item-left">
+                  <div className="stat-content">
+                    <Title level={3}>2017</Title>
+                    <div className="stat-label">Phòng khám đa khoa GALANT ra đời</div>
+                  </div>
+                  <div className="stat-icon-container">
+                    <img src="/assets/homeicon-1.png" alt="Established Year" className="stat-icon" />
+                  </div>
+                </div>
+              </Col>
+              
+              <Col xs={24} md={12}>
+                <div className="stat-item stat-item-right">
+                  <div className="stat-icon-container">
+                    <img src="/assets/homeicon-2.png" alt="Patients" className="stat-icon" />
+                  </div>
+                  <div className="stat-content">
+                    <Title level={3}>20000+</Title>
+                    <div className="stat-label">Khách hàng đã khám chữa bệnh</div>
+                  </div>
+                </div>
+              </Col>
+              
+              <Col xs={24} md={12}>
+                <div className="stat-item stat-item-left">
+                  <div className="stat-content">
+                    <Title level={3}>10000+</Title>
+                    <div className="stat-label">Bác sĩ có chuyên môn cao</div>
+                  </div>
+                  <div className="stat-icon-container">
+                    <img src="/assets/homeicon-3.png" alt="Doctors" className="stat-icon" />
+                  </div>
+                </div>
+              </Col>
+              
+              <Col xs={24} md={12}>
+                <div className="stat-item stat-item-right">
+                  <div className="stat-icon-container">
+                    <img src="/assets/homeicon-4.png" alt="Education" className="stat-icon" />
+                  </div>
+                  <div className="stat-content">
+                    <Title level={3}>100000+</Title>
+                    <div className="stat-label">Người được cung cấp kiến thức</div>
+                  </div>
+                </div>
+              </Col>
+            </Row>
           </div>
-
+          <div>
+          <Title className="info-title-1">PHÒNG KHÁM ĐA KHOA</Title>
+          <Title className="info-title-2">GALANT</Title>
+          </div>
           <div className="info-description">
             <Paragraph>
               Phòng khám đa khoa GALANT là một hình thành chăm sóc sức khỏe cộng đồng bền vững do sự hợp tác điều trị của các tổ chức dựa vào cộng đồng (CBO) (G3VN, Aloboy, Sắc Màu Cuộc Sống, Nu Cuội và VHH Sống).

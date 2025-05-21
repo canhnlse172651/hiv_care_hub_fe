@@ -94,12 +94,13 @@ const HeaderMidle = () => {
           trigger={['hover']}
           placement="bottomRight"
         >
-          <Badge count={0} size="small">            <Button
-            type="primary"
-            shape="circle"
-            icon={<FontAwesomeIcon icon={faBagShopping} />}
-            className="header-middle__cart-button"
-          />
+          <Badge count={0} size="small">
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<FontAwesomeIcon icon={faBagShopping} />}
+              className="header-middle__cart-button"
+            />
           </Badge>
         </Dropdown>
       </div>
