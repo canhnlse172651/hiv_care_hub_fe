@@ -27,6 +27,8 @@ export const PATHS = {
     BLOG_DETAIL: "/blog/:slug",
     CONTACT : "/contact",
     ABOUT : "/about",
-    HOIDAP : "/hoidap"
+    HOIDAP : "/hoidap",
+    XETNGHIEM : "/xetnghiem",
+    LIENHE : "/lienhe",
 
 }
