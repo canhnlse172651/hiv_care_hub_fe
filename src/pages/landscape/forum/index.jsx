@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Typography, Collapse, Button, Tabs, Row, Col } from 'antd';
 import { DownOutlined, UpOutlined, CommentOutlined } from '@ant-design/icons';
-import './hoidap.css';
+import './forum.css';
 
 const { Title, Paragraph } = Typography;
 const { Panel } = Collapse;
