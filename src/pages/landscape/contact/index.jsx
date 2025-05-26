@@ -5,7 +5,7 @@ import React from 'react';
 const { Option } = Select;
 const images = ["/assets/lh-banner-1.png", "/assets/lh-banner-2.png", "/assets/lh-banner-3.png", "/assets/lh-banner-4.png"];
 
-const LienHe = () => {
+const Contact = () => {
 
   const [form] = Form.useForm();
 
@@ -55,7 +55,7 @@ const LienHe = () => {
           </Carousel>
 
           <h2 style={{ color: '#00aae7' }}>Galant – Phòng khám cộng đồng</h2>
-          <p style={{ fontWeight: '500', fontSize: '16px', textAlign: 'left' }}>Galant là phòng khám chăm sóc sức khỏe cộng đồng với sứ mệnh nâng cao chất lượng cuộc sống cho cộng đồng thông qua các dịch vụ “CHĂM SÓC SỨC KHỎE TOÀN DIỆN” với giá trị cốt lõi <strong style={{ color: '#00aae7' }}>Thân Thiện – Thấu Cảm – Tận Tình – Trách Nhiệm – Chuyên Nghiệp.</strong></p>
+          <p style={{ fontWeight: '500', fontSize: '16px', textAlign: 'left' }}>Galant là phòng khám chăm sóc sức khỏe cộng đồng với sứ mệnh nâng cao chất lượng cuộc sống cho cộng đồng thông qua các dịch vụ "CHĂM SÓC SỨC KHỎE TOÀN DIỆN" với giá trị cốt lõi <strong style={{ color: '#00aae7' }}>Thân Thiện – Thấu Cảm – Tận Tình – Trách Nhiệm – Chuyên Nghiệp.</strong></p>
         </Col>
 
         <Col span={10}>
@@ -143,4 +143,4 @@ const LienHe = () => {
   )
 }
 
-export default LienHe
+export default Contact

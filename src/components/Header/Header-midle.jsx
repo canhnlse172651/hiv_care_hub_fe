@@ -3,6 +3,8 @@ import "./Header-midle.css";
 import { Button, Menu, Dropdown, Badge } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHouse, faCaretDown, faBagShopping, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
+import { getRoutePath } from "@/constant/menuRoutes";
 
 const menuItems = {
   services: {
@@ -32,8 +34,7 @@ const menuItems = {
       { key: 'knowledge-1', label: 'Điều trị Bệnh HIV' },
       { key: 'knowledge-2', label: 'Bệnh lây qua đường tình dục' }
     ]
-  },
-  mainMenu: [
+  }, mainMenu: [
     { key: 'hiv-test', label: 'Xét nghiệm HIV' },
     { key: 'pharmacy', label: 'Nhà thuốc' },
     { key: 'contact', label: 'Liên hệ' },
@@ -47,11 +48,11 @@ const HeaderMidle = () => {
   return (
     <div className="header-middle sticky-header">
       {/* Top Row: Branch, Searchbar, Phone, Login */}
-      <div className="header-middle__top-row">
-        {/* Branch */}
-        <div className="header-middle__branch">
+      <div className="header-middle__top-row">        {/* Branch */}        <div className="header-middle__branch">
+        <Link to="/">
           <img src="/assets/logo.png" alt="Logo" className="header-middle__logo" />
-        </div>
+        </Link>
+      </div>
         {/* Searchbar */}
         <div className="header-middle__searchbar">
           <div className="header-middle__searchbar-wrapper">
@@ -105,9 +106,12 @@ const HeaderMidle = () => {
         </Dropdown>
       </div>
       <div className="header-middle__bottom-row">
-        <span className="header-middle__home-icon" role="img" aria-label="home">
-          <FontAwesomeIcon icon={faHouse} />
-        </span><Menu mode="horizontal" className="header-middle__tabs">
+        <Link to="/">
+          <span className="header-middle__home-icon" role="img" aria-label="home">
+            <FontAwesomeIcon icon={faHouse} />
+          </span>
+        </Link>
+        <Menu mode="horizontal" className="header-middle__tabs">
           <Dropdown
             overlay={
               <Menu>
@@ -120,11 +124,13 @@ const HeaderMidle = () => {
             <Menu.Item key={menuItems.services.key}>
               {menuItems.services.label} <FontAwesomeIcon icon={faCaretDown} className="dropdown-icon" />
             </Menu.Item>
-          </Dropdown>
-
-          {/* HIV Test and Pharmacy items */}
-          <Menu.Item key="hiv-test">Xét nghiệm HIV</Menu.Item>
-          <Menu.Item key="pharmacy">Nhà thuốc</Menu.Item>
+          </Dropdown>          {/* HIV Test and Pharmacy items */}
+          <Menu.Item key="hiv-test">
+            <Link to={getRoutePath('hiv-test')}>Xét nghiệm HIV</Link>
+          </Menu.Item>
+          <Menu.Item key="pharmacy">
+            <Link to={getRoutePath('pharmacy')}>Nhà thuốc</Link>
+          </Menu.Item>
 
           {/* News Dropdown */}
           <Dropdown
@@ -154,11 +160,13 @@ const HeaderMidle = () => {
             <Menu.Item key={menuItems.knowledge.key}>
               {menuItems.knowledge.label} <FontAwesomeIcon icon={faCaretDown} className="dropdown-icon" />
             </Menu.Item>
-          </Dropdown>
-
-          {/* Contact and FAQ items */}
-          <Menu.Item key="contact">Liên hệ</Menu.Item>
-          <Menu.Item key="faq">Hỏi đáp</Menu.Item>
+          </Dropdown>          {/* Contact and FAQ items */}
+          <Menu.Item key="contact">
+            <a href="/lien-he">Liên hệ</a>
+          </Menu.Item>
+          <Menu.Item key="faq">
+            <a href="/forum">Hỏi đáp</a>
+          </Menu.Item>
         </Menu>
       </div>
     </div>
