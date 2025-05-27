@@ -23,10 +23,31 @@ export const PATHS = {
         PROFILE_ORDER : PROFILE_ORDER,
         PROFILE_WISHLIST : PROFILE_WISHLIST,
         PROFILE_ADDRESS : PROFILE_ADDRESS
+    },    BLOG : "/blog",
+    BLOG_DETAIL: "/blog/:slug",      CONTACT : "/lien-he",    ABOUT : "/about",
+    FORUM : "/forum",
+    ANALYSIS : "/xet-nghiem",
+    PHARMACY: "/pharmacy",
+    
+    // Services paths
+    SERVICES: {
+        COUNSELING: "/services/counseling",
+        TESTING: "/services/testing",
+        TREATMENT: "/services/treatment",
+        SUPPORT: "/services/support",
+        OTHERS: "/services/others"
     },
-    BLOG : "/blog",
-    BLOG_DETAIL: "/blog/:slug",
-    CONTACT : "/contact",
-    ABOUT : "/about"
-
+    
+    // News paths
+    NEWS: {
+        PREP_FREE: "/news/prep-free",
+        PRESS: "/news/press",
+        PREP_COMMERCIAL: "/news/prep-commercial"
+    },
+    
+    // Knowledge paths
+    KNOWLEDGE: {
+        HIV_TREATMENT: "/knowledge/hiv-treatment",
+        STDS: "/knowledge/stds"
+    },
 }
