@@ -26,11 +26,13 @@ export const PATHS = {
     },    BLOG : "/blog",
     BLOG_DETAIL: "/blog/:slug",      CONTACT : "/lien-he",    ABOUT : "/about",    FORUM : "/forum",
     ANALYSIS : "/xet-nghiem",
-    PHARMACY: "/pharmacy",
-    ADMIN: {
+    PHARMACY: "/pharmacy",    ADMIN: {
         INDEX: ADMIN_PATH,
         DASHBOARD: ADMIN_PATH + "/dashboard",
-        USER_MANAGEMENT: ADMIN_PATH + "/usermanagement"
+        USER_MANAGEMENT: ADMIN_PATH + "/usermanagement",
+        APPOINTMENT_MANAGEMENT: ADMIN_PATH + "/appointments",
+        DOCTOR_MANAGEMENT: ADMIN_PATH + "/doctors",
+        TREATMENT_TRACKING: ADMIN_PATH + "/treatment-tracking"
     },
     
     // Services paths

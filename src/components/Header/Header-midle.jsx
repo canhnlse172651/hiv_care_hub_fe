@@ -1,11 +1,13 @@
 import { useMainContext } from "@/contexts/MainContext";
-// Remove CSS import since we'll use inline styles
-// import "./Header-midle.css";
 import { Button, Menu, Dropdown, Badge } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHouse, faCaretDown, faBagShopping, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { faHouse, faCaretDown, faBagShopping, faPhone, faRightToBracket, faUserPlus, faUserMd, faStethoscope } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import { getRoutePath } from "@/constant/menuRoutes";
+import { useDispatch, useSelector } from "react-redux";
+import { handleShowModal, handleLogout } from "@/store/Reducer/authReducer";
+import { MODAL_TYPE } from "@/constant/general";
+import { useState } from "react";
 
 const menuItems = {
   services: {
@@ -42,10 +44,18 @@ const menuItems = {
     { key: 'contact', label: 'Liên hệ' },
     { key: 'faq', label: 'Hỏi đáp' }
   ]
-};
+};  // Medical-themed color scheme
+  const medicalTheme = {
+    primary: '#4CAF82', // Calming green for medical setting
+    secondary: '#34767A', // Teal for secondary actions
+    accent: '#E3657C', // Soft red/pink for branding elements
+    light: '#F0F4F8', // Light background for accessibility
+    text: '#2D4A58', // Deep blue/gray for text
+    errorRed: '#FF4D4F' // Standard error red
+  };
 
-// Convert all CSS to style objects
-const styles = {
+  // Convert all CSS to style objects
+  const styles = {
   headerMiddle: {
     background: '#fff',
     boxSizing: 'border-box',
@@ -127,18 +137,28 @@ const styles = {
   },
   phoneText: {
     fontWeight: 600,
-  },
-  loginButton: {
+  },  loginButton: {
     minWidth: '160px',
-    height: '32px',
+    height: '38px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '0 16px',
+    backgroundColor: medicalTheme.primary,
+    borderColor: medicalTheme.primary,
+    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+    transition: 'all 0.3s ease',
+  },
+  loginButtonHover: {
+    backgroundColor: '#3D9A6D', // Slightly darker shade of primary
+    borderColor: '#3D9A6D',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
   },
   loginText: {
     fontWeight: 600,
     lineHeight: 1,
+    color: 'white',
   },
   cartButton: {
     width: '32px',
@@ -311,6 +331,10 @@ const getResponsiveStyles = (width) => {
 
 const HeaderMidle = () => {
   const { handleShowMobileMenu } = useMainContext();
+  const dispatch = useDispatch();
+  const { profile } = useSelector(state => state.auth);
+  const [loginBtnHovered, setLoginBtnHovered] = useState(false);
+  
   // In a real implementation, you would use React's useState and useEffect
   // to track window width and apply responsive styles
   const windowWidth = window.innerWidth;
@@ -325,6 +349,23 @@ const HeaderMidle = () => {
     menuItem: {...styles.menuItem, ...responsiveStyles.menuItem},
     // Add other merged styles as needed
   };
+
+  const userMenu = (
+    <Menu>
+      <Menu.Item key="profile">
+        <FontAwesomeIcon icon={faUserMd} style={{ marginRight: '8px', color: medicalTheme.primary }} />
+        Thông tin tài khoản
+      </Menu.Item>
+      <Menu.Item key="orders">Đơn hàng của tôi</Menu.Item>
+      <Menu.Divider />
+      <Menu.Item 
+        key="logout"
+        onClick={() => dispatch(handleLogout())}
+      >
+        Đăng xuất
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <div style={mergedStyles.headerMiddle} className="sticky-header">
@@ -362,18 +403,34 @@ const HeaderMidle = () => {
         >
           <FontAwesomeIcon icon={faPhone} style={styles.phoneIcon} />
           <span style={styles.phoneText}>0938848615</span>
-        </Button>
-
-        {/* Login Button */}
-        <Button 
-          color="primary" 
-          variant="solid" 
-          shape="round" 
-          size={50} 
-          style={styles.loginButton}
-        >
-          <span style={styles.loginText}>ĐĂNG NHẬP/ĐĂNG KÝ</span>
-        </Button>
+        </Button>        {/* Login/User Button */}        {profile ? (
+          <Dropdown 
+            menu={userMenu}
+            placement="bottomRight"
+            arrow
+          >
+            <Button 
+              type="primary" 
+              shape="round" 
+              style={styles.loginButton}
+              onMouseEnter={() => setLoginBtnHovered(true)}
+              onMouseLeave={() => setLoginBtnHovered(false)}
+            >
+              <FontAwesomeIcon icon={faUserMd} style={{ marginRight: '8px' }} />
+              <span style={styles.loginText}>
+                {profile.firstName || "Tài khoản"}
+              </span>
+            </Button>
+          </Dropdown>
+        ) : (          <Button 
+            color="primary" variant="solid" shape="round" size={50}
+            onClick={() => dispatch(handleShowModal(MODAL_TYPE.login))}
+            onMouseEnter={() => setLoginBtnHovered(true)}
+            onMouseLeave={() => setLoginBtnHovered(false)}
+          >
+            <span style={styles.loginText}>ĐĂNG NHẬP/ĐĂNG KÝ</span>
+          </Button>
+        )}
 
         {/* Shopping Cart Button */}
         <Dropdown

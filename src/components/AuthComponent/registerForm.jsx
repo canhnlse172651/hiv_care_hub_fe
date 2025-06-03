@@ -1,134 +1,177 @@
-// import { useAuthenContext } from "@/contexts/AuthenContext";
-import Input from "../Input";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { MESSAGE } from "@/constant/validate";
-import { REGEX } from "@/constant/validate";
-import { useDispatch } from "react-redux";
+import React, { useState } from "react";
+import { MESSAGE, REGEX } from "@/constant/validate";
+import { useDispatch, useSelector } from "react-redux";
 import { handleRegister } from "@/store/Reducer/authReducer";
+import { Button, Spin, Form, Input, Divider, Alert } from "antd";
+import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined, SafetyOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faNotesMedical, faHeartbeat, faHandHoldingMedical } from '@fortawesome/free-solid-svg-icons';
+
 const RegisterForm = () => {
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth);
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState({});
 
-  // const { handleRegister} =  useAuthenContext();
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Name validation
+    if (!name) {
+      newErrors.name = MESSAGE.required;
+    }
+    
+    // Email validation
+    if (!email) {
+      newErrors.email = MESSAGE.required;
+    } else if (!REGEX.email.test(email)) {
+      newErrors.email = MESSAGE.email;
+    }
+    
+    // Password validation
+    if (!password) {
+      newErrors.password = MESSAGE.required;
+    }
+    
+    // Confirm password validation
+    if (!confirmPassword) {
+      newErrors.confirmPassword = MESSAGE.required;
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = MESSAGE.confirm;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm();
-
-  const [loading, setLoading] = useState(false);
-
-  const onSubmit = async (data) => {
-    if (data) {
-      setLoading(true);
-      const { name, email, password } = data;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (validateForm()) {
       const payload = {
-        firstName: name || "",
+        firstName: name,
         lastName: "",
-        email,
-        password,
+        email: email,
+        password: password,
       };
-
-      const res = await dispatch(handleRegister(payload)).unwrap();
-
-      if (res) {
-        setTimeout(() => {
-          setLoading(false);
-        }, 300);
-      }
+      
+      dispatch(handleRegister(payload));
     }
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)} style={{ position: "relative" }}>
-        <Input
-          label="Your email address"
-          required
-          {...register("email", {
-            required: MESSAGE.required,
-            pattern: {
-              value: REGEX.email,
-              message: MESSAGE.email,
-            },
-          })}
-          error={errors?.email?.message || ""}
-        />
-        <Input
-          label="Your name"
-          required
-          {...register("name", {
-            required: MESSAGE.required,
-          })}
-          error={errors?.name?.message || ""}
-        />
-        {/* End .form-group */}
-        <Input
-          label="Your password"
-          type="password"
-          required
-          {...register("password", {
-            required: MESSAGE.required,
-          })}
-          error={errors?.password?.message || ""}
-        />
-        <Input
-          label="Your confirm password"
-          type="password"
-          required
-          {...register("confirmPassword", {
-            required: MESSAGE.required,
-            validate: (value) => value === password || "Passwords do not match",
-          })}
-          error={errors?.confirmPassword?.message || ""}
-        />
-        {/* End .form-group */}
-        <div className="form-footer">
-          <button type="submit" className="btn btn-outline-primary-2">
-            <span>SIGN UP</span>
-            <i className="icon-long-arrow-right" />
-          </button>
-          <div className="custom-control">
-            <input
-              type="checkbox"
-              className="custom-control-input"
-              id="register-policy"
-              {...register("isAgree", {
-                required: MESSAGE.policy,
-              })}
-            />
-            <label  htmlFor="register-policy">
-              I agree to the <a href="privacy-policy.html">privacy policy</a> *
-            </label>
-            {errors?.isAgree?.message && (
-              <p className="form-error">{errors?.isAgree?.message}</p>
-            )}
-          </div>
-          {/* End .custom-checkbox */}
+    <div className="relative">
+      {loading?.register && (
+        <div className="absolute inset-0 flex justify-center items-center bg-white/80 z-10 rounded-lg">
+          <Spin size="large" />
         </div>
-        {/* End .form-footer */}
-      </form>
-      <div className="form-choice">
-        <p className="text-center">or sign in with</p>
-        <div className="row">
-          <div className="col-sm-6">
-            <a href="#" className="btn btn-login btn-g">
-              <i className="icon-google" />
-              Login With Google
-            </a>
-          </div>
-          {/* End .col-6 */}
-          <div className="col-sm-6">
-            <a href="#" className="btn btn-login  btn-f">
-              <i className="icon-facebook-f" />
-              Login With Facebook
-            </a>
-          </div>
+      )}
+
+      <Form
+        name="register_form"
+        layout="vertical"
+        onFinish={handleSubmit}
+        autoComplete="off"
+      >
+        <Form.Item
+          name="name"
+          validateStatus={errors.name ? 'error' : ''}
+          help={errors.name}
+          className="mb-4"
+        >
+          <Input 
+            size="large"
+            prefix={<IdcardOutlined className="text-medical-primary" />}
+            placeholder="Họ và tên"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="rounded-lg"
+          />
+        </Form.Item>
+
+        <Form.Item
+          name="email"
+          validateStatus={errors.email ? 'error' : ''}
+          help={errors.email}
+          className="mb-4"
+        >
+          <Input 
+            size="large"
+            prefix={<MailOutlined className="text-medical-primary" />}
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="rounded-lg"
+          />
+        </Form.Item>
+
+        <Form.Item
+          name="password"
+          validateStatus={errors.password ? 'error' : ''}
+          help={errors.password}
+          className="mb-4"
+        >
+          <Input.Password
+            size="large"
+            prefix={<LockOutlined className="text-medical-primary" />}
+            placeholder="Mật khẩu"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="rounded-lg"
+          />
+        </Form.Item>
+
+        <Form.Item
+          name="confirmPassword"
+          validateStatus={errors.confirmPassword ? 'error' : ''}
+          help={errors.confirmPassword}
+          className="mb-4"
+        >
+          <Input.Password
+            size="large"
+            prefix={<SafetyOutlined className="text-medical-primary" />}
+            placeholder="Xác nhận mật khẩu"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="rounded-lg"
+          />
+        </Form.Item>
+
+        <Alert
+          message="Thông tin của bạn được bảo mật"
+          description="Chúng tôi cam kết bảo vệ thông tin cá nhân và chỉ sử dụng cho mục đích y tế."
+          type="info"
+          showIcon
+          className="mb-4 rounded-lg bg-blue-50 border-blue-200"
+        />
+
+        <Form.Item className="mb-4">
+          <Button 
+            type="primary" 
+            htmlType="submit" 
+            className="w-full h-11 text-base font-semibold rounded-lg bg-medical-primary border-medical-primary hover:bg-medical-primary/90 hover:border-medical-primary/90"
+            loading={loading?.register}
+            icon={<FontAwesomeIcon icon={faHandHoldingMedical} className="mr-2" />}
+          >
+            ĐĂNG KÝ
+          </Button>
+        </Form.Item>
+
+        <Divider className="text-medical-text text-sm mb-4">
+          <FontAwesomeIcon icon={faHeartbeat} className="mr-2 text-medical-accent" />
+          HIV Care Hub
+        </Divider>
+
+        <div className="text-xs text-center mt-2 text-medical-text">
+          <FontAwesomeIcon icon={faNotesMedical} className="mr-1 text-medical-secondary" />
+          Bằng cách đăng ký, bạn đồng ý với <a href="#" className="text-medical-primary hover:underline">Điều khoản sử dụng</a> và <a href="#" className="text-medical-primary hover:underline">Chính sách riêng tư</a> của chúng tôi
         </div>
-      </div>
-    </>
+      </Form>
+    </div>
   );
 };
 

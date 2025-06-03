@@ -7,7 +7,10 @@ import {
   UserOutlined,
   SettingOutlined,
   LogoutOutlined,
-  BellOutlined
+  BellOutlined,
+  CalendarOutlined,
+  MedicineBoxOutlined,
+  ExperimentOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constant/path';
@@ -20,9 +23,7 @@ const AdminLayout = () => {
   
   const {
     token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
-
-  const menuItems = [
+  } = theme.useToken();  const menuItems = [
     {
       key: 'dashboard',
       icon: <DashboardOutlined />,
@@ -34,8 +35,31 @@ const AdminLayout = () => {
       icon: <UserOutlined />,
       label: 'User Management',
       onClick: () => navigate(PATHS.ADMIN.USER_MANAGEMENT)
+    },
+    {
+      key: 'appointments',
+      icon: <CalendarOutlined />,
+      label: 'Appointments',
+      onClick: () => navigate(PATHS.ADMIN.APPOINTMENT_MANAGEMENT)
+    },
+    {
+      key: 'doctors',
+      icon: <MedicineBoxOutlined />,
+      label: 'Doctor Management',
+      onClick: () => navigate(PATHS.ADMIN.DOCTOR_MANAGEMENT)
+    },
+    {
+      key: 'treatment',
+      icon: <ExperimentOutlined />,
+      label: 'Treatment Tracking',
+      onClick: () => navigate(PATHS.ADMIN.TREATMENT_TRACKING)
     }
   ];
+  const handleLogout = () => {
+    // In a real app, you would clear authentication tokens here
+    // For example: localStorage.removeItem('token');
+    navigate(PATHS.HOME);
+  };
 
   const userDropdownItems = {
     items: [
@@ -48,6 +72,7 @@ const AdminLayout = () => {
         key: '2',
         icon: <LogoutOutlined />,
         label: 'Logout',
+        onClick: handleLogout,
       },
     ],
   };
