@@ -3,7 +3,7 @@ const PROFILE_PATH = "/profile";
 const PROFILE_ORDER = "/profile/order";
 const PROFILE_ADDRESS = "/profile/address";
 const PROFILE_WISHLIST = "/profile/wishlist";
-
+const ADMIN_PATH = "/admin";
 
 export const PATHS = {
     HOME : "/",
@@ -24,10 +24,14 @@ export const PATHS = {
         PROFILE_WISHLIST : PROFILE_WISHLIST,
         PROFILE_ADDRESS : PROFILE_ADDRESS
     },    BLOG : "/blog",
-    BLOG_DETAIL: "/blog/:slug",      CONTACT : "/lien-he",    ABOUT : "/about",
-    FORUM : "/forum",
+    BLOG_DETAIL: "/blog/:slug",      CONTACT : "/lien-he",    ABOUT : "/about",    FORUM : "/forum",
     ANALYSIS : "/xet-nghiem",
     PHARMACY: "/pharmacy",
+    ADMIN: {
+        INDEX: ADMIN_PATH,
+        DASHBOARD: ADMIN_PATH + "/dashboard",
+        USER_MANAGEMENT: ADMIN_PATH + "/usermanagement"
+    },
     
     // Services paths
     SERVICES: {
