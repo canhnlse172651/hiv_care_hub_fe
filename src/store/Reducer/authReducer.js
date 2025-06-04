@@ -90,7 +90,8 @@ export default authSlice.reducer;
 export const handleLogout = createAsyncThunk("auth/handleLogout", async (_, { dispatch }) => {
   // Xoá token
   localToken.remove();
-  dispatch(clearCart())
+  // Remove cart reference until cart functionality is implemented
+  // dispatch(clearCart())
   message.success("Logout success");
 });
 
@@ -110,10 +111,10 @@ export const handleLogin = createAsyncThunk(
         });
 
         // get infor profile
-        if (!!localToken) {
-          message.success("Đăng nhập thành công");
+        if (!!localToken) {          message.success("Đăng nhập thành công");
           dispatch(handleGetProfile());
-          dispatch(handleGetCart());
+          // Comment out cart reference until cart functionality is implemented
+          // dispatch(handleGetCart());
           dispatch(handleCloseModal());
         }
         return {

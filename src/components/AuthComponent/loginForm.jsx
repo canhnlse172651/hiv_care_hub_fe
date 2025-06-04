@@ -1,93 +1,130 @@
-import Input from "../Input";
-import { useForm } from "react-hook-form";
-import ComponentLoading from "../ComponentLoading";
+import React, { useState } from "react";
 import { MESSAGE, REGEX } from "@/constant/validate";
 import { useDispatch, useSelector } from "react-redux";
 import { handleLogin } from "@/store/Reducer/authReducer";
-import useDebounce from "@/hooks/useDebounce";
+import { Button, Spin, Form, Input, Checkbox, Divider } from "antd";
+import { UserOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUserMd, faStethoscope } from '@fortawesome/free-solid-svg-icons';
 
 const LoginForm = () => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.auth);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({});
 
-  const onSubmit = async (data) => {
+  const validateForm = () => {
+    const newErrors = {};
 
+    // Email validation
+    if (!email) {
+      newErrors.email = MESSAGE.required;
+    } else if (!REGEX.email.test(email)) {
+      newErrors.email = MESSAGE.email;
+    }
 
-    if (data && !loading.login) {
-      try {
-        const result = await dispatch(handleLogin(data)).unwrap();
+    // Password validation
+    if (!password) {
+      newErrors.password = MESSAGE.required;
+    }
 
-        if (result) {
-          setTimeout(() => {
-            document.body.style.overflow = "auto";
-          }, 300);
-        }
-      } catch (error) {
-        console.log("error", error);
-      }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      dispatch(handleLogin({ email, password }));
     }
   };
 
-  const renderLoading = useDebounce(loading.login, 1000);
-
   return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)} style={{ position: "relative" }}>
-        {renderLoading && <ComponentLoading />}
-        <Input
-          label="Username or email address"
-          required
-          {...register("email", {
-            required: MESSAGE.required,
-            pattern: {
-              value: REGEX.email,
-              message: MESSAGE.email,
-            },
-          })}
-          error={errors?.email?.message || ""}
-        />
-        <Input
-          label="Password"
-          type="password"
-          required
-          {...register("password", {
-            required: MESSAGE.required,
-          })}
-          error={errors?.password?.message || ""}
-        />
-        <div className="form-footer">
-          <button type="submit" className="btn btn-outline-primary-2">
-            <span>LOG IN</span>
-            <i className="icon-long-arrow-right" />
-          </button>
-         
-        
+    <div className="relative">
+      {loading?.login && (
+        <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-80 z-10 rounded-lg">
+          <Spin size="large" />
         </div>
-        <div className="form-choice">
-          <p className="text-center">or sign in with</p>
-          <div className="row">
-            <div className="col-sm-6">
-              <a href="#" className="btn btn-login btn-g">
-                <i className="icon-google" />
-                Login With Google
-              </a>
-            </div>
-            <div className="col-sm-6">
-              <a href="#" className="btn btn-login btn-f">
-                <i className="icon-facebook-f" />
-                Login With Facebook
-              </a>
-            </div>
+      )}
+      <Form
+        name="login_form"
+        layout="vertical"
+        initialValues={{ remember: true }}
+        onFinish={handleSubmit}
+        autoComplete="on"
+      >
+        <Form.Item
+          name="email"
+          validateStatus={errors.email ? 'error' : ''}
+          help={errors.email}
+          className="mb-5"
+        >
+          <Input
+            size="large"
+            prefix={<UserOutlined className="text-medical-primary" />}
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="rounded-lg"
+          />
+        </Form.Item>
+
+        <Form.Item
+          name="password"
+          validateStatus={errors.password ? 'error' : ''}
+          help={errors.password}
+          className="mb-5"
+        >
+          <Input.Password
+            size="large"
+            prefix={<LockOutlined className="text-medical-primary" />}
+            placeholder="Mật khẩu"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="rounded-lg"
+          />
+        </Form.Item>
+
+        <Form.Item className="mb-5">
+          <div className="flex justify-between items-center">
+            <Checkbox className="text-medical-text">Ghi nhớ đăng nhập</Checkbox>
+            <a className="text-medical-primary hover:text-medical-secondary transition-colors">
+              Quên mật khẩu?
+            </a>
           </div>
+        </Form.Item>
+
+        <Form.Item className="mb-5">
+          <Button
+            type="primary"
+            htmlType="submit"
+            className="w-full h-11 text-base font-semibold rounded-lg bg-medical-primary border-medical-primary hover:bg-medical-secondary hover:border-medical-secondary"
+            loading={loading?.login}
+            icon={<LoginOutlined />}
+          >
+            ĐĂNG NHẬP
+          </Button>
+        </Form.Item>
+
+        <Divider className="text-medical-text text-sm mb-4">
+          <FontAwesomeIcon
+            icon={faStethoscope}
+            className="mr-2 text-medical-accent"
+          />
+          HIV Care Hub
+        </Divider>
+        <div className="text-center text-sm text-medical-text">
+          <FontAwesomeIcon
+            icon={faUserMd}
+            className="mr-2 text-medical-secondary"
+          />
+          Chăm sóc sức khỏe trực tuyến
         </div>
-      </form>
-    </>
+      </Form>
+    </div>
   );
 };
 
