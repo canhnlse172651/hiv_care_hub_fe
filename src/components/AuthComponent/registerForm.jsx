@@ -141,14 +141,6 @@ const RegisterForm = () => {
           />
         </Form.Item>
 
-        <Alert
-          message="Thông tin của bạn được bảo mật"
-          description="Chúng tôi cam kết bảo vệ thông tin cá nhân và chỉ sử dụng cho mục đích y tế."
-          type="info"
-          showIcon
-          className="mb-4 rounded-lg bg-blue-50 border-blue-200"
-        />
-
         <Form.Item className="mb-4">
           <Button 
             type="primary" 

@@ -10,33 +10,33 @@ import { faUserMd, faStethoscope } from '@fortawesome/free-solid-svg-icons';
 const LoginForm = () => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.auth);
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Email validation
     if (!email) {
       newErrors.email = MESSAGE.required;
     } else if (!REGEX.email.test(email)) {
       newErrors.email = MESSAGE.email;
     }
-    
+
     // Password validation
     if (!password) {
       newErrors.password = MESSAGE.required;
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       dispatch(handleLogin({ email, password }));
     }
@@ -62,7 +62,7 @@ const LoginForm = () => {
           help={errors.email}
           className="mb-5"
         >
-          <Input 
+          <Input
             size="large"
             prefix={<UserOutlined className="text-medical-primary" />}
             placeholder="Email"
@@ -98,9 +98,9 @@ const LoginForm = () => {
         </Form.Item>
 
         <Form.Item className="mb-5">
-          <Button 
-            type="primary" 
-            htmlType="submit" 
+          <Button
+            type="primary"
+            htmlType="submit"
             className="w-full h-11 text-base font-semibold rounded-lg bg-medical-primary border-medical-primary hover:bg-medical-secondary hover:border-medical-secondary"
             loading={loading?.login}
             icon={<LoginOutlined />}
@@ -110,15 +110,16 @@ const LoginForm = () => {
         </Form.Item>
 
         <Divider className="text-medical-text text-sm mb-4">
-          <FontAwesomeIcon 
-            icon={faStethoscope} 
-            className="mr-2 text-medical-accent" 
+          <FontAwesomeIcon
+            icon={faStethoscope}
+            className="mr-2 text-medical-accent"
           />
           HIV Care Hub
-        </Divider>        <div className="text-center text-sm text-medical-text">
-          <FontAwesomeIcon 
-            icon={faUserMd} 
-            className="mr-2 text-medical-secondary" 
+        </Divider>
+        <div className="text-center text-sm text-medical-text">
+          <FontAwesomeIcon
+            icon={faUserMd}
+            className="mr-2 text-medical-secondary"
           />
           Chăm sóc sức khỏe trực tuyến
         </div>

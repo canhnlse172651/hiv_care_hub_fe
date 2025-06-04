@@ -96,12 +96,8 @@ const Dashboard = () => {
     {
       title: 'Status',
       dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <span style={{ 
-          color: status === 'active' ? '#52c41a' : '#ff4d4f',
-          fontWeight: 'bold'
-        }}>
+      key: 'status',      render: (status) => (
+        <span className={`font-bold ${status === 'active' ? 'text-green-500' : 'text-red-500'}`}>
           {status.charAt(0).toUpperCase() + status.slice(1)}
         </span>
       ),
@@ -114,8 +110,7 @@ const Dashboard = () => {
       
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
+          <Card>            <Statistic
               title="Total Users"
               value={1458}
               prefix={<UserOutlined />}
@@ -124,8 +119,7 @@ const Dashboard = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
+          <Card>            <Statistic
               title="Forum Posts"
               value={582}
               prefix={<MessageOutlined />}
@@ -134,8 +128,7 @@ const Dashboard = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
+          <Card>            <Statistic
               title="Test Appointments"
               value={92}
               prefix={<ShoppingCartOutlined />}
@@ -144,8 +137,7 @@ const Dashboard = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
+          <Card>            <Statistic
               title="User Growth"
               value={12.3}
               precision={1}
@@ -155,9 +147,7 @@ const Dashboard = () => {
             />
           </Card>
         </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
+      </Row>      <Row gutter={[16, 16]} className="mt-6">
         <Col xs={24} lg={16}>
           <Card title="Recent Users">
             <Table 
@@ -168,17 +158,16 @@ const Dashboard = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} lg={8}>
-          <Card title="Recent Activity">
-            <Space direction="vertical" style={{ width: '100%' }}>
+        <Col xs={24} lg={8}>          <Card title="Recent Activity">
+            <Space direction="vertical" className="w-full">
               {recentActivities.map(item => (
-                <Card key={item.key} size="small" style={{ marginBottom: '8px' }}>
+                <Card key={item.key} size="small" className="mb-2">
                   <Space>
-                    <Avatar style={{ backgroundColor: '#1890ff' }}>{item.avatar}</Avatar>
+                    <Avatar className="bg-blue-500">{item.avatar}</Avatar>
                     <div>
                       <div><strong>{item.user}</strong></div>
                       <div>{item.activity}</div>
-                      <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{item.time}</div>
+                      <div className="text-xs text-gray-500">{item.time}</div>
                     </div>
                   </Space>
                 </Card>
@@ -186,21 +175,20 @@ const Dashboard = () => {
             </Space>
           </Card>
         </Col>
-      </Row>
-      
-      <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
+      </Row>      
+      <Row gutter={[16, 16]} className="mt-6">
         <Col xs={24} md={12}>
           <Card title="User Engagement">
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className="mb-4">
+              <div className="flex justify-between">
                 <span>Forum Activity</span>
                 <span>78%</span>
               </div>
               <Progress percent={78} status="active" />
             </div>
             
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className="mb-4">
+              <div className="flex justify-between">
                 <span>Test Appointments</span>
                 <span>45%</span>
               </div>
@@ -208,7 +196,7 @@ const Dashboard = () => {
             </div>
             
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div className="flex justify-between">
                 <span>Pharmacy Orders</span>
                 <span>32%</span>
               </div>
@@ -218,16 +206,16 @@ const Dashboard = () => {
         </Col>
         <Col xs={24} md={12}>
           <Card title="User Distribution">
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className="mb-4">
+              <div className="flex justify-between">
                 <span>New Users</span>
                 <span>24%</span>
               </div>
               <Progress percent={24} strokeColor="#1890ff" />
             </div>
             
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className="mb-4">
+              <div className="flex justify-between">
                 <span>Returning Users</span>
                 <span>56%</span>
               </div>
@@ -235,7 +223,7 @@ const Dashboard = () => {
             </div>
             
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div className="flex justify-between">
                 <span>Healthcare Providers</span>
                 <span>20%</span>
               </div>
