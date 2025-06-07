@@ -115,10 +115,23 @@ export const AuthenContextProvider = ({ children }) => {
     }
   };
 
-  const handleLogout = () => {
-    localToken.remove();
-    navigate(PATHS.HOME);
-    message.success("Đăng xuất thành công");
+  const handleLogout = async () => {
+    try {
+      // Call the logout API endpoint
+      await authenService.logout();
+      
+      // Clear local tokens
+      localToken.remove();
+      
+      // Navigate to home page
+      navigate(PATHS.HOME);
+      message.success("Đăng xuất thành công");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if API call fails, remove local token and redirect
+      localToken.remove();
+      navigate(PATHS.HOME);
+    }
   };
 
   const handleGetProfile = async () => {
