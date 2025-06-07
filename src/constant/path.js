@@ -1,38 +1,43 @@
+// Base paths
 const PRODUCTS_PATH = "/product";
 const PROFILE_PATH = "/profile";
-const PROFILE_ORDER = "/profile/order";
-const PROFILE_ADDRESS = "/profile/address";
-const PROFILE_WISHLIST = "/profile/wishlist";
 const ADMIN_PATH = "/admin";
+const DOCTOR_PATH = "/doctor";
+const STAFF_PATH = "/staff";
+const PATIENT_PATH = "/patient";
 
 export const PATHS = {
-    HOME : "/",
-    PRODUCTS : PRODUCTS_PATH,
-    PRODUCT_DETAIL : PRODUCTS_PATH + "/:slug",
-    CART : "/cart",
-    CHECKOUT : "/checkout",
-    CHECKOUT_SUCCESS : "/checkout_success",
-    DASHBOARD : "/dashboard",
-    FAQ : "/faq",
-    PAYMENT_METHOD : "/payment_method",
-    PRIVACY_POLICY : "/privacy_policy",
-    RETURN : "/return",
-    SHIPPING : "/shipping",
-    PROFILE : {
-        INDEX : PROFILE_PATH,
-        PROFILE_ORDER : PROFILE_ORDER,
-        PROFILE_WISHLIST : PROFILE_WISHLIST,
-        PROFILE_ADDRESS : PROFILE_ADDRESS
-    },    BLOG : "/blog",
-    BLOG_DETAIL: "/blog/:slug",      CONTACT : "/lien-he",    ABOUT : "/about",    FORUM : "/forum",
-    ANALYSIS : "/xet-nghiem",
-    PHARMACY: "/pharmacy",    ADMIN: {
-        INDEX: ADMIN_PATH,
-        DASHBOARD: ADMIN_PATH + "/dashboard",
-        USER_MANAGEMENT: ADMIN_PATH + "/usermanagement",
-        APPOINTMENT_MANAGEMENT: ADMIN_PATH + "/appointments",
-        DOCTOR_MANAGEMENT: ADMIN_PATH + "/doctors",
-        TREATMENT_TRACKING: ADMIN_PATH + "/treatment-tracking"
+    // Main paths
+    HOME: "/",
+    BLOG: "/blog",
+    BLOG_DETAIL: "/blog/:slug",
+    FORUM: "/forum",
+    CONTACT: "/lien-he",
+    ABOUT: "/about",
+    PHARMACY: "/pharmacy",
+    ANALYSIS: "/xet-nghiem",
+    
+    // Product related paths
+    PRODUCTS: PRODUCTS_PATH,
+    PRODUCT_DETAIL: PRODUCTS_PATH + "/:slug",
+    CART: "/cart",
+    CHECKOUT: "/checkout",
+    CHECKOUT_SUCCESS: "/checkout_success",
+    
+    // Information paths
+    DASHBOARD: "/dashboard",
+    FAQ: "/faq",
+    PAYMENT_METHOD: "/payment_method",
+    PRIVACY_POLICY: "/privacy_policy",
+    RETURN: "/return",
+    SHIPPING: "/shipping",
+    
+    // User profile paths
+    PROFILE: {
+        INDEX: PROFILE_PATH,
+        PROFILE_ORDER: PROFILE_PATH + "/order",
+        PROFILE_WISHLIST: PROFILE_PATH + "/wishlist",
+        PROFILE_ADDRESS: PROFILE_PATH + "/address"
     },
     
     // Services paths
@@ -56,4 +61,40 @@ export const PATHS = {
         HIV_TREATMENT: "/knowledge/hiv-treatment",
         STDS: "/knowledge/stds"
     },
-}
+    
+    // Admin paths
+    ADMIN: {
+        INDEX: ADMIN_PATH,
+        DASHBOARD: ADMIN_PATH + "/dashboard",
+        USER_MANAGEMENT: ADMIN_PATH + "/users",
+        APPOINTMENT_MANAGEMENT: ADMIN_PATH + "/appointments",
+        DOCTOR_MANAGEMENT: ADMIN_PATH + "/doctors", 
+        TREATMENT_TRACKING: ADMIN_PATH + "/treatments",
+    },
+    
+    // Doctor paths
+    DOCTOR: {
+        INDEX: DOCTOR_PATH,
+        DASHBOARD: DOCTOR_PATH + "/dashboard",
+        APPOINTMENTS: DOCTOR_PATH + "/appointments",
+        PATIENTS: DOCTOR_PATH + "/patients",
+        PRESCRIPTIONS: DOCTOR_PATH + "/prescriptions",
+    },
+    
+    // Staff paths
+    STAFF: {
+        INDEX: STAFF_PATH,
+        DASHBOARD: STAFF_PATH + "/dashboard",
+        APPOINTMENTS: STAFF_PATH + "/appointments",
+        PATIENTS: STAFF_PATH + "/patients",
+    },
+    
+    // Patient paths
+    PATIENT: {
+        INDEX: PATIENT_PATH,
+        PROFILE: PATIENT_PATH + "/profile",
+        APPOINTMENTS: PATIENT_PATH + "/appointments",
+        PRESCRIPTIONS: PATIENT_PATH + "/prescriptions",
+        MEDICAL_RECORDS: PATIENT_PATH + "/medical-records",
+    }
+};

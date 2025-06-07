@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Button, theme, Avatar, Dropdown } from 'antd';
+import { Layout, Menu, Button, theme, Avatar, Dropdown, message } from 'antd';
 import { 
   MenuFoldOutlined, 
   MenuUnfoldOutlined, 
@@ -14,6 +14,8 @@ import {
 } from '@ant-design/icons';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constant/path';
+import { authenService } from '@/services/authenService';
+import { localToken } from '@/utils/token';
 
 const { Header, Sider, Content } = Layout;
 
@@ -55,10 +57,23 @@ const AdminLayout = () => {
       onClick: () => navigate(PATHS.ADMIN.TREATMENT_TRACKING)
     }
   ];
-  const handleLogout = () => {
-    // In a real app, you would clear authentication tokens here
-    // For example: localStorage.removeItem('token');
-    navigate(PATHS.HOME);
+  const handleLogout = async () => {
+    try {
+      // Call the logout API endpoint
+      await authenService.logout();
+      
+      // Clear local tokens
+      localToken.remove();
+      
+      // Navigate to home page
+      message.success("Logout successful");
+      navigate(PATHS.HOME);
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if API call fails, remove local token and redirect
+      localToken.remove();
+      navigate(PATHS.HOME);
+    }
   };
 
   const userDropdownItems = {

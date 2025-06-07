@@ -10,80 +10,78 @@ import { faUserMd, faStethoscope } from '@fortawesome/free-solid-svg-icons';
 const LoginForm = () => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.auth);
+  const [form] = Form.useForm();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({});
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Email validation
-    if (!email) {
-      newErrors.email = MESSAGE.required;
-    } else if (!REGEX.email.test(email)) {
-      newErrors.email = MESSAGE.email;
-    }
-
-    // Password validation
-    if (!password) {
-      newErrors.password = MESSAGE.required;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const onFinish = (values) => {
+    dispatch(handleLogin(values, () => {
+      form.resetFields();
+      // Add page reload after successful login
+      setTimeout(() => {
+        window.location.reload();
+      }, 500); // Short delay to allow token to be stored
+    }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      dispatch(handleLogin({ email, password }));
-    }
+  // Form validation rules
+  const validationRules = {
+    email: [
+      { required: true, message: MESSAGE.required },
+      { pattern: REGEX.email, message: MESSAGE.email }
+    ],
+    password: [
+      { required: true, message: MESSAGE.required }
+    ]
   };
 
   return (
-    <div className="relative">
+    <div style={{ position: 'relative' }}>
       {loading?.login && (
-        <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-80 z-10 rounded-lg">
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          background: 'rgba(255, 255, 255, 0.8)',
+          zIndex: 10,
+          borderRadius: '8px'
+        }}>
           <Spin size="large" />
         </div>
       )}
       <Form
+        form={form}
         name="login_form"
         layout="vertical"
         initialValues={{ remember: true }}
-        onFinish={handleSubmit}
+        onFinish={onFinish}
         autoComplete="on"
       >
         <Form.Item
           name="email"
-          validateStatus={errors.email ? 'error' : ''}
-          help={errors.email}
+          rules={validationRules.email}
           className="mb-5"
         >
           <Input
             size="large"
             prefix={<UserOutlined className="text-medical-primary" />}
             placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             className="rounded-lg"
           />
         </Form.Item>
 
         <Form.Item
           name="password"
-          validateStatus={errors.password ? 'error' : ''}
-          help={errors.password}
+          rules={validationRules.password}
           className="mb-5"
         >
           <Input.Password
             size="large"
             prefix={<LockOutlined className="text-medical-primary" />}
             placeholder="Mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             className="rounded-lg"
           />
         </Form.Item>

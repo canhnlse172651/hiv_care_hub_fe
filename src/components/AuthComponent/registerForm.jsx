@@ -3,7 +3,7 @@ import { MESSAGE, REGEX } from "@/constant/validate";
 import { useDispatch, useSelector } from "react-redux";
 import { handleRegister } from "@/store/Reducer/authReducer";
 import { Button, Spin, Form, Input, Divider, Alert } from "antd";
-import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined, SafetyOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined, SafetyOutlined, PhoneOutlined } from '@ant-design/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faNotesMedical, faHeartbeat, faHandHoldingMedical } from '@fortawesome/free-solid-svg-icons';
 
@@ -13,6 +13,7 @@ const RegisterForm = () => {
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
@@ -30,6 +31,13 @@ const RegisterForm = () => {
       newErrors.email = MESSAGE.required;
     } else if (!REGEX.email.test(email)) {
       newErrors.email = MESSAGE.email;
+    }
+    
+    // Phone number validation
+    if (!phoneNumber) {
+      newErrors.phoneNumber = MESSAGE.required;
+    } else if (!REGEX.phone?.test(phoneNumber)) {
+      newErrors.phoneNumber = "Số điện thoại không hợp lệ";
     }
     
     // Password validation
@@ -53,10 +61,11 @@ const RegisterForm = () => {
     
     if (validateForm()) {
       const payload = {
-        firstName: name,
-        lastName: "",
+        name: name,
         email: email,
+        phoneNumber: phoneNumber,
         password: password,
+        confirmPassword: confirmPassword
       };
       
       dispatch(handleRegister(payload));
@@ -105,6 +114,22 @@ const RegisterForm = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="rounded-lg"
+          />
+        </Form.Item>
+        
+        <Form.Item
+          name="phoneNumber"
+          validateStatus={errors.phoneNumber ? 'error' : ''}
+          help={errors.phoneNumber}
+          className="mb-4"
+        >
+          <Input 
+            size="large"
+            prefix={<PhoneOutlined className="text-medical-primary" />}
+            placeholder="Số điện thoại"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
             className="rounded-lg"
           />
         </Form.Item>

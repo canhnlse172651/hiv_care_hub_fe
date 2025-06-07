@@ -1,13 +1,19 @@
 import { useMainContext } from "@/contexts/MainContext";
-import { Button, Menu, Dropdown, Badge } from "antd";
+import { Menu, Dropdown, Badge } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHouse, faCaretDown, faBagShopping, faPhone, faRightToBracket, faUserPlus, faUserMd, faStethoscope } from "@fortawesome/free-solid-svg-icons";
-import { Link } from "react-router-dom";
+import { 
+  faHouse, faCaretDown, faBagShopping, faPhone, 
+  faUserCircle, faCalendarCheck, faFilePrescription, 
+  faHeartbeat, faSignOutAlt, faUser, faUserMd
+} from "@fortawesome/free-solid-svg-icons";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getRoutePath } from "@/constant/menuRoutes";
 import { useDispatch, useSelector } from "react-redux";
 import { handleShowModal, handleLogout } from "@/store/Reducer/authReducer";
 import { MODAL_TYPE } from "@/constant/general";
 import { useState } from "react";
+import { getUserRole } from "@/utils/jwt";
+import { PATHS } from "@/constant/path";
 
 const menuItems = {
   services: {
@@ -44,348 +50,108 @@ const menuItems = {
     { key: 'contact', label: 'Liên hệ' },
     { key: 'faq', label: 'Hỏi đáp' }
   ]
-};  // Medical-themed color scheme
-  const medicalTheme = {
-    primary: '#4CAF82', // Calming green for medical setting
-    secondary: '#34767A', // Teal for secondary actions
-    accent: '#E3657C', // Soft red/pink for branding elements
-    light: '#F0F4F8', // Light background for accessibility
-    text: '#2D4A58', // Deep blue/gray for text
-    errorRed: '#FF4D4F' // Standard error red
-  };
-
-  // Convert all CSS to style objects
-  const styles = {
-  headerMiddle: {
-    background: '#fff',
-    boxSizing: 'border-box',
-    width: '100%',
-    zIndex: 100,
-    padding: '0 40px',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-  },
-  topRow: {
-    alignItems: 'center',
-    display: 'flex',
-    flexFlow: 'row nowrap',
-    justifyContent: 'space-between',
-    width: '100%',
-    maxWidth: '1100px',
-    margin: '0 auto',
-    gap: '8px',
-  },
-  branch: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  logo: {
-    flexShrink: 0,
-    maxHeight: '70px',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  branchName: {
-    fontWeight: 600,
-    fontSize: '18px',
-    color: '#222',
-  },
-  searchbar: {
-    maxWidth: '800px',
-    flex: 1,
-    margin: '0 24px',
-  },
-  searchbarWrapper: {
-    position: 'relative',
-    width: '100%',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  searchInput: {
-    width: '100%',
-    padding: '8px 40px 8px 16px',
-    borderRadius: '999px',
-    border: '1px solid #d9d9d9',
-    fontSize: '16px',
-    transition: 'border-color 0.2s',
-    background: '#fff',
-  },
-  searchIcon: {
-    position: 'absolute',
-    right: '14px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    color: '#bfbfbf',
-    pointerEvents: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  phoneButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    height: '32px',
-    padding: '0 16px',
-  },
-  phoneIcon: {
-    fontSize: '14px',
-  },
-  phoneText: {
-    fontWeight: 600,
-  },  loginButton: {
-    minWidth: '160px',
-    height: '38px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '0 16px',
-    backgroundColor: medicalTheme.primary,
-    borderColor: medicalTheme.primary,
-    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-    transition: 'all 0.3s ease',
-  },
-  loginButtonHover: {
-    backgroundColor: '#3D9A6D', // Slightly darker shade of primary
-    borderColor: '#3D9A6D',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
-  },
-  loginText: {
-    fontWeight: 600,
-    lineHeight: 1,
-    color: 'white',
-  },
-  cartButton: {
-    width: '32px',
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '14px',
-  },
-  badge: {
-    display: 'flex',
-  },
-  cartDropdown: {
-    background: 'white',
-    boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08)',
-    borderRadius: '8px',
-    padding: '24px',
-    minWidth: '300px',
-  },
-  cartEmpty: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textAlign: 'center',
-    padding: '24px 0',
-  },
-  cartEmptyIcon: {
-    fontSize: '48px',
-    color: '#bfbfbf',
-    marginBottom: '16px',
-  },
-  cartEmptyText: {
-    color: '#8c8c8c',
-    marginBottom: '16px',
-    fontSize: '16px',
-  },
-  cartEmptyButton: {
-    minWidth: '160px',
-  },
-  bottomRow: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderTop: '1px solid #f0f0f0',
-    padding: '8px 0',
-    maxWidth: '1100px',
-    margin: '0 auto',
-    width: '100%',
-    overflowX: 'auto',
-    msOverflowStyle: 'none',
-    scrollbarWidth: 'none',
-  },
-  homeIcon: {
-    fontSize: '22px',
-    marginRight: '32px',
-    cursor: 'pointer',
-    transition: 'color 0.2s',
-    color: 'black',
-    flexShrink: 0,
-  },
-  tabs: {
-    background: 'transparent',
-    border: 'none',
-    display: 'flex',
-    flexWrap: 'nowrap',
-    whiteSpace: 'nowrap',
-    width: 'auto',
-    overflowX: 'visible',
-  },
-  menuItem: {
-    padding: '0 16px',
-    margin: '0 4px',
-    fontWeight: 500,
-    fontSize: '16px',
-    color: '#222',
-    flexShrink: 0,
-  },
-  dropdownIcon: {
-    marginLeft: '4px',
-    fontSize: '14px',
-  },
-  // Media query styles will be handled with conditional rendering
-  // or dynamic style generation based on window width
-};
-
-// Function to handle responsive styles
-const getResponsiveStyles = (width) => {
-  if (width <= 480) {
-    return {
-      headerMiddle: {
-        ...styles.headerMiddle,
-        padding: '0 8px',
-      },
-      bottomRow: {
-        ...styles.bottomRow,
-        padding: '8px 2px',
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-      },
-      homeIcon: {
-        ...styles.homeIcon,
-        marginRight: '8px',
-        fontSize: '18px',
-      },
-      menuItem: {
-        ...styles.menuItem,
-        padding: '0 8px',
-        margin: '0 1px',
-        fontSize: '13px',
-      },
-    };
-  } else if (width <= 768) {
-    return {
-      headerMiddle: {
-        ...styles.headerMiddle,
-        paddingLeft: '8px',
-        paddingRight: '8px',
-      },
-      topRow: {
-        ...styles.topRow,
-        flexDirection: 'column',
-        alignItems: 'stretch',
-        gap: '12px',
-        padding: '12px 8px',
-      },
-      searchbar: {
-        ...styles.searchbar,
-        margin: '0 0 12px 0',
-      },
-      bottomRow: {
-        ...styles.bottomRow,
-        justifyContent: 'flex-start',
-        padding: '8px 4px',
-      },
-      menuItem: {
-        ...styles.menuItem,
-        padding: '0 10px',
-        margin: '0 2px',
-        fontSize: '14px',
-      },
-      homeIcon: {
-        ...styles.homeIcon,
-        marginRight: '16px',
-      },
-      cartDropdown: {
-        ...styles.cartDropdown,
-        minWidth: '260px',
-      },
-      loginButton: {
-        ...styles.loginButton,
-        minWidth: '140px',
-      },
-    };
-  } else if (width <= 992) {
-    return {
-      bottomRow: {
-        ...styles.bottomRow,
-        justifyContent: 'flex-start',
-        padding: '8px 16px',
-      },
-      menuItem: {
-        ...styles.menuItem,
-        padding: '0 12px',
-        fontSize: '15px',
-      },
-    };
-  }
-  return {};
 };
 
 const HeaderMidle = () => {
   const { handleShowMobileMenu } = useMainContext();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useSelector(state => state.auth);
   const [loginBtnHovered, setLoginBtnHovered] = useState(false);
   
-  // In a real implementation, you would use React's useState and useEffect
-  // to track window width and apply responsive styles
-  const windowWidth = window.innerWidth;
-  const responsiveStyles = getResponsiveStyles(windowWidth);
+  // Check for token in local storage
+  const authData = localStorage.getItem('auth');
+  const hasToken = authData ? JSON.parse(authData)?.accessToken : null;
+  const userId = authData ? JSON.parse(authData)?.userId : null;
+  const userRole = getUserRole(userId);
+  const currentPath = location.pathname;
   
-  // Merge base styles with responsive styles
-  const mergedStyles = {
-    headerMiddle: {...styles.headerMiddle, ...responsiveStyles.headerMiddle},
-    topRow: {...styles.topRow, ...responsiveStyles.topRow},
-    bottomRow: {...styles.bottomRow, ...responsiveStyles.bottomRow},
-    homeIcon: {...styles.homeIcon, ...responsiveStyles.homeIcon},
-    menuItem: {...styles.menuItem, ...responsiveStyles.menuItem},
-    // Add other merged styles as needed
+  // Navigation handlers for patient menu items
+  const handleProfileClick = () => {
+    navigate(PATHS.PATIENT.PROFILE);
   };
 
-  const userMenu = (
+  const handleAppointmentsClick = () => {
+    navigate(PATHS.PATIENT.APPOINTMENTS);
+  };
+
+  const handlePrescriptionsClick = () => {
+    navigate(PATHS.PATIENT.PRESCRIPTIONS);
+  };
+
+  const handleMedicalRecordsClick = () => {
+    navigate(PATHS.PATIENT.MEDICAL_RECORDS);
+  };
+
+  // Patient menu items for dropdown
+  const patientMenu = (
     <Menu>
-      <Menu.Item key="profile">
-        <FontAwesomeIcon icon={faUserMd} style={{ marginRight: '8px', color: medicalTheme.primary }} />
-        Thông tin tài khoản
+      <Menu.Item key="profile" onClick={handleProfileClick}>
+        <FontAwesomeIcon icon={faUserCircle} className="mr-2 text-blue-500" />
+        Thông tin cá nhân
       </Menu.Item>
-      <Menu.Item key="orders">Đơn hàng của tôi</Menu.Item>
+      <Menu.Item key="appointments" onClick={handleAppointmentsClick}>
+        <FontAwesomeIcon icon={faCalendarCheck} className="mr-2 text-blue-500" />
+        Lịch hẹn của tôi
+      </Menu.Item>
+      <Menu.Item key="prescriptions" onClick={handlePrescriptionsClick}>
+        <FontAwesomeIcon icon={faFilePrescription} className="mr-2 text-blue-500" />
+        Đơn thuốc
+      </Menu.Item>
+      <Menu.Item key="medical-records" onClick={handleMedicalRecordsClick}>
+        <FontAwesomeIcon icon={faHeartbeat} className="mr-2 text-blue-500" />
+        Hồ sơ y tế
+      </Menu.Item>
       <Menu.Divider />
       <Menu.Item 
         key="logout"
         onClick={() => dispatch(handleLogout())}
       >
+        <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 text-red-500" />
+        Đăng xuất
+      </Menu.Item>
+    </Menu>
+  );
+
+  // Admin/Staff/Doctor menu
+  const userMenu = (
+    <Menu>
+      <Menu.Item key="profile">
+        <FontAwesomeIcon icon={faUserMd} className="mr-2 text-blue-500" />
+        Thông tin tài khoản
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item 
+        key="logout"
+        onClick={() => dispatch(handleLogout())}
+      >
+        <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 text-red-500" />
         Đăng xuất
       </Menu.Item>
     </Menu>
   );
 
   return (
-    <div style={mergedStyles.headerMiddle} className="sticky-header">
-      {/* Top Row: Branch, Searchbar, Phone, Login */}
-      <div style={mergedStyles.topRow}>
-        {/* Branch */}
-        <div style={styles.branch}>
+    <div className="bg-white w-full z-50 fixed top-0 left-0 shadow-md px-4 md:px-10">
+      {/* Top Row: Brand, Searchbar, Phone, Login */}
+      <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-[1100px] mx-auto gap-2 md:gap-8 py-3">
+        {/* Brand */}
+        <div className="flex items-center justify-start">
           <Link to="/">
-            <img src="/assets/logo.png" alt="Logo" style={styles.logo} />
+            <img src="/assets/logo.png" alt="Logo" className="max-h-[70px] flex-shrink-0" />
           </Link>
         </div>
+        
         {/* Searchbar */}
-        <div style={styles.searchbar}>
-          <div style={styles.searchbarWrapper}>
+        <div className="flex-1 w-full max-w-[800px] mx-0 md:mx-6">
+          <div className="relative flex items-center w-full">
             <input
               type="text"
               placeholder="Search..."
-              style={styles.searchInput}
+              className="w-full px-4 py-2 pr-10 rounded-full border border-gray-300 text-base transition-colors focus:outline-none focus:border-blue-500"
             />
-            <span style={styles.searchIcon}>
+            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <circle cx="11" cy="11" r="7" strokeWidth="2" />
                 <line x1="16.5" y1="16.5" x2="21" y2="21" strokeWidth="2" strokeLinecap="round" />
@@ -393,85 +159,101 @@ const HeaderMidle = () => {
             </span>
           </div>
         </div>
-        {/* Phone Button */}
-        <Button 
-          color="primary" 
-          variant="outlined" 
-          shape="round" 
-          size={50} 
-          style={styles.phoneButton}
-        >
-          <FontAwesomeIcon icon={faPhone} style={styles.phoneIcon} />
-          <span style={styles.phoneText}>0938848615</span>
-        </Button>        {/* Login/User Button */}        {profile ? (
-          <Dropdown 
-            menu={userMenu}
-            placement="bottomRight"
-            arrow
-          >
-            <Button 
-              type="primary" 
-              shape="round" 
-              style={styles.loginButton}
+        
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Phone Button */}
+          <button className="flex items-center justify-center gap-2 h-8 px-4 border border-blue-500 rounded-full text-blue-500 hover:bg-blue-50">
+            <FontAwesomeIcon icon={faPhone} className="text-sm" />
+            <span className="font-semibold">0938848615</span>
+          </button>
+          
+          {/* Login/User Button */}        
+          {(profile || hasToken) ? (
+            <Dropdown 
+              overlay={userRole === 'patient' ? patientMenu : userMenu}
+              placement="bottomRight"
+              arrow
+              trigger={['click', 'hover']}
+            >
+              <button 
+                className={`min-w-[140px] md:min-w-[160px] h-[38px] flex items-center justify-center px-4 rounded-full bg-blue-500 text-white font-semibold transition-all duration-300 ${
+                  loginBtnHovered ? "shadow-md -translate-y-0.5" : ""
+                }`}
+                onMouseEnter={() => setLoginBtnHovered(true)}
+                onMouseLeave={() => setLoginBtnHovered(false)}
+              >
+                <FontAwesomeIcon 
+                  icon={userRole === 'patient' ? faUser : faUserMd} 
+                  className="mr-2" 
+                />
+                <span>
+                  {profile?.firstName || "Tài khoản"}
+                </span>
+              </button>
+            </Dropdown>
+          ) : (
+            <button 
+              className={`min-w-[140px] md:min-w-[160px] h-[38px] flex items-center justify-center px-4 rounded-full bg-blue-500 text-white font-semibold transition-all duration-300 ${
+                loginBtnHovered ? "shadow-md -translate-y-0.5" : ""
+              }`}
+              onClick={() => dispatch(handleShowModal(MODAL_TYPE.login))}
               onMouseEnter={() => setLoginBtnHovered(true)}
               onMouseLeave={() => setLoginBtnHovered(false)}
             >
-              <FontAwesomeIcon icon={faUserMd} style={{ marginRight: '8px' }} />
-              <span style={styles.loginText}>
-                {profile.firstName || "Tài khoản"}
-              </span>
-            </Button>
-          </Dropdown>
-        ) : (          <Button 
-            color="primary" variant="solid" shape="round" size={50}
-            onClick={() => dispatch(handleShowModal(MODAL_TYPE.login))}
-            onMouseEnter={() => setLoginBtnHovered(true)}
-            onMouseLeave={() => setLoginBtnHovered(false)}
-          >
-            <span style={styles.loginText}>ĐĂNG NHẬP/ĐĂNG KÝ</span>
-          </Button>
-        )}
+              <span>ĐĂNG NHẬP/ĐĂNG KÝ</span>
+            </button>
+          )}
 
-        {/* Shopping Cart Button */}
-        <Dropdown
-          overlay={
-            <div style={styles.cartDropdown}>
-              <div style={styles.cartEmpty}>
-                <FontAwesomeIcon 
-                  icon={faBagShopping} 
-                  style={styles.cartEmptyIcon} 
-                />
-                <p style={styles.cartEmptyText}>Chưa có sản phẩm trong giỏ hàng</p>
-                <Button type="primary" style={styles.cartEmptyButton}>
-                  Quay lại cửa hàng
-                </Button>
+          {/* Shopping Cart Button */}
+          <Dropdown
+            overlay={
+              <div className="bg-white rounded-lg shadow-lg p-6 min-w-[260px] md:min-w-[300px]">
+                <div className="flex flex-col items-center text-center py-6">
+                  <FontAwesomeIcon 
+                    icon={faBagShopping} 
+                    className="text-4xl text-gray-400 mb-4" 
+                  />
+                  <p className="text-gray-500 mb-4">Chưa có sản phẩm trong giỏ hàng</p>
+                  <button className="px-4 py-2 bg-blue-500 text-white rounded min-w-[160px] hover:bg-blue-600 transition-colors">
+                    Quay lại cửa hàng
+                  </button>
+                </div>
               </div>
-            </div>
-          }
-          trigger={['hover']}
-          placement="bottomRight"
-        >
-          <Badge count={0} size="small" style={styles.badge}>
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<FontAwesomeIcon icon={faBagShopping} />}
-              style={styles.cartButton}
-            />
-          </Badge>
-        </Dropdown>
-      </div>
-      <div style={mergedStyles.bottomRow}>
-        <Link to="/">
-          <span 
-            style={mergedStyles.homeIcon} 
-            role="img" 
-            aria-label="home"
+            }
+            trigger={['hover']}
+            placement="bottomRight"
           >
-            <FontAwesomeIcon icon={faHouse} />
-          </span>
+            <Badge count={0} size="small">
+              <button className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm">
+                <FontAwesomeIcon icon={faBagShopping} />
+              </button>
+            </Badge>
+          </Dropdown>
+        </div>
+      </div>
+      
+      {/* Bottom Row: Navigation Menu - Increased height and centered */}
+      <div className="flex justify-center items-center border-t border-gray-100 py-4 max-w-[1100px] mx-auto w-full overflow-x-auto">
+        <Link to="/" className="text-xl md:text-2xl mr-4 md:mr-8 flex-shrink-0 text-black hover:text-blue-500 transition-colors">
+          <FontAwesomeIcon icon={faHouse} />
         </Link>
-        <Menu mode="horizontal" style={styles.tabs}>
+        
+        {/* Custom styling to remove the ant-design underlines */}
+        <style jsx>{`
+          .ant-menu-horizontal > .ant-menu-item::after,
+          .ant-menu-horizontal > .ant-menu-submenu::after {
+            border-bottom: none !important;
+          }
+          .ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-item-selected {
+            border-bottom: none !important;
+          }
+          .ant-menu-horizontal {
+            border-bottom: none !important;
+            line-height: 46px !important;
+          }
+        `}</style>
+        
+        <Menu mode="horizontal" className="bg-transparent border-none flex flex-nowrap whitespace-nowrap justify-center">
           <Dropdown
             overlay={
               <Menu>
@@ -480,21 +262,22 @@ const HeaderMidle = () => {
                 ))}
               </Menu>
             }
+            trigger={[currentPath === getRoutePath('services') ? 'hover' : 'click']}
           >
-            <Menu.Item key={menuItems.services.key} style={mergedStyles.menuItem}>
+            <Menu.Item key={menuItems.services.key} className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
               {menuItems.services.label} 
               <FontAwesomeIcon 
                 icon={faCaretDown} 
-                style={styles.dropdownIcon} 
+                className="ml-1 text-xs" 
               />
             </Menu.Item>
           </Dropdown>
           
           {/* HIV Test and Pharmacy items */}
-          <Menu.Item key="hiv-test" style={mergedStyles.menuItem}>
+          <Menu.Item key="hiv-test" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
             <Link to={getRoutePath('hiv-test')}>Xét nghiệm HIV</Link>
           </Menu.Item>
-          <Menu.Item key="pharmacy" style={mergedStyles.menuItem}>
+          <Menu.Item key="pharmacy" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
             <Link to={getRoutePath('pharmacy')}>Nhà thuốc</Link>
           </Menu.Item>
 
@@ -507,12 +290,13 @@ const HeaderMidle = () => {
                 ))}
               </Menu>
             }
+            trigger={[currentPath === getRoutePath('news') ? 'hover' : 'click']}
           >
-            <Menu.Item key={menuItems.news.key} style={mergedStyles.menuItem}>
+            <Menu.Item key={menuItems.news.key} className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
               {menuItems.news.label} 
               <FontAwesomeIcon 
                 icon={faCaretDown} 
-                style={styles.dropdownIcon} 
+                className="ml-1 text-xs" 
               />
             </Menu.Item>
           </Dropdown>
@@ -526,21 +310,22 @@ const HeaderMidle = () => {
                 ))}
               </Menu>
             }
+            trigger={[currentPath === getRoutePath('knowledge') ? 'hover' : 'click']}
           >
-            <Menu.Item key={menuItems.knowledge.key} style={mergedStyles.menuItem}>
+            <Menu.Item key={menuItems.knowledge.key} className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
               {menuItems.knowledge.label} 
               <FontAwesomeIcon 
                 icon={faCaretDown} 
-                style={styles.dropdownIcon} 
+                className="ml-1 text-xs" 
               />
             </Menu.Item>
           </Dropdown>
           
           {/* Contact and FAQ items */}
-          <Menu.Item key="contact" style={mergedStyles.menuItem}>
+          <Menu.Item key="contact" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
             <a href="/lien-he">Liên hệ</a>
           </Menu.Item>
-          <Menu.Item key="faq" style={mergedStyles.menuItem}>
+          <Menu.Item key="faq" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
             <a href="/forum">Hỏi đáp</a>
           </Menu.Item>
         </Menu>

@@ -4,62 +4,108 @@ import { localToken } from "./token";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
+  // Add timeout to prevent hanging requests
+  timeout: 15000,
 });
 
+// Request interceptor
 axiosInstance.interceptors.request.use(
-  // config request before sent to sever
   (config) => {
-    config.headers.Authorization = `Bearer ${localToken.get()?.accessToken}`;
-    console.log("config", config);
+    const token = localToken.get()?.accessToken;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Log outgoing requests (helpful for debugging)
+    console.log(
+      `API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`,
+      {
+        headers: config.headers,
+        data: config.data,
+      }
+    );
+
     return config;
   },
   (error) => {
+    console.error("Request error:", error);
     return Promise.reject(error);
   }
 );
 
-// Interceptor cho phép can thiệp vào quá trình nhận phản hồi (RESPONSE) từ server.
+// Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
+    // Log successful responses (helpful for debugging)
+    console.log(
+      `API Response: ${response.status} ${response.config.url}`,
+      {
+        data: response.data,
+      }
+    );
+
     return response;
   },
   async (error) => {
-    console.log("error", error);
+    // Log detailed error information
+    console.error("Response error:", {
+      url: error.config?.url,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+    });
+
     const originalRequest = error.config;
 
-    // Nếu mã lỗi 403 hoặc 401 và request không chứa key _retry
+    // Handle token refresh for 401/403 errors
     if (
       (error.response?.status === 403 || error.response?.status === 401) &&
       !!!originalRequest._retry
     ) {
       originalRequest._retry = true;
-      try {
-        // Gọi API để cập nhật token mới
-        const res = await axiosInstance.put("/customer/refresh", {
-          refreshToken: localToken.get()?.refreshToken,
-        });
-        const { token: accessToken, refreshToken } = res.data.data || {};
 
-        // Lưu lại token mới vào local storage hoặc cookie
+      try {
+        console.log("Attempting token refresh");
+        const refreshToken = localToken.get()?.refreshToken;
+
+        if (!refreshToken) {
+          console.log("No refresh token available");
+          throw new Error("No refresh token");
+        }
+
+        const res = await axios.post(
+          `${BASE_URL}/auth/refresh-token`,
+          { refreshToken },
+          { skipAuthRefresh: true } // Prevent infinite loops
+        );
+
+        console.log("Token refresh response:", res.data);
+
+        const { token: accessToken, refreshToken: newRefreshToken } =
+          res.data.data || {};
+
+        // Save new tokens
         localToken.set({
           accessToken,
-          refreshToken,
+          refreshToken: newRefreshToken,
         });
 
-        // Thay đổi token trong header của yêu cầu ban đầu
+        // Update auth header and retry request
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-        // Gọi lại yêu cầu ban đầu với token mới
         return axiosInstance(originalRequest);
-      } catch (error) {
-        console.log(error);
-        // Xử lý lỗi nếu không thể cập nhật token mới
-        localToken.remove();
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+
+        // Don't immediately remove token and redirect
+        // Instead, let the calling code handle this specific error
+
+        // Return the original error to be handled by calling code
+        return Promise.reject(error);
       }
     }
 
-    // Nếu lỗi không phải 403 hoặc 401, trả về lỗi ban đầu
     return Promise.reject(error);
   }
 );
+
 export default axiosInstance;
