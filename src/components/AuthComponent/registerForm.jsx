@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { MESSAGE, REGEX } from "@/constant/validate";
 import { useDispatch, useSelector } from "react-redux";
 import { handleRegister } from "@/store/Reducer/authReducer";
-import { Button, Spin, Form, Input, Divider, Alert } from "antd";
+import { Button, Spin, Form, Input, Divider, Alert, message } from "antd";
 import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined, SafetyOutlined, PhoneOutlined } from '@ant-design/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faNotesMedical, faHeartbeat, faHandHoldingMedical } from '@fortawesome/free-solid-svg-icons';
+import { authenService } from "@/services/authenService";
 
 const RegisterForm = () => {
   const dispatch = useDispatch();
@@ -17,6 +18,8 @@ const RegisterForm = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -56,34 +59,75 @@ const RegisterForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      const payload = {
-        name: name,
-        email: email,
-        phoneNumber: phoneNumber,
-        password: password,
-        confirmPassword: confirmPassword
-      };
+      setIsSubmitting(true);
+      setApiError('');
       
-      dispatch(handleRegister(payload));
+      try {
+        // Prepare payload for API with the right field names
+        const payload = {
+          name: name,
+          email: email,
+          phoneNumber: phoneNumber,
+          password: password
+        };
+        
+        // Call API directly first
+        const response = await authenService.register(payload);
+        console.log('Registration response:', response);
+        // Check response and handle success
+        if (response?.data) {
+          message.success('Đăng ký tài khoản thành công!');
+          
+          // If you need to login automatically after registration,
+          // use the redux dispatch for login flow
+          dispatch(handleRegister({
+            email: email,
+            password: password
+          }));
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        
+        // Extract error message from API response
+        const errorMessage = error.response?.data?.message || 
+                            'Đăng ký không thành công. Vui lòng thử lại sau.';
+        
+        setApiError(errorMessage);
+        message.error(errorMessage);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
   return (
     <div className="relative">
-      {loading?.register && (
+      {(loading?.register || isSubmitting) && (
         <div className="absolute inset-0 flex justify-center items-center bg-white/80 z-10 rounded-lg">
           <Spin size="large" />
         </div>
       )}
 
+      {apiError && (
+        <Alert 
+          message="Lỗi đăng ký" 
+          description={apiError} 
+          type="error" 
+          showIcon 
+          className="mb-4"
+          closable
+          onClose={() => setApiError('')}
+        />
+      )}
+
       <Form
         name="register_form"
         layout="vertical"
-        onFinish={handleSubmit}
+        onFinish={() => handleSubmit(new Event('submit'))}
         autoComplete="off"
       >
         <Form.Item
@@ -171,7 +215,8 @@ const RegisterForm = () => {
             type="primary" 
             htmlType="submit" 
             className="w-full h-11 text-base font-semibold rounded-lg bg-medical-primary border-medical-primary hover:bg-medical-primary/90 hover:border-medical-primary/90"
-            loading={loading?.register}
+            loading={loading?.register || isSubmitting}
+            disabled={loading?.register || isSubmitting}
             icon={<FontAwesomeIcon icon={faHandHoldingMedical} className="mr-2" />}
           >
             ĐĂNG KÝ

@@ -32,9 +32,9 @@ export const decodeJwt = (token) => {
 // Define user roles as constants
 export const USER_ROLES = {
   ADMIN: 1,
-  DOCTOR: 2,
+  DOCTOR: 5,
   STAFF: 3,
-  PATIENT: 4
+  PATIENT: 7
 };
 
 /**
@@ -46,11 +46,12 @@ export const getUserRole = (userId) => {
   // In a real app, you'd decode this from JWT or get it from user object
   switch (userId) {
     case 1:
-    case 3:
       return 'admin';
-    case 2:
+    case 5:
       return 'doctor';
-    case 4:
+    case 3:
+      return 'staff';
+    case 7:
       return 'patient';
     default:
       return 'user'; // Default role
@@ -66,16 +67,30 @@ export const hasRole = (userId, requiredRole) => {
   
   // For admin specific check
   if (requiredRole === USER_ROLES.ADMIN) {
-    const isAdminUser = userId === 1 || userId === 3;
+    const isAdminUser = userId === 1;
     console.log(`Is admin? ${isAdminUser}`);
     return isAdminUser;
   }
   
+  // For staff specific check
+  if (requiredRole === USER_ROLES.STAFF) {
+    const isStaffUser = userId === 3;
+    console.log(`Is staff? ${isStaffUser}`);
+    return isStaffUser;
+  }
+  
   // For patient specific check
   if (requiredRole === USER_ROLES.PATIENT) {
-    const isPatient = userId === 4;
+    const isPatient = userId === 7;
     console.log(`Is patient? ${isPatient}`);
     return isPatient;
+  }
+
+  // For admin specific check
+  if (requiredRole === USER_ROLES.DOCTOR) {
+    const isDoctor = userId === 5;
+    console.log(`Is doctor? ${isDoctor}`);
+    return isDoctor;
   }
   
   // Add other role checks as needed

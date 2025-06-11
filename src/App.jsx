@@ -2,6 +2,8 @@ import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import StaffLayout from "./layouts/StaffLayout";
+import DoctorLayout from "./layouts/DoctorLayout";
 import HomePage from "./pages/landscape/home";
 import Forum from "./pages/landscape/forum";
 import Contact from "./pages/landscape/contact";
@@ -18,11 +20,21 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { handleGetProfile } from "./store/Reducer/authReducer";
 import { localToken } from "./utils/token";
-import { AdminRoute, PatientRoute } from "./components/RouteProtection/ProtectedRoute";
+import { 
+  AdminRoute, 
+  PatientRoute 
+} from "./components/RouteProtection/ProtectedRoute";
+import StaffRoute from "./components/RouteProtection/StaffRoute";
+import DoctorRoute from "./components/RouteProtection/DoctorRoute";
 import PatientProfile from "./pages/patient/profile";
-// import PatientAppointments from "./pages/patient/appointments";
-// import PatientPrescriptions from "./pages/patient/prescriptions";
-// import PatientMedicalRecords from "./pages/patient/medical-records";
+import StaffDashboard from "./pages/staff/dashboard";
+import StaffPayment from "./pages/staff/payment";
+import StaffPatients from "./pages/staff/patients";
+import DoctorDashboard from "./pages/doctor/dashboard";
+import ConsultationPage from "./pages/doctor/consultation";
+import MedicalRecordsPage from "./pages/doctor/medical-records";
+import DoctorSchedulePage from "./pages/doctor/schedule";  // Add this import
+import TreatmentProtocolPage from "./pages/doctor/regimens";
 
 function App() {
   const dispatch = useDispatch();
@@ -55,7 +67,7 @@ function App() {
           </Route>
         </Route>
         
-        {/* Admin Routes - Make sure we're only using one AdminRoute component */}
+        {/* Admin Routes */}
         <Route path={PATHS.ADMIN.INDEX} element={
           <AdminRoute>
             <AdminLayout />
@@ -69,7 +81,32 @@ function App() {
           <Route path="treatments" element={<TreatmentTracking />} />
         </Route>
         
-        {/* Other routes for doctor, staff, etc. */}
+        {/* Staff Routes */}
+        <Route path={PATHS.STAFF.INDEX} element={
+          <StaffRoute>
+            <StaffLayout />
+          </StaffRoute>
+        }>
+          <Route index element={<StaffDashboard />} />
+          <Route path="dashboard" element={<StaffDashboard />} />
+          <Route path="payment" element={<StaffPayment />} />
+          <Route path="patients" element={<StaffPatients />} />
+        </Route>
+        
+        {/* Doctor Routes */}
+        <Route path="/doctor" element={
+          <DoctorRoute>
+            <DoctorLayout />
+          </DoctorRoute>
+        }>
+          <Route index element={<DoctorDashboard />} />
+          <Route path="dashboard" element={<DoctorDashboard />} />
+          <Route path="consultation/:appointmentId" element={<ConsultationPage />} />
+          <Route path="medical-records/:patientId" element={<MedicalRecordsPage />} />
+          <Route path="schedule" element={<DoctorSchedulePage />} />
+          <Route path="regimens" element={<TreatmentProtocolPage />} />
+          {/* Additional doctor routes would go here */}
+        </Route>
       </Routes>
       <AuthComponent />
     </>

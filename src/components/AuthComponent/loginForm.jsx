@@ -2,24 +2,31 @@ import React, { useState } from "react";
 import { MESSAGE, REGEX } from "@/constant/validate";
 import { useDispatch, useSelector } from "react-redux";
 import { handleLogin } from "@/store/Reducer/authReducer";
-import { Button, Spin, Form, Input, Checkbox, Divider } from "antd";
+import { Button, Spin, Form, Input, Checkbox, Divider, Alert } from "antd";
 import { UserOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserMd, faStethoscope } from '@fortawesome/free-solid-svg-icons';
 
 const LoginForm = () => {
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.auth);
+  const { loading, error } = useSelector((state) => state.auth);
   const [form] = Form.useForm();
+  const [loginError, setLoginError] = useState(null);
 
   const onFinish = (values) => {
+    setLoginError(null); // Clear previous errors
+    
+    // We'll pass a callback for success only, not automatically reloading
     dispatch(handleLogin(values, () => {
       form.resetFields();
-      // Add page reload after successful login
-      setTimeout(() => {
-        window.location.reload();
-      }, 500); // Short delay to allow token to be stored
-    }));
+      // Only reload on successful login
+      window.location.reload();
+    })).catch((err) => {
+      // Set error message from API response
+      const errorMessage = err?.response?.data?.message || 
+                          "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.";
+      setLoginError(errorMessage);
+    });
   };
 
   // Form validation rules
@@ -52,6 +59,20 @@ const LoginForm = () => {
           <Spin size="large" />
         </div>
       )}
+      
+      {/* Display API error message */}
+      {(loginError || error?.login) && (
+        <Alert
+          message="Lỗi đăng nhập"
+          description={loginError || (typeof error?.login === 'string' ? error.login : "Tài khoản hoặc mật khẩu không đúng")}
+          type="error"
+          showIcon
+          closable
+          className="mb-4"
+          onClose={() => setLoginError(null)}
+        />
+      )}
+      
       <Form
         form={form}
         name="login_form"
