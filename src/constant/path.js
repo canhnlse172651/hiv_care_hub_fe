@@ -9,21 +9,20 @@ const PATIENT_PATH = "/patient";
 export const PATHS = {
     // Main paths
     HOME: "/",
-    BLOG: "/blog",
-    BLOG_DETAIL: "/blog/:slug",
+    LOGIN: "/login",
+    REGISTER: "/register",
     FORUM: "/forum",
     CONTACT: "/lien-he",
-    ABOUT: "/about",
-    PHARMACY: "/pharmacy",
-    ANALYSIS: "/xet-nghiem",
-    
+    ANALYSIS: "/xet-nghiem-hiv",
+    PHARMACY: "/nha-thuoc",
+
     // Product related paths
     PRODUCTS: PRODUCTS_PATH,
     PRODUCT_DETAIL: PRODUCTS_PATH + "/:slug",
     CART: "/cart",
     CHECKOUT: "/checkout",
     CHECKOUT_SUCCESS: "/checkout_success",
-    
+
     // Information paths
     DASHBOARD: "/dashboard",
     FAQ: "/faq",
@@ -31,7 +30,7 @@ export const PATHS = {
     PRIVACY_POLICY: "/privacy_policy",
     RETURN: "/return",
     SHIPPING: "/shipping",
-    
+
     // User profile paths
     PROFILE: {
         INDEX: PROFILE_PATH,
@@ -39,7 +38,7 @@ export const PATHS = {
         PROFILE_WISHLIST: PROFILE_PATH + "/wishlist",
         PROFILE_ADDRESS: PROFILE_PATH + "/address"
     },
-    
+
     // Services paths
     SERVICES: {
         COUNSELING: "/services/counseling",
@@ -48,50 +47,51 @@ export const PATHS = {
         SUPPORT: "/services/support",
         OTHERS: "/services/others"
     },
-    
+
     // News paths
     NEWS: {
         PREP_FREE: "/news/prep-free",
         PRESS: "/news/press",
         PREP_COMMERCIAL: "/news/prep-commercial"
     },
-    
+
     // Knowledge paths
     KNOWLEDGE: {
         HIV_TREATMENT: "/knowledge/hiv-treatment",
         STDS: "/knowledge/stds"
     },
-    
+
     // Admin paths
     ADMIN: {
         INDEX: ADMIN_PATH,
         DASHBOARD: ADMIN_PATH + "/dashboard",
         USER_MANAGEMENT: ADMIN_PATH + "/users",
         APPOINTMENT_MANAGEMENT: ADMIN_PATH + "/appointments",
-        DOCTOR_MANAGEMENT: ADMIN_PATH + "/doctors", 
+        DOCTOR_MANAGEMENT: ADMIN_PATH + "/doctors",
         TREATMENT_TRACKING: ADMIN_PATH + "/treatments",
     },
-    
+
     // Doctor paths
     DOCTOR: {
         INDEX: DOCTOR_PATH,
         DASHBOARD: DOCTOR_PATH + "/dashboard",
-        APPOINTMENTS: DOCTOR_PATH + "/appointments",
+        CONSULTATION: DOCTOR_PATH + "/consultation",
+        MEDICAL_RECORDS: DOCTOR_PATH + "/medical-records",
         PATIENTS: DOCTOR_PATH + "/patients",
-        PRESCRIPTIONS: DOCTOR_PATH + "/prescriptions",
+        APPOINTMENTS: DOCTOR_PATH + "/appointments",
+        REGIMENS: DOCTOR_PATH + "/regimens"
     },
-    
+
     // Staff paths
     STAFF: {
         INDEX: STAFF_PATH,
         DASHBOARD: STAFF_PATH + "/dashboard",
-        APPOINTMENTS: STAFF_PATH + "/appointments",
-        PATIENTS: STAFF_PATH + "/patients",
+        PAYMENT: STAFF_PATH + "/payment",
+        PATIENTS: STAFF_PATH + "/patients"
     },
-    
+
     // Patient paths
     PATIENT: {
-        INDEX: PATIENT_PATH,
         PROFILE: PATIENT_PATH + "/profile",
         APPOINTMENTS: PATIENT_PATH + "/appointments",
         PRESCRIPTIONS: PATIENT_PATH + "/prescriptions",
