@@ -14,40 +14,44 @@ export const ProtectedRoute = ({
   redirectPath = PATHS.HOME,
   children 
 }) => {
-  const authData = localToken.get();
-  const isAuthorized = authData?.userId && hasRole(authData.userId, requiredRole);
+  const auth = localToken.get();
+  const userId = auth?.userId || null;
+  
+  // Check if user is authenticated and has the required role
+  const isAuthorized = auth?.accessToken && hasRole(parseInt(userId), requiredRole);
 
   if (!isAuthorized) {
+    console.log(`User ${userId} is not authorized for role ${requiredRole}, redirecting to ${redirectPath}`);
     return <Navigate to={redirectPath} replace />;
   }
 
-  return children ? children : <Outlet />;
+  return children || <Outlet />;
 };
 
 /**
  * Admin route protection - only allows admins
  */
-export const AdminRoute = (props) => {
-  return <ProtectedRoute requiredRole={USER_ROLES.ADMIN} {...props} />;
+export const AdminRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole={USER_ROLES.ADMIN} children={children} />;
 };
 
 /**
  * Doctor route protection - only allows doctors
  */
-export const DoctorRoute = (props) => {
-  return <ProtectedRoute requiredRole={USER_ROLES.DOCTOR} {...props} />;
+export const DoctorRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole={USER_ROLES.DOCTOR} children={children} />;
 };
 
 /**
  * Staff route protection - only allows staff
  */
-export const StaffRoute = (props) => {
-  return <ProtectedRoute requiredRole={USER_ROLES.STAFF} {...props} />;
+export const StaffRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole={USER_ROLES.STAFF} children={children} />;
 };
 
 /**
  * Patient route protection - only allows patients
  */
-export const PatientRoute = (props) => {
-  return <ProtectedRoute requiredRole={USER_ROLES.PATIENT} {...props} />;
+export const PatientRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole={USER_ROLES.PATIENT} children={children} />;
 };

@@ -15,6 +15,7 @@ export const PATHS = {
     CONTACT: "/lien-he",
     ANALYSIS: "/xet-nghiem-hiv",
     PHARMACY: "/nha-thuoc",
+    SERVICE_BOOKING: "/service-booking",
 
     // Product related paths
     PRODUCTS: PRODUCTS_PATH,

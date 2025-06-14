@@ -8,10 +8,11 @@ export const menuRoutes = {
   'faq': PATHS.FORUM,
     // Services submenu
   'service-1': PATHS.SERVICES.COUNSELING,
-  'service-2': PATHS.SERVICES.TESTING,
+  'service-2': '/service-booking',
   'service-3': PATHS.SERVICES.TREATMENT,
   'service-4': PATHS.SERVICES.SUPPORT,
   'service-5': PATHS.SERVICES.OTHERS,
+  services: '/services',
   
   // News submenu
   'news-1': PATHS.NEWS.PREP_FREE,

@@ -22,10 +22,10 @@ import { handleGetProfile } from "./store/Reducer/authReducer";
 import { localToken } from "./utils/token";
 import { 
   AdminRoute, 
-  PatientRoute 
-} from "./components/RouteProtection/ProtectedRoute";
-import StaffRoute from "./components/RouteProtection/StaffRoute";
-import DoctorRoute from "./components/RouteProtection/DoctorRoute";
+  PatientRoute,
+  StaffRoute,
+  DoctorRoute 
+} from "./components/RouteProtection";
 import PatientProfile from "./pages/patient/profile";
 import StaffDashboard from "./pages/staff/dashboard";
 import StaffPayment from "./pages/staff/payment";
@@ -33,8 +33,9 @@ import StaffPatients from "./pages/staff/patients";
 import DoctorDashboard from "./pages/doctor/dashboard";
 import ConsultationPage from "./pages/doctor/consultation";
 import MedicalRecordsPage from "./pages/doctor/medical-records";
-import DoctorSchedulePage from "./pages/doctor/schedule";  // Add this import
+import DoctorSchedulePage from "./pages/doctor/schedule";
 import TreatmentProtocolPage from "./pages/doctor/regimens";
+import ServiceBooking from "./pages/landscape/servicebooking";
 
 function App() {
   const dispatch = useDispatch();
@@ -57,6 +58,7 @@ function App() {
           <Route path={PATHS.CONTACT} element={<Contact />} />
           <Route path={PATHS.ANALYSIS} element={<Analysis />} />
           <Route path={PATHS.PHARMACY} element={<Pharmacy />} />
+          <Route path="/service-booking" element={<ServiceBooking />} />
           
           {/* Patient Protected Routes - Using the same MainLayout */}
           <Route element={<PatientRoute />}>

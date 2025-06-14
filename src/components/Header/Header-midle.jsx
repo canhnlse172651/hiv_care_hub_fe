@@ -20,11 +20,11 @@ const menuItems = {
     key: 'services',
     label: 'Dịch vụ',
     children: [
-      { key: 'service-1', label: 'Dịch vụ tư vấn' },
-      { key: 'service-2', label: 'Dịch vụ xét nghiệm' },
-      { key: 'service-3', label: 'Dịch vụ điều trị' },
-      { key: 'service-4', label: 'Dịch vụ hỗ trợ' },
-      { key: 'service-5', label: 'Dịch vụ khác' }
+      { key: 'service-1', label: 'Dịch vụ tư vấn', path: '/' },
+      { key: 'service-2', label: 'Dịch vụ xét nghiệm', path: '/service-booking' },
+      { key: 'service-3', label: 'Dịch vụ điều trị', path: '/' },
+      { key: 'service-4', label: 'Dịch vụ hỗ trợ', path: '/' },
+      { key: 'service-5', label: 'Dịch vụ khác', path: '/' }
     ]
   },
   news: {
@@ -258,7 +258,9 @@ const HeaderMidle = () => {
             overlay={
               <Menu>
                 {menuItems.services.children.map(item => (
-                  <Menu.Item key={item.key}>{item.label}</Menu.Item>
+                  <Menu.Item key={item.key}>
+                    <Link to={item.path}>{item.label}</Link>
+                  </Menu.Item>
                 ))}
               </Menu>
             }
