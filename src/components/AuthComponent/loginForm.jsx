@@ -88,7 +88,7 @@ const LoginForm = () => {
         >
           <Input
             size="large"
-            prefix={<UserOutlined className="text-medical-primary" />}
+            prefix={<UserOutlined />}
             placeholder="Email"
             className="rounded-lg"
           />
@@ -101,7 +101,7 @@ const LoginForm = () => {
         >
           <Input.Password
             size="large"
-            prefix={<LockOutlined className="text-medical-primary" />}
+            prefix={<LockOutlined />}
             placeholder="Mật khẩu"
             className="rounded-lg"
           />
@@ -109,8 +109,8 @@ const LoginForm = () => {
 
         <Form.Item className="mb-5">
           <div className="flex justify-between items-center">
-            <Checkbox className="text-medical-text">Ghi nhớ đăng nhập</Checkbox>
-            <a className="text-medical-primary hover:text-medical-secondary transition-colors">
+            <Checkbox>Ghi nhớ đăng nhập</Checkbox>
+            <a href="#" className="text-blue-500 hover:underline">
               Quên mật khẩu?
             </a>
           </div>
@@ -120,7 +120,7 @@ const LoginForm = () => {
           <Button
             type="primary"
             htmlType="submit"
-            className="w-full h-11 text-base font-semibold rounded-lg bg-medical-primary border-medical-primary hover:bg-medical-secondary hover:border-medical-secondary"
+            className="w-full h-11 text-base font-semibold rounded-lg"
             loading={loading?.login}
             icon={<LoginOutlined />}
           >
@@ -128,17 +128,17 @@ const LoginForm = () => {
           </Button>
         </Form.Item>
 
-        <Divider className="text-medical-text text-sm mb-4">
+        <Divider className="text-sm mb-4">
           <FontAwesomeIcon
             icon={faStethoscope}
-            className="mr-2 text-medical-accent"
+            className="mr-2"
           />
           HIV Care Hub
         </Divider>
-        <div className="text-center text-sm text-medical-text">
+        <div className="text-center text-sm">
           <FontAwesomeIcon
             icon={faUserMd}
-            className="mr-2 text-medical-secondary"
+            className="mr-2"
           />
           Chăm sóc sức khỏe trực tuyến
         </div>

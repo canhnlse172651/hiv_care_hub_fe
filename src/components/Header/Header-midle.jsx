@@ -20,11 +20,11 @@ const menuItems = {
     key: 'services',
     label: 'Dịch vụ',
     children: [
-      { key: 'service-1', label: 'Dịch vụ tư vấn', path: '/' },
-      { key: 'service-2', label: 'Dịch vụ xét nghiệm', path: '/service-booking' },
-      { key: 'service-3', label: 'Dịch vụ điều trị', path: '/' },
-      { key: 'service-4', label: 'Dịch vụ hỗ trợ', path: '/' },
-      { key: 'service-5', label: 'Dịch vụ khác', path: '/' }
+      { key: 'service-1', label: 'Điều trị HIV', path: '/service-booking' },
+      { key: 'service-2', label: 'Gói xét nghiệm các bệnh xã hội (STDs)', path: '/service-booking' },
+      { key: 'service-3', label: 'Xét nghiệm HIV tại Galant', path: '/service-booking' },
+      { key: 'service-4', label: 'Xét nghiệm bệnh lậu tại Galant', path: '/service-booking' },
+      { key: 'service-5', label: 'Dự phòng trước phơi nhiễm HIV - PrEP', path: '/service-booking' }
     ]
   },
   news: {

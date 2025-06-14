@@ -1,20 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MODAL_TYPE } from "@/constant/general";
 import LoginForm from "./loginForm";
 import RegisterForm from "./registerForm";
 import { useSelector, useDispatch } from "react-redux";
 import { handleCloseModal, handleShowModal } from "@/store/Reducer/authReducer";
-import { CloseOutlined, LoginOutlined, UserAddOutlined } from '@ant-design/icons';
+import { CloseOutlined, LoginOutlined, UserAddOutlined, WarningOutlined } from '@ant-design/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeartbeat, faStethoscope, faHospital, faUserMd } from '@fortawesome/free-solid-svg-icons';
+import { Alert } from 'antd';
 
 const AuthComponent = () => {
-  const { showModal } = useSelector((state) => state.auth);
+  const { showModal, error } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [isCloseHovered, setIsCloseHovered] = useState(false);
+  const [authError, setAuthError] = useState(null);
+
+  // Monitor error changes from Redux state
+  useEffect(() => {
+    if (error?.login) {
+      let errorMessage = error.login;
+      
+      // Handle structured error objects
+      if (typeof error.login === 'object' && error.login?.message?.message) {
+        errorMessage = error.login.message.message;
+      }
+      
+      setAuthError(errorMessage);
+    } else {
+      setAuthError(null);
+    }
+  }, [error]);
 
   const _onTabChange = (e, tab) => {
     e.preventDefault();
+    setAuthError(null); // Clear error on tab change
     dispatch(handleShowModal(tab));
   };
  
@@ -122,7 +141,8 @@ const AuthComponent = () => {
   };
   return (
     <div style={modalStyles.modal}>
-      <div style={modalStyles.modalContent}>        <button
+      <div style={modalStyles.modalContent}>
+        <button
           style={{
             ...modalStyles.closeButton,
             ...(isCloseHovered ? modalStyles.closeButtonHover : {})
@@ -134,7 +154,8 @@ const AuthComponent = () => {
         >
           <CloseOutlined />
         </button>
-          <div style={modalStyles.logo}>
+        
+        <div style={modalStyles.logo}>
           <FontAwesomeIcon icon={faHeartbeat} style={{ marginRight: '10px', color: medicalTheme.accent }} />
           <span style={{ fontWeight: 'bold' }}>Phòng khám GALANT</span>
           <FontAwesomeIcon icon={faStethoscope} style={{ marginLeft: '10px', color: medicalTheme.primary }} />
@@ -145,8 +166,24 @@ const AuthComponent = () => {
           Hệ thống chăm sóc và tư vấn sức khỏe
         </div>
         
+        {/* New Error Notification Section */}
+        {authError && (
+          <div style={{ padding: '0 24px 15px' }}>
+            <Alert
+              message="Đăng nhập không thành công"
+              description={authError}
+              type="error"
+              showIcon
+              icon={<WarningOutlined />}
+              closable
+              onClose={() => setAuthError(null)}
+            />
+          </div>
+        )}
+        
         <div style={modalStyles.modalHeader}>
-          <ul style={modalStyles.tabList}>            <li 
+          <ul style={modalStyles.tabList}>
+            <li 
               style={{
                 ...modalStyles.tabItem,
                 ...(showModal === MODAL_TYPE.login ? modalStyles.activeTabItem : {})
