@@ -39,6 +39,18 @@ const AdminLayout = () => {
       onClick: () => navigate(PATHS.ADMIN.USER_MANAGEMENT)
     },
     {
+      key: 'roles',
+      icon: <SettingOutlined />,
+      label: 'Role Management',
+      onClick: () => navigate(PATHS.ADMIN.ROLE_MANAGEMENT)
+    },
+    {
+      key: 'permissions',
+      icon: <SettingOutlined />,
+      label: 'Permission Management',
+      onClick: () => navigate(PATHS.ADMIN.PERMISSION_MANAGEMENT)
+    },
+    {
       key: 'appointments',
       icon: <CalendarOutlined />,
       label: 'Appointments',
@@ -150,10 +162,12 @@ const AdminLayout = () => {
               shape="circle"
             />
             <Dropdown menu={userDropdownItems} placement="bottomRight">
-              <Avatar 
-                style={{ backgroundColor: '#1890ff', cursor: 'pointer' }} 
-                icon={<UserOutlined />}
-              />
+              <div onClick={userDropdownItems.items[1].onClick} style={{display: 'inline-block'}}>
+                <Avatar 
+                  style={{ backgroundColor: '#1890ff', cursor: 'pointer' }} 
+                  icon={<UserOutlined />}
+                />
+              </div>
             </Dropdown>
           </div>
         </Header>

@@ -1,168 +1,223 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Button, theme, Avatar, Dropdown, message, Badge } from 'antd';
-import { 
-  MenuFoldOutlined, 
-  MenuUnfoldOutlined, 
-  DashboardOutlined, 
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Layout,
+  Menu,
+  Button,
+  theme,
+  Avatar,
+  Dropdown,
+  Space,
+  Breadcrumb,
+  Badge
+} from 'antd';
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
   UserOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  BellOutlined,
+  DashboardOutlined,
   CalendarOutlined,
   DollarOutlined,
-  NotificationOutlined,
-  TeamOutlined
+  TeamOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  BellOutlined
 } from '@ant-design/icons';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { PATHS } from '../constant/path';
-import { authenService } from '@/services/authenService';
-import { localToken } from '@/utils/token';
+import { useDispatch, useSelector } from 'react-redux';
+import { handleLogout } from '@/store/Reducer/authReducer';
 
 const { Header, Sider, Content } = Layout;
 
 const StaffLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const { token } = theme.useToken();
+  const location = useLocation();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(3); // Example notification count
-  
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
-  
+  const dispatch = useDispatch();
+  const { profile } = useSelector((state) => state.auth);
+
+  const onSignOut = () => {
+    dispatch(handleLogout());
+    localStorage.removeItem('auth');
+    localStorage.removeItem('token');
+    navigate("/");
+  };
+
+  const items = [
+    {
+      key: "1",
+      label: <Link to="/staff/profile">Thông tin cá nhân</Link>,
+      icon: <UserOutlined />,
+    },
+    {
+      key: "2",
+      label: <Link to="/staff/settings">Thiết lập tài khoản</Link>,
+      icon: <SettingOutlined />,
+    },
+    {
+      key: "3",
+      label: "Đăng xuất",
+      icon: <LogoutOutlined />,
+      danger: true,
+    },
+  ];
+
+  // Menu items for the sidebar
   const menuItems = [
     {
       key: 'dashboard',
       icon: <DashboardOutlined />,
-      label: 'Lịch hẹn hôm nay',
-      onClick: () => navigate(PATHS.STAFF.DASHBOARD)
+      label: <Link to="/staff/dashboard">Bảng điều khiển</Link>,
     },
     {
       key: 'payment',
       icon: <DollarOutlined />,
-      label: 'Thanh toán',
-      onClick: () => navigate(PATHS.STAFF.PAYMENT)
+      label: <Link to="/staff/payment">Thanh toán</Link>,
     },
     {
       key: 'patients',
       icon: <TeamOutlined />,
-      label: 'Danh sách bệnh nhân',
-      onClick: () => navigate(PATHS.STAFF.PATIENTS)
-    }
+      label: <Link to="/staff/patients">Danh sách bệnh nhân</Link>,
+    },
+    {
+      key: 'appointments',
+      icon: <CalendarOutlined />,
+      label: <Link to="/staff/appointments">Lịch hẹn</Link>,
+    },
   ];
-  
-  const handleLogout = async () => {
-    try {
-      // Call the logout API endpoint
-      await authenService.logout();
-      
-      // Clear local tokens
-      localToken.remove();
-      
-      // Navigate to home page
-      message.success("Đăng xuất thành công");
-      navigate(PATHS.HOME);
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Even if API call fails, remove local token and redirect
-      localToken.remove();
-      navigate(PATHS.HOME);
+
+  // Get active key from location
+  const getActiveMenuKey = (pathname) => {
+    const path = pathname.split('/');
+    if (path.length > 2) {
+      return path[2];
     }
+    return 'dashboard';
   };
 
-  const userDropdownItems = {
-    items: [
-      {
-        key: '1',
-        icon: <SettingOutlined />,
-        label: 'Cài đặt tài khoản',
-      },
-      {
-        key: '2',
-        icon: <LogoutOutlined />,
-        label: 'Đăng xuất',
-        onClick: handleLogout,
-      },
-    ],
-  };
-  
-  const notificationItems = {
-    items: [
-      {
-        key: '1',
-        label: 'Bệnh nhân Nguyễn Văn A đã check-in',
-      },
-      {
-        key: '2',
-        label: 'Bệnh nhân Trần Thị B đã hủy lịch hẹn',
-      },
-      {
-        key: '3',
-        label: 'Thanh toán #123456 đã được xác nhận',
-      },
-    ],
+  const activeKey = getActiveMenuKey(location.pathname);
+
+  // Generate breadcrumb items based on location
+  const getBreadcrumbItems = () => {
+    const path = location.pathname.split('/').filter((i) => i);
+    const breadcrumbItems = [{ title: 'Trang chủ', href: '/staff/dashboard' }];
+    if (path.length > 1) {
+      switch (path[1]) {
+        case 'dashboard':
+          breadcrumbItems.push({ title: 'Bảng điều khiển' });
+          break;
+        case 'payment':
+          breadcrumbItems.push({ title: 'Thanh toán' });
+          break;
+        case 'patients':
+          breadcrumbItems.push({ title: 'Bệnh nhân' });
+          break;
+        case 'appointments':
+          breadcrumbItems.push({ title: 'Lịch hẹn' });
+          break;
+        default:
+          break;
+      }
+    }
+    return breadcrumbItems;
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout className="min-h-screen">
       <Sider 
         trigger={null} 
         collapsible 
         collapsed={collapsed}
-        theme="light"
-        className="shadow-md"
+        className="overflow-auto h-screen fixed left-0 top-0 bottom-0"
+        style={{
+          background: token.colorBgContainer,
+          borderRight: '1px solid #f0f0f0',
+        }}
       >
-        <div className="h-16 flex items-center justify-center p-4">
-          <img 
-            src="/assets/logo.png" 
-            alt="HIV Care Hub" 
-            className="h-full object-contain"
-          />
-        </div>
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <Avatar size="large" className="bg-blue-500">S</Avatar>
-            <div className={`transition-opacity duration-300 ${collapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
-              <div className="font-medium">Nhân viên lễ tân</div>
-              <div className="text-xs text-gray-500">Phòng khám Galant</div>
-            </div>
-          </div>
+        <div className="flex justify-center items-center p-4 h-16">
+          <Link to="/staff/dashboard" className="flex items-center justify-center">
+            <img 
+              src="/assets/logo.png" 
+              alt="Logo" 
+              className={collapsed ? "max-h-[40px]" : "max-h-[60px]"}
+            />
+          </Link>
         </div>
         <Menu
+          theme="light"
           mode="inline"
-          defaultSelectedKeys={['dashboard']}
-          className="border-r-0 pt-2"
+          selectedKeys={[activeKey]}
           items={menuItems}
+          className="border-t border-gray-100"
         />
       </Sider>
-      <Layout>
-        <Header className="p-0 px-4 bg-white flex items-center justify-between shadow-sm">
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-base w-16 h-16"
-          />
-          <div className="flex items-center gap-4">
-            <Dropdown menu={notificationItems} placement="bottomRight" trigger={['click']}>
-              <Badge count={notifications} size="small">
-                <Button 
-                  type="text" 
-                  icon={<BellOutlined />} 
-                  className="text-base"
-                  shape="circle"
-                />
-              </Badge>
-            </Dropdown>
-            <Dropdown menu={userDropdownItems} placement="bottomRight">
-              <Avatar 
-                className="bg-blue-500 cursor-pointer" 
-                icon={<UserOutlined />}
+      <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
+        <Header 
+          className="p-0 bg-white shadow-sm flex justify-between items-center" 
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
+            width: '100%',
+          }}
+        >
+          <div className="flex items-center">
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              className="w-16 h-16 flex justify-center items-center"
+            />
+            <Breadcrumb items={getBreadcrumbItems()} className="ml-2" />
+          </div>
+          <div className="flex items-center mr-6">
+            <Badge count={2} className="mr-4">
+              <Button 
+                shape="circle" 
+                icon={<BellOutlined />} 
+                className="flex items-center justify-center"
               />
+            </Badge>
+            <Dropdown
+              menu={{
+                items,
+                onClick: ({ key }) => {
+                  if (key === "3") {
+                    onSignOut();
+                  }
+                }
+              }}
+              trigger={["click"]}
+            >
+              <a
+                onClick={e => e.preventDefault()}
+                className="ant-dropdown-link"
+              >
+                <Space>
+                  <Avatar 
+                    icon={<UserOutlined />} 
+                    style={{ 
+                      backgroundColor: token.colorPrimary,
+                      verticalAlign: 'middle',
+                    }}
+                  />
+                  {!collapsed && (
+                    <span className="ml-2">{profile?.name || "Nhân viên"}</span>
+                  )}
+                </Space>
+              </a>
             </Dropdown>
           </div>
         </Header>
         <Content
-          className="m-6 p-6 bg-white rounded-lg"
+          style={{
+            margin: '24px 16px',
+            padding: 0,
+            minHeight: 280,
+            background: token.colorBgContainer,
+            borderRadius: token.borderRadius,
+            overflow: 'auto',
+          }}
         >
           <Outlet />
         </Content>

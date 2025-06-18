@@ -36,6 +36,8 @@ import MedicalRecordsPage from "./pages/doctor/medical-records";
 import DoctorSchedulePage from "./pages/doctor/schedule";
 import TreatmentProtocolPage from "./pages/doctor/regimens";
 import ServiceBooking from "./pages/landscape/servicebooking";
+import RoleManagement from '@/pages/admin/roles';
+import PermissionManagement from '@/pages/admin/permissions';
 
 function App() {
   const dispatch = useDispatch();
@@ -75,9 +77,10 @@ function App() {
             <AdminLayout />
           </AdminRoute>
         }>
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route index element={<Dashboard />} />          <Route path="dashboard" element={<Dashboard />} />
           <Route path="users" element={<UserManagement />} />
+          <Route path="roles" element={<RoleManagement />} />
+          <Route path="permissions" element={<PermissionManagement />} />
           <Route path="appointments" element={<AppointmentList />} />
           <Route path="doctors" element={<DoctorManagement />} />
           <Route path="treatments" element={<TreatmentTracking />} />

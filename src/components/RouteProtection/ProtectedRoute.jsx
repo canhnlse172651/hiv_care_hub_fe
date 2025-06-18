@@ -6,7 +6,7 @@ import { PATHS } from '@/constant/path';
 
 /**
  * Role-based route protection component
- * @param {number} requiredRole - The role ID required to access this route
+ * @param {string} requiredRole - The role required to access this route
  * @param {string} redirectPath - Path to redirect if not authorized
  */
 export const ProtectedRoute = ({ 
@@ -15,13 +15,23 @@ export const ProtectedRoute = ({
   children 
 }) => {
   const auth = localToken.get();
-  const userId = auth?.userId || null;
+  const userRole = auth?.user?.role || null;
+  
+  console.log('Auth data:', auth);
+  console.log('User role:', userRole);
+  console.log('Required role:', requiredRole);
   
   // Check if user is authenticated and has the required role
-  const isAuthorized = auth?.accessToken && hasRole(parseInt(userId), requiredRole);
+  const isAuthenticated = !!auth?.accessToken;
+  const isAuthorized = isAuthenticated && hasRole(userRole, requiredRole);
+
+  if (!isAuthenticated) {
+    console.log('User not authenticated, redirecting');
+    return <Navigate to={PATHS.LOGIN || '/login'} replace />;
+  }
 
   if (!isAuthorized) {
-    console.log(`User ${userId} is not authorized for role ${requiredRole}, redirecting to ${redirectPath}`);
+    console.log(`User with role ${userRole} is not authorized for required role ${requiredRole}, redirecting to ${redirectPath}`);
     return <Navigate to={redirectPath} replace />;
   }
 

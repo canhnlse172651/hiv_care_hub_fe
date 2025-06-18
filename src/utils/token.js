@@ -1,23 +1,21 @@
 import { STORAGE } from "@/constant/storage"
-import { decodeJwt } from './jwt';
 
 /**
  * Enhanced token storage service
- * Stores tokens and extracts user information
+ * Stores tokens and user information
  */
 export const localToken = {
   set(data = {}) {
     if (data?.accessToken) {
-      // Decode token and extract userId
-      const decodedToken = decodeJwt(data.accessToken);
-      const userId = decodedToken?.userId;
-      
+      // Remove old 'token' key if exists
+      localStorage.removeItem("token");
       // Store tokens and user info
       localStorage.setItem(
         "auth",
         JSON.stringify({
-          ...data,
-          userId,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          user: data.user // user: { id, name, email, role }
         })
       );
     }
@@ -31,5 +29,18 @@ export const localToken = {
   },
   remove() {
     localStorage.removeItem("auth");
+    localStorage.removeItem("token"); // Clean up old key
   },
+  getUser() {
+    const authData = this.get();
+    return authData?.user || null;
+  },
+  getAccessToken() {
+    const authData = this.get();
+    return authData?.accessToken || null;
+  },
+  getRefreshToken() {
+    const authData = this.get();
+    return authData?.refreshToken || null;
+  }
 };

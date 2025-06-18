@@ -11,7 +11,7 @@ import { getRoutePath } from "@/constant/menuRoutes";
 import { useDispatch, useSelector } from "react-redux";
 import { handleShowModal, handleLogout } from "@/store/Reducer/authReducer";
 import { MODAL_TYPE } from "@/constant/general";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getUserRole } from "@/utils/jwt";
 import { PATHS } from "@/constant/path";
 
@@ -59,14 +59,27 @@ const HeaderMidle = () => {
   const location = useLocation();
   const { profile } = useSelector(state => state.auth);
   const [loginBtnHovered, setLoginBtnHovered] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!(profile || (localStorage.getItem('auth') && JSON.parse(localStorage.getItem('auth'))?.accessToken)));
   
   // Check for token in local storage
   const authData = localStorage.getItem('auth');
   const hasToken = authData ? JSON.parse(authData)?.accessToken : null;
-  const userId = authData ? JSON.parse(authData)?.userId : null;
-  const userRole = getUserRole(userId);
+  const userRole = authData ? JSON.parse(authData)?.user?.role : null;
   const currentPath = location.pathname;
   
+  useEffect(() => {
+    setIsAuthenticated(!!(profile || (localStorage.getItem('auth') && JSON.parse(localStorage.getItem('auth'))?.accessToken)));
+  }, [profile]);
+
+  // Listen to storage changes (for multi-tab logout)
+  useEffect(() => {
+    const handleStorage = () => {
+      setIsAuthenticated(!!(localStorage.getItem('auth') && JSON.parse(localStorage.getItem('auth'))?.accessToken));
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   // Navigation handlers for patient menu items
   const handleProfileClick = () => {
     navigate(PATHS.PATIENT.PROFILE);
@@ -82,6 +95,13 @@ const HeaderMidle = () => {
 
   const handleMedicalRecordsClick = () => {
     navigate(PATHS.PATIENT.MEDICAL_RECORDS);
+  };
+
+  // In the logout menu item, after dispatch(handleLogout()), also clear local state
+  const handleLogoutClick = () => {
+    dispatch(handleLogout());
+    setIsAuthenticated(false);
+    navigate("/");
   };
 
   // Patient menu items for dropdown
@@ -106,7 +126,7 @@ const HeaderMidle = () => {
       <Menu.Divider />
       <Menu.Item 
         key="logout"
-        onClick={() => dispatch(handleLogout())}
+        onClick={handleLogoutClick}
       >
         <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 text-red-500" />
         Đăng xuất
@@ -124,7 +144,7 @@ const HeaderMidle = () => {
       <Menu.Divider />
       <Menu.Item 
         key="logout"
-        onClick={() => dispatch(handleLogout())}
+        onClick={handleLogoutClick}
       >
         <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 text-red-500" />
         Đăng xuất
@@ -168,9 +188,9 @@ const HeaderMidle = () => {
           </button>
           
           {/* Login/User Button */}        
-          {(profile || hasToken) ? (
+          {isAuthenticated ? (
             <Dropdown 
-              overlay={userRole === 'patient' ? patientMenu : userMenu}
+              overlay={userRole && userRole.toLowerCase() === 'patient' ? patientMenu : userMenu}
               placement="bottomRight"
               arrow
               trigger={['click', 'hover']}
@@ -183,11 +203,11 @@ const HeaderMidle = () => {
                 onMouseLeave={() => setLoginBtnHovered(false)}
               >
                 <FontAwesomeIcon 
-                  icon={userRole === 'patient' ? faUser : faUserMd} 
+                  icon={userRole === 'patient' ? faUserCircle : faUserMd} 
                   className="mr-2" 
                 />
                 <span>
-                  {profile?.firstName || "Tài khoản"}
+                  {profile?.name || profile?.firstName || "Tài khoản"}
                 </span>
               </button>
             </Dropdown>

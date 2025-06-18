@@ -60,13 +60,13 @@ export const PATHS = {
     KNOWLEDGE: {
         HIV_TREATMENT: "/knowledge/hiv-treatment",
         STDS: "/knowledge/stds"
-    },
-
-    // Admin paths
+    },    // Admin paths
     ADMIN: {
         INDEX: ADMIN_PATH,
         DASHBOARD: ADMIN_PATH + "/dashboard",
         USER_MANAGEMENT: ADMIN_PATH + "/users",
+        ROLE_MANAGEMENT: ADMIN_PATH + "/roles",
+        PERMISSION_MANAGEMENT: ADMIN_PATH + "/permissions",
         APPOINTMENT_MANAGEMENT: ADMIN_PATH + "/appointments",
         DOCTOR_MANAGEMENT: ADMIN_PATH + "/doctors",
         TREATMENT_TRACKING: ADMIN_PATH + "/treatments",

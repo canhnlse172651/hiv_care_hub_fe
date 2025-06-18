@@ -31,10 +31,10 @@ export const decodeJwt = (token) => {
 
 // Define user roles as constants
 export const USER_ROLES = {
-  ADMIN: 1,
-  DOCTOR: 5,
-  STAFF: 3,
-  PATIENT: 7
+  ADMIN: 'ADMIN',
+  DOCTOR: 'DOCTOR',
+  STAFF: 'STAFF',
+  PATIENT: 'PATIENT'
 };
 
 /**
@@ -61,47 +61,19 @@ export const getUserRole = (userId) => {
 /**
  * Check if user has a specific role
  */
-export const hasRole = (userId, requiredRole) => {
+export const hasRole = (userRole, requiredRole) => {
   // Add console.log for debugging
-  console.log(`Checking if user ${userId} has role ${requiredRole}`);
+  console.log(`Checking if user with role ${userRole} has required role ${requiredRole}`);
   
-  // For admin specific check
-  if (requiredRole === USER_ROLES.ADMIN) {
-    const isAdminUser = userId === 1;
-    console.log(`Is admin? ${isAdminUser}`);
-    return isAdminUser;
-  }
+  if (!userRole || !requiredRole) return false;
   
-  // For staff specific check
-  if (requiredRole === USER_ROLES.STAFF) {
-    const isStaffUser = userId === 3;
-    console.log(`Is staff? ${isStaffUser}`);
-    return isStaffUser;
-  }
-  
-  // For patient specific check
-  if (requiredRole === USER_ROLES.PATIENT) {
-    const isPatient = userId === 7;
-    console.log(`Is patient? ${isPatient}`);
-    return isPatient;
-  }
-
-  // For admin specific check
-  if (requiredRole === USER_ROLES.DOCTOR) {
-    const isDoctor = userId === 5;
-    console.log(`Is doctor? ${isDoctor}`);
-    return isDoctor;
-  }
-  
-  // Add other role checks as needed
-  return false;
+  // Direct role comparison since we now have string roles
+  return userRole === requiredRole;
 };
 
 /**
  * Check if the user is an admin
  */
-export const isAdmin = (token) => {
-  // In a real app you'd decode the JWT token and check the role
-  // For now, we're just using a simple check based on token existence
-  return !!token; 
+export const isAdmin = (userRole) => {
+  return userRole === USER_ROLES.ADMIN;
 };
