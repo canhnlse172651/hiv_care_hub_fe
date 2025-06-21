@@ -1,101 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Table, 
-  Card, 
-  Button, 
-  Space, 
-  Typography, 
-  Tag,
-  Input,
-  Modal,
-  Form,
-  Select,
-  Popconfirm,
-  message
+  Table, Card, Button, Space, Typography, Tag,
+  Input, Modal, Form, Select, Popconfirm, message
 } from 'antd';
 import { 
-  UserAddOutlined, 
-  SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  LockOutlined,
-  UnlockOutlined
+  UserAddOutlined, SearchOutlined, EditOutlined, DeleteOutlined,
+  LockOutlined, UnlockOutlined, EyeOutlined, EyeInvisibleOutlined
 } from '@ant-design/icons';
+import { adminService } from '@/services/adminService';
+import dayjs from 'dayjs';
+import useDebounce from '@/hooks/useDebounce';
 
 const { Title } = Typography;
 const { Option } = Select;
 
 const UserManagement = () => {
   const [searchText, setSearchText] = useState('');
+  const debouncedSearch = useDebounce(searchText, 500);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
   const [editingUser, setEditingUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [sorter, setSorter] = useState({ field: 'createdAt', order: 'descend' });
 
-  // Example data - in a real app, this would come from API
-  const [users, setUsers] = useState([
-    {
-      key: '1',
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      role: 'user',
-      status: 'active',
-      lastLogin: '2025-06-01 10:23:45',
-      createdAt: '2025-01-15',
-    },
-    {
-      key: '2',
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      role: 'user',
-      status: 'active',
-      lastLogin: '2025-05-30 08:12:22',
-      createdAt: '2025-02-20',
-    },
-    {
-      key: '3',
-      id: 3,
-      name: 'Robert Johnson',
-      email: 'robert@example.com',
-      role: 'admin',
-      status: 'active',
-      lastLogin: '2025-06-02 09:45:11',
-      createdAt: '2025-01-05',
-    },
-    {
-      key: '4',
-      id: 4,
-      name: 'Emily Wilson',
-      email: 'emily@example.com',
-      role: 'user',
-      status: 'inactive',
-      lastLogin: '2025-05-15 14:30:00',
-      createdAt: '2025-03-10',
-    },
-    {
-      key: '5',
-      id: 5,
-      name: 'Michael Brown',
-      email: 'michael@example.com',
-      role: 'user',
-      status: 'locked',
-      lastLogin: '2025-05-01 11:20:33',
-      createdAt: '2025-02-28',
-    },
-  ]);
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await adminService.getUsers({
+        page: pagination.current,
+        limit: pagination.pageSize,
+        sortBy: sorter.field,
+        sortOrder: sorter.order === 'ascend' ? 'asc' : 'desc',
+        search: debouncedSearch,
+      });
+
+      const { data, meta } = response.data?.data || {};
+      setUsers(
+        Array.isArray(data)
+          ? data.map((user) => ({ ...user, key: user.id }))
+          : []
+      );
+      setPagination({
+        ...pagination,
+        total: meta?.total || 0,
+      });
+    } catch (error) {
+      message.error('Failed to fetch users. Please check the console for details.');
+      console.error('Fetch users error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line
+  }, [debouncedSearch, pagination.current, pagination.pageSize, sorter]);
 
   const showModal = (user = null) => {
+    setEditingUser(user);
     if (user) {
-      setEditingUser(user);
       form.setFieldsValue({
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status,
+        ...user,
+        roleId: user.role?.id || null, // Assuming role is an object
       });
     } else {
-      setEditingUser(null);
       form.resetFields();
     }
     setIsModalOpen(true);
@@ -103,145 +74,123 @@ const UserManagement = () => {
 
   const handleCancel = () => {
     setIsModalOpen(false);
+    setEditingUser(null);
     form.resetFields();
   };
 
-  const handleSubmit = (values) => {
-    if (editingUser) {
-      // Update existing user
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === editingUser.id ? { ...user, ...values } : user
-        )
-      );
-      message.success('User updated successfully');
-    } else {
-      // Add new user
-      const newUser = {
-        key: String(users.length + 1),
-        id: users.length + 1,
-        ...values,
-        lastLogin: '-',
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setUsers([...users, newUser]);
-      message.success('User added successfully');
+  const handleSubmit = async (values) => {
+    try {
+      if (editingUser) {
+        await adminService.updateUser(editingUser.id, values);
+        message.success('User updated successfully');
+      } else {
+        await adminService.createUser(values);
+        message.success('User added successfully');
+      }
+      setIsModalOpen(false);
+      form.resetFields();
+      fetchUsers();
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'An unexpected error occurred.';
+      message.error(`Failed: ${errorMsg}`);
     }
-    setIsModalOpen(false);
-    form.resetFields();
   };
 
-  const handleDelete = (userId) => {
-    setUsers(users.filter(user => user.id !== userId));
-    message.success('User deleted successfully');
+  const handleDelete = async (userId) => {
+    try {
+      await adminService.deleteUser(userId);
+      message.success('User deleted successfully');
+      fetchUsers();
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Failed to delete user.';
+      message.error(errorMsg);
+    }
   };
 
-  const handleToggleStatus = (user) => {
-    const newStatus = user.status === 'active' ? 'locked' : 'active';
-    setUsers(prevUsers =>
-      prevUsers.map(u =>
-        u.id === user.id ? { ...u, status: newStatus } : u
-      )
-    );
-    message.success(`User ${newStatus === 'active' ? 'unlocked' : 'locked'} successfully`);
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    try {
+      await adminService.updateUser(user.id, { status: newStatus });
+      message.success(`User status updated to ${newStatus.toLowerCase()}`);
+      fetchUsers();
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Failed to update status.';
+      message.error(errorMsg);
+    }
   };
 
-  const filteredUsers = users.filter(user => {
-    return (
-      user.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchText.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchText.toLowerCase())
-    );
-  });
+  const handleTableChange = (pagination, filters, newSorter) => {
+    setPagination({
+      ...pagination,
+      current: pagination.current,
+      pageSize: pagination.pageSize,
+    });
+    setSorter({
+      field: newSorter.field || 'createdAt',
+      order: newSorter.order || 'descend',
+    });
+  };
 
   const columns = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: true,
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+      sorter: true,
     },
     {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (role) => (
-        <Tag color={role === 'admin' ? 'magenta' : 'blue'}>
-          {role.toUpperCase()}
-        </Tag>
-      ),
-      filters: [
-        { text: 'Admin', value: 'admin' },
-        { text: 'User', value: 'user' },
-      ],
-      onFilter: (value, record) => record.role === value,
+      render: (role) => {
+        if (!role || !role.name) return <Tag>N/A</Tag>;
+        const roleColor = role.name.toLowerCase() === 'admin' ? 'magenta' : 'blue';
+        return <Tag color={roleColor}>{role.name.toUpperCase()}</Tag>;
+      },
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status) => {
-        let color = 'green';
-        if (status === 'inactive') color = 'volcano';
-        if (status === 'locked') color = 'red';
-        
-        return (
-          <Tag color={color}>
-            {status.toUpperCase()}
-          </Tag>
-        );
+        let color;
+        if (status === 'ACTIVE') color = 'green';
+        else if (status === 'INACTIVE') color = 'volcano';
+        else color = 'red';
+        return <Tag color={color}>{status ? status.toUpperCase() : 'N/A'}</Tag>;
       },
-      filters: [
-        { text: 'Active', value: 'active' },
-        { text: 'Inactive', value: 'inactive' },
-        { text: 'Locked', value: 'locked' },
-      ],
-      onFilter: (value, record) => record.status === value,
     },
     {
-      title: 'Created',
+      title: 'Created At',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-    },
-    {
-      title: 'Last Login',
-      dataIndex: 'lastLogin',
-      key: 'lastLogin',
+      sorter: true,
+      render: (date) => (date ? dayjs(date).format('DD/MM/YYYY HH:mm') : ''),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space size="small">
-          <Button 
-            icon={<EditOutlined />} 
-            size="small" 
-            type="primary"
-            ghost
-            onClick={() => showModal(record)}
-          />
+          <Button icon={<EditOutlined />} size="small" type="primary" ghost onClick={() => showModal(record)} />
           <Popconfirm
             title="Are you sure you want to delete this user?"
             onConfirm={() => handleDelete(record.id)}
             okText="Yes"
             cancelText="No"
+            placement="left"
           >
-            <Button 
-              icon={<DeleteOutlined />} 
-              size="small" 
-              danger
-            />
+            <Button icon={<DeleteOutlined />} size="small" danger />
           </Popconfirm>
           <Button
-            icon={record.status === 'active' ? <LockOutlined /> : <UnlockOutlined />}
+            icon={record.status === 'ACTIVE' ? <LockOutlined /> : <UnlockOutlined />}
             size="small"
-            type={record.status === 'active' ? 'default' : 'dashed'}
             onClick={() => handleToggleStatus(record)}
           />
         </Space>
@@ -250,114 +199,82 @@ const UserManagement = () => {
   ];
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={2}>User Management</Title>
-        <Button 
-          type="primary" 
-          icon={<UserAddOutlined />}
-          onClick={() => showModal()}
-        >
-          Add User
-        </Button>
-      </div>
-
-      <Card>
-        <div style={{ marginBottom: 16 }}>
+    <Card>
+      <div className="flex justify-between items-center mb-6">
+        <Title level={3} className="mb-0">User Management</Title>
+        <Space>
           <Input
-            placeholder="Search by name, email or role"
+            placeholder="Search by name or email..."
             prefix={<SearchOutlined />}
             value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            style={{ width: 300 }}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250 }}
             allowClear
           />
-        </div>
+          <Button type="primary" icon={<UserAddOutlined />} onClick={() => showModal()}>
+            Add User
+          </Button>
+        </Space>
+      </div>
 
-        <Table 
-          columns={columns} 
-          dataSource={filteredUsers}
-          pagination={{ pageSize: 10 }}
-          rowKey="key"
-        />
-      </Card>
+      <Table
+        columns={columns}
+        dataSource={users}
+        loading={loading}
+        pagination={pagination}
+        onChange={handleTableChange}
+        rowKey="id"
+        scroll={{ x: 'max-content' }}
+      />
 
       <Modal
         title={editingUser ? 'Edit User' : 'Add New User'}
         open={isModalOpen}
         onCancel={handleCancel}
-        footer={null}
+        onOk={() => form.submit()}
+        confirmLoading={loading}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item
             name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please enter user name' }]}
+            label="Full Name"
+            rules={[{ required: true, message: 'Please enter the user\'s full name' }]}
           >
-            <Input placeholder="Enter user name" />
+            <Input />
           </Form.Item>
-
           <Form.Item
             name="email"
-            label="Email"
-            rules={[
-              { required: true, message: 'Please enter email' },
-              { type: 'email', message: 'Please enter a valid email' }
-            ]}
+            label="Email Address"
+            rules={[{ required: true, message: 'Please enter a valid email' }, { type: 'email' }]}
           >
-            <Input placeholder="Enter email" />
+            <Input />
           </Form.Item>
-
-          <Form.Item
-            name="role"
-            label="Role"
-            rules={[{ required: true, message: 'Please select user role' }]}
-          >
-            <Select placeholder="Select role">
-              <Option value="admin">Admin</Option>
-              <Option value="user">User</Option>
-            </Select>
-          </Form.Item>
-
-          {editingUser && (
-            <Form.Item
-              name="status"
-              label="Status"
-              rules={[{ required: true, message: 'Please select status' }]}
-            >
-              <Select placeholder="Select status">
-                <Option value="active">Active</Option>
-                <Option value="inactive">Inactive</Option>
-                <Option value="locked">Locked</Option>
-              </Select>
-            </Form.Item>
-          )}
-
           {!editingUser && (
             <Form.Item
               name="password"
               label="Password"
-              rules={[{ required: true, message: 'Please enter password' }]}
+              rules={[{ required: true, message: 'Password is required' }]}
             >
-              <Input.Password placeholder="Enter password" />
+              <Input.Password
+                iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+              />
             </Form.Item>
           )}
-
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-            <Space>
-              <Button onClick={handleCancel}>Cancel</Button>
-              <Button type="primary" htmlType="submit">
-                {editingUser ? 'Update' : 'Add'}
-              </Button>
-            </Space>
+          <Form.Item
+            name="roleId"
+            label="Role"
+            rules={[{ required: true, message: 'Please select a role' }]}
+          >
+            <Select placeholder="Select a role">
+              <Option value={1}>Admin</Option>
+              <Option value={2}>Doctor</Option>
+              <Option value={3}>Staff</Option>
+              <Option value={4}>Patient</Option>
+            </Select>
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </Card>
   );
 };
 

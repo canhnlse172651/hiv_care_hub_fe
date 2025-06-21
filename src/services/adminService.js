@@ -1,6 +1,31 @@
 import axiosInstance from "@/utils/axiosInstance";
 
 export const adminService = {
+  // User management
+  getUsers: (params) => {
+    return axiosInstance.get('/users', { params });
+  },
+
+  getUserById: (userId) => {
+    return axiosInstance.get(`/users/${userId}`);
+  },
+
+  createUser: (data) => {
+    return axiosInstance.post('/users', data);
+  },
+
+  updateUser: (userId, data) => {
+    return axiosInstance.put(`/users/${userId}`, data);
+  },
+
+  deleteUser: (userId) => {
+    return axiosInstance.delete(`/users/${userId}`);
+  },
+
+  restoreUser: (userId) => {
+    return axiosInstance.patch(`/users/${userId}/restore`);
+  },
+
   // Doctor Management
   addDoctor: (payload) => {
     return axiosInstance.post('/doctors', payload);
@@ -8,6 +33,35 @@ export const adminService = {
 
   getDoctors: (params) => {
     return axiosInstance.get('/doctors', { params });
+  },
+
+  getDoctorById: (doctorId) => {
+    return axiosInstance.get(`/doctors/${doctorId}`);
+  },
+
+  updateDoctor: (doctorId, data) => {
+    return axiosInstance.put(`/doctors/${doctorId}`, data);
+  },
+
+  deleteDoctor: (doctorId) => {
+    return axiosInstance.delete(`/doctors/${doctorId}`);
+  },
+
+  // Schedule Management
+  getDoctorSchedule: (doctorId) => {
+    return axiosInstance.get(`/doctors/${doctorId}/schedule`);
+  },
+
+  createDoctorSchedule: (payload) => {
+    return axiosInstance.post('/doctors/schedule/manual', payload);
+  },
+
+  updateDoctorSchedule: (scheduleId, payload) => {
+    return axiosInstance.put(`/doctors/schedule/${scheduleId}`, payload);
+  },
+
+  deleteDoctorSchedule: (scheduleId) => {
+    return axiosInstance.delete(`/doctors/schedule/${scheduleId}`);
   },
 
   // Roles Management

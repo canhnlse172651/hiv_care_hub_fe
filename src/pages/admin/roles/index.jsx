@@ -32,7 +32,12 @@ const RoleManagement = () => {
   const [roles, setRoles] = useState([]);
   const [permissions, setPermissions] = useState([]);
   const [meta, setMeta] = useState({ page: 1, limit: 100, total: 0 });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState({
+    table: false,
+    create: false,
+    update: false,
+    delete: null, // will store the ID of the role being deleted
+  });
   const [searchText, setSearchText] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -42,7 +47,7 @@ const RoleManagement = () => {
 
   // Fetch roles list
   const fetchRoles = async (params = {}) => {
-    setLoading(true);
+    setLoading(prev => ({ ...prev, table: true }));
     try {
       console.log('Fetching roles with params:', params);
       
@@ -87,7 +92,7 @@ const RoleManagement = () => {
       setRoles([]);
       setMeta({ page: 1, limit: 0, total: 0 });
     } finally {
-      setLoading(false);
+      setLoading(prev => ({ ...prev, table: false }));
     }
   };
 
@@ -153,6 +158,7 @@ const RoleManagement = () => {
 
   // Handle role creation
   const handleCreateRole = async (values) => {
+    setLoading(prev => ({ ...prev, create: true }));
     try {
       // Create payload according to API requirements
       const payload = {
@@ -172,13 +178,15 @@ const RoleManagement = () => {
     } catch (error) {
       console.error('Error creating role:', error);
       message.error(error.response?.data?.message || 'Failed to create role');
+    } finally {
+      setLoading(prev => ({ ...prev, create: false }));
     }
   };
 
   // Handle role update
   const handleUpdateRole = async (values) => {
     if (!editingRole) return;
-    
+    setLoading(prev => ({ ...prev, update: true }));
     try {
       // Create payload according to API requirements
       const payload = {
@@ -200,11 +208,14 @@ const RoleManagement = () => {
     } catch (error) {
       console.error('Error updating role:', error);
       message.error(error.response?.data?.message || 'Failed to update role');
+    } finally {
+      setLoading(prev => ({ ...prev, update: false }));
     }
   };
 
   // Handle role deletion
   const handleDeleteRole = async (roleId) => {
+    setLoading(prev => ({ ...prev, delete: roleId }));
     try {
       console.log('Deleting role with ID:', roleId);
       
@@ -228,6 +239,8 @@ const RoleManagement = () => {
       console.error('Error deleting role:', error);
       console.error('Error response:', error.response);
       message.error(error.response?.data?.message || 'Failed to delete role');
+    } finally {
+      setLoading(prev => ({ ...prev, delete: null }));
     }
   };
 
@@ -380,11 +393,13 @@ const RoleManagement = () => {
             onConfirm={() => handleDeleteRole(record.id)}
             okText="Yes"
             cancelText="No"
+            disabled={loading.delete === record.id}
           >
             <Button
               icon={<DeleteOutlined />}
               size="small"
               danger
+              loading={loading.delete === record.id}
             />
           </Popconfirm>
         </Space>
@@ -422,7 +437,7 @@ const RoleManagement = () => {
           <Table
             columns={columns}
             dataSource={Array.isArray(roles) ? roles : []}
-            loading={loading}
+            loading={loading.table}
             rowKey={record => record.id}
             pagination={{
               current: meta.page,
@@ -450,6 +465,7 @@ const RoleManagement = () => {
         editingRole={editingRole}
         permissions={permissions}
         form={form}
+        loading={editingRole ? loading.update : loading.create}
       />
 
       {/* Role Details Drawer - Extracted to component */}
@@ -466,7 +482,5 @@ const RoleManagement = () => {
     </div>
   );
 };
-
-
 
 export default RoleManagement;

@@ -1,173 +1,195 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Button, theme, Avatar, Dropdown, message } from 'antd';
-import { 
-  MenuFoldOutlined, 
-  MenuUnfoldOutlined, 
-  DashboardOutlined, 
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Layout,
+  Menu,
+  Button,
+  theme,
+  Avatar,
+  Dropdown,
+  Space,
+  Badge,
+  Breadcrumb
+} from 'antd';
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
   UserOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  BellOutlined,
+  DashboardOutlined,
+  TeamOutlined,
   CalendarOutlined,
-  MedicineBoxOutlined,
-  ExperimentOutlined
+  FileDoneOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  BellOutlined,
+  KeyOutlined,
+  SafetyCertificateOutlined
 } from '@ant-design/icons';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { PATHS } from '../constant/path';
-import { authenService } from '@/services/authenService';
-import { localToken } from '@/utils/token';
+import { useDispatch, useSelector } from 'react-redux';
+import { handleLogout } from '@/store/Reducer/authReducer';
 
 const { Header, Sider, Content } = Layout;
 
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const navigate = useNavigate();
-  
   const {
     token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();  const menuItems = [
+  } = theme.useToken();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { profile } = useSelector((state) => state.auth);
+
+  const onSignOut = () => {
+    dispatch(handleLogout());
+    navigate("/");
+  };
+  
+  const userMenuItems = [
+    {
+      key: "1",
+      label: <Link to="/admin/profile">Thông tin cá nhân</Link>,
+      icon: <UserOutlined />,
+    },
+    {
+      key: "2",
+      label: <Link to="/admin/settings">Thiết lập tài khoản</Link>,
+      icon: <SettingOutlined />,
+    },
+    {
+      key: "3",
+      label: "Đăng xuất",
+      icon: <LogoutOutlined />,
+      onClick: onSignOut,
+      danger: true,
+    },
+  ];
+
+  const sidebarMenuItems = [
     {
       key: 'dashboard',
       icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      onClick: () => navigate(PATHS.ADMIN.DASHBOARD)
+      label: <Link to="/admin/dashboard">Bảng điều khiển</Link>,
     },
     {
       key: 'users',
-      icon: <UserOutlined />,
-      label: 'User Management',
-      onClick: () => navigate(PATHS.ADMIN.USER_MANAGEMENT)
+      icon: <TeamOutlined />,
+      label: <Link to="/admin/users">Quản lý người dùng</Link>,
     },
     {
       key: 'roles',
-      icon: <SettingOutlined />,
-      label: 'Role Management',
-      onClick: () => navigate(PATHS.ADMIN.ROLE_MANAGEMENT)
+      icon: <KeyOutlined />,
+      label: <Link to="/admin/roles">Quản lý vai trò</Link>,
     },
     {
-      key: 'permissions',
-      icon: <SettingOutlined />,
-      label: 'Permission Management',
-      onClick: () => navigate(PATHS.ADMIN.PERMISSION_MANAGEMENT)
+        key: 'permissions',
+        icon: <SafetyCertificateOutlined />,
+        label: <Link to="/admin/permissions">Quản lý quyền</Link>,
     },
     {
       key: 'appointments',
       icon: <CalendarOutlined />,
-      label: 'Appointments',
-      onClick: () => navigate(PATHS.ADMIN.APPOINTMENT_MANAGEMENT)
+      label: <Link to="/admin/appointments">Quản lý lịch hẹn</Link>,
     },
     {
-      key: 'doctors',
-      icon: <MedicineBoxOutlined />,
-      label: 'Doctor Management',
-      onClick: () => navigate(PATHS.ADMIN.DOCTOR_MANAGEMENT)
-    },
-    {
-      key: 'treatment',
-      icon: <ExperimentOutlined />,
-      label: 'Treatment Tracking',
-      onClick: () => navigate(PATHS.ADMIN.TREATMENT_TRACKING)
+      key: 'treatment-tracking',
+      icon: <FileDoneOutlined />,
+      label: <Link to="/admin/treatment-tracking">Theo dõi điều trị</Link>,
     }
   ];
-  const handleLogout = async () => {
-    try {
-      // Call the logout API endpoint
-      await authenService.logout();
-      
-      // Clear local tokens
-      localToken.remove();
-      
-      // Navigate to home page
-      message.success("Logout successful");
-      navigate(PATHS.HOME);
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Even if API call fails, remove local token and redirect
-      localToken.remove();
-      navigate(PATHS.HOME);
-    }
+
+  const getActiveMenuKey = (pathname) => {
+    const path = pathname.split('/');
+    if (path.length > 2) return path[2];
+    return 'dashboard';
   };
 
-  const userDropdownItems = {
-    items: [
-      {
-        key: '1',
-        icon: <SettingOutlined />,
-        label: 'Settings',
-      },
-      {
-        key: '2',
-        icon: <LogoutOutlined />,
-        label: 'Logout',
-        onClick: handleLogout,
-      },
-    ],
+  const activeKey = getActiveMenuKey(location.pathname);
+
+  const getBreadcrumbItems = () => {
+    const path = location.pathname.split('/').filter((i) => i);
+    const breadcrumbItems = [{ title: <Link to="/admin/dashboard">Trang chủ</Link> }];
+    
+    if (path.length > 1) {
+      switch (path[1]) {
+        case 'dashboard':
+          breadcrumbItems.push({ title: 'Bảng điều khiển' });
+          break;
+        case 'users':
+          breadcrumbItems.push({ title: 'Quản lý người dùng' });
+          break;
+        case 'roles':
+          breadcrumbItems.push({ title: 'Quản lý vai trò' });
+          break;
+        case 'permissions':
+            breadcrumbItems.push({ title: 'Quản lý quyền' });
+            break;
+        case 'appointments':
+          breadcrumbItems.push({ title: 'Quản lý lịch hẹn' });
+          break;
+        case 'treatment-tracking':
+          breadcrumbItems.push({ title: 'Theo dõi điều trị' });
+          break;
+        default:
+          break;
+      }
+    }
+    
+    return breadcrumbItems;
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout className="min-h-screen">
       <Sider 
         trigger={null} 
         collapsible 
         collapsed={collapsed}
+        className="overflow-auto h-screen fixed left-0 top-0 bottom-0 shadow-lg"
         theme="light"
-        style={{
-          boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
-        }}
       >
-        <div style={{ 
-          height: '64px', 
-          display: 'flex', 
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px'
-        }}>
-          <img 
-            src="/assets/logo.png" 
-            alt="HIV Care Hub" 
-            style={{
-              height: collapsed ? '32px' : '40px',
-              maxWidth: '100%',
-              objectFit: 'contain'
-            }}
-          />
+        <div className="flex justify-center items-center p-4 h-16">
+            <Link to="/admin/dashboard">
+                <img 
+                    src="/assets/logo.png" 
+                    alt="Logo" 
+                    className={`transition-all duration-300 ${collapsed ? "max-h-[40px]" : "max-h-[60px]"}`}
+                />
+            </Link>
         </div>
         <Menu
           mode="inline"
-          defaultSelectedKeys={['dashboard']}
-          style={{ borderRight: 0 }}
-          items={menuItems}
+          selectedKeys={[activeKey]}
+          items={sidebarMenuItems}
+          className="border-t border-gray-100"
         />
       </Sider>
-      <Layout>
-        <Header style={{ 
-          padding: '0 16px',
-          background: colorBgContainer, 
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
-        }}>
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ fontSize: '16px', width: 64, height: 64 }}
-          />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Button 
-              type="text" 
-              icon={<BellOutlined />} 
-              style={{ fontSize: '16px' }}
-              shape="circle"
-            />
-            <Dropdown menu={userDropdownItems} placement="bottomRight">
-              <div onClick={userDropdownItems.items[1].onClick} style={{display: 'inline-block'}}>
-                <Avatar 
-                  style={{ backgroundColor: '#1890ff', cursor: 'pointer' }} 
-                  icon={<UserOutlined />}
+      <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s ease' }}>
+        <Header 
+          className="p-0 bg-white shadow-sm flex justify-between items-center sticky top-0 z-10"
+        >
+            <div className="flex items-center">
+                <Button
+                    type="text"
+                    icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="w-16 h-16 text-xl"
                 />
-              </div>
+                <Breadcrumb items={getBreadcrumbItems()} className="ml-2 hidden md:block" />
+            </div>
+          <div className="flex items-center mr-6">
+            <Badge count={5} className="mr-4">
+              <Button shape="circle" icon={<BellOutlined />} />
+            </Badge>
+            <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
+              <a
+                onClick={(e) => e.preventDefault()}
+                className="ant-dropdown-link flex items-center"
+              >
+                <Space>
+                  <Avatar icon={<UserOutlined />} className="bg-blue-500" />
+                  <span className="hidden md:inline">{profile?.name || "Admin"}</span>
+                </Space>
+              </a>
             </Dropdown>
           </div>
         </Header>
@@ -178,6 +200,7 @@ const AdminLayout = () => {
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
+            overflow: 'auto',
           }}
         >
           <Outlet />
