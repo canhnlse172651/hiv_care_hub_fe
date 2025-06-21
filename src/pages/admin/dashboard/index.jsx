@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Row, 
   Col, 
@@ -8,7 +8,9 @@ import {
   Typography, 
   Progress,
   Space,
-  Avatar
+  Avatar,
+  Spin,
+  Alert
 } from 'antd';
 import { 
   UserOutlined, 
@@ -17,41 +19,41 @@ import {
   RiseOutlined,
   MessageOutlined
 } from '@ant-design/icons';
+import { adminService } from '@/services/adminService';
+import dayjs from 'dayjs';
 
 const { Title } = Typography;
 
 const Dashboard = () => {
-  // Example data - in a real app, this would come from API
-  const recentUsers = [
-    {
-      key: '1',
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      registered: '2025-05-28',
-      status: 'active',
-    },
-    {
-      key: '2',
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      registered: '2025-05-26',
-      status: 'active',
-    },
-    {
-      key: '3',
-      name: 'Robert Johnson',
-      email: 'robert@example.com',
-      registered: '2025-05-25',
-      status: 'inactive',
-    },
-    {
-      key: '4',
-      name: 'Emily Wilson',
-      email: 'emily@example.com',
-      registered: '2025-05-24',
-      status: 'active',
-    },
-  ];
+  const [userStats, setUserStats] = useState({ total: 0, recent: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await adminService.getUsers({
+          limit: 5,
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+        });
+
+        if (response.data?.data) {
+          setUserStats({
+            total: response.data.data.meta.total,
+            recent: response.data.data.data,
+          });
+        }
+      } catch (err) {
+        setError('Failed to fetch user data. Please try again later.');
+        console.error("Fetch user error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const recentActivities = [
     {
@@ -90,19 +92,29 @@ const Dashboard = () => {
     },
     {
       title: 'Registered Date',
-      dataIndex: 'registered',
-      key: 'registered',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (text) => dayjs(text).format('DD/MM/YYYY'),
     },
     {
       title: 'Status',
       dataIndex: 'status',
-      key: 'status',      render: (status) => (
-        <span className={`font-bold ${status === 'active' ? 'text-green-500' : 'text-red-500'}`}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
+      key: 'status',
+      render: (status) => (
+        <span className={`font-bold ${status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'}`}>
+          {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
         </span>
       ),
     },
   ];
+
+  if (loading) {
+    return <Spin size="large" className="flex justify-center items-center h-screen" />;
+  }
+
+  if (error) {
+    return <Alert message="Error" description={error} type="error" showIcon />;
+  }
 
   return (
     <div>
@@ -112,7 +124,7 @@ const Dashboard = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card>            <Statistic
               title="Total Users"
-              value={1458}
+              value={userStats.total}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#1890ff' }}
             />
@@ -151,10 +163,11 @@ const Dashboard = () => {
         <Col xs={24} lg={16}>
           <Card title="Recent Users">
             <Table 
-              dataSource={recentUsers} 
+              dataSource={userStats.recent} 
               columns={columns} 
               pagination={false} 
               size="small"
+              rowKey="id"
             />
           </Card>
         </Col>

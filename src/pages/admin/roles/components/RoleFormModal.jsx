@@ -37,7 +37,7 @@ const RoleFormModal = ({
       footer={null}
       width={600}
       className="top-8"
-      maskClosable={false}
+      maskClosable={true}
     >
       <div className="pt-4">
         <Form

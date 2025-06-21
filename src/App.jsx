@@ -38,6 +38,10 @@ import TreatmentProtocolPage from "./pages/doctor/regimens";
 import ServiceBooking from "./pages/landscape/servicebooking";
 import RoleManagement from '@/pages/admin/roles';
 import PermissionManagement from '@/pages/admin/permissions';
+import ServiceBookingPage from "./pages/landscape/servicebooking";
+import PatientProfilePage from "./pages/patient/profile";
+import AppointmentListPage from "./pages/patient/appointments";
+import DoctorSchedule from "./pages/doctor/schedule";
 
 function App() {
   const dispatch = useDispatch();
@@ -60,14 +64,12 @@ function App() {
           <Route path={PATHS.CONTACT} element={<Contact />} />
           <Route path={PATHS.ANALYSIS} element={<Analysis />} />
           <Route path={PATHS.PHARMACY} element={<Pharmacy />} />
-          <Route path="/service-booking" element={<ServiceBooking />} />
+          <Route path={PATHS.SERVICE_BOOKING} element={<ServiceBookingPage />} />
           
           {/* Patient Protected Routes - Using the same MainLayout */}
           <Route element={<PatientRoute />}>
-            <Route path={PATHS.PATIENT.PROFILE} element={<PatientProfile />} />
-            {/* <Route path={PATHS.PATIENT.APPOINTMENTS} element={<PatientAppointments />} />
-            <Route path={PATHS.PATIENT.PRESCRIPTIONS} element={<PatientPrescriptions />} />
-            <Route path={PATHS.PATIENT.MEDICAL_RECORDS} element={<PatientMedicalRecords />} /> */}
+            <Route path={PATHS.PATIENT.PROFILE} element={<PatientProfilePage />} />
+            <Route path={PATHS.PATIENT.APPOINTMENTS} element={<AppointmentListPage />} />
           </Route>
         </Route>
         
@@ -108,7 +110,7 @@ function App() {
           <Route path="dashboard" element={<DoctorDashboard />} />
           <Route path="consultation/:appointmentId" element={<ConsultationPage />} />
           <Route path="medical-records/:patientId" element={<MedicalRecordsPage />} />
-          <Route path="schedule" element={<DoctorSchedulePage />} />
+          <Route path="schedule" element={<DoctorSchedule />} />
           <Route path="regimens" element={<TreatmentProtocolPage />} />
           {/* Additional doctor routes would go here */}
         </Route>

@@ -15,4 +15,8 @@ export const doctorService = {
   manualAssignSchedule: (payload) => {
     return axiosInstance.post('/doctors/schedule/manual', payload);
   },
+
+  getDoctors(params) {
+    return axiosInstance.get("/doctors", { params });
+  },
 };

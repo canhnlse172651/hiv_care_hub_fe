@@ -14,11 +14,12 @@ import {
   PhoneOutlined, MailOutlined, InfoCircleOutlined,
   RightOutlined, LoadingOutlined, ArrowLeftOutlined
 } from '@ant-design/icons'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { handleShowModal } from '@/store/Reducer/authReducer'
 import { MODAL_TYPE } from '@/constant/general'
 import { localToken } from '@/utils/token'
-import './servicebooking.css'
+import { servicesService } from "@/services/servicesService"
+import { Link } from "react-router-dom"
 
 const { Title, Paragraph, Text } = Typography
 const { Step } = Steps;
@@ -231,18 +232,21 @@ const ServiceBooking = () => {
   })
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { profile } = useSelector((state) => state.auth);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [services, setServices] = useState([]);
+  const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10 });
+  const [searchTerm, setSearchTerm] = useState("");
   
   // Check for authentication
   useEffect(() => {
     const authToken = localToken.get()?.accessToken;
-    if (!authToken) {
-      // Show login modal if not authenticated
-      dispatch(handleShowModal(MODAL_TYPE.login));
-    } else {
+    if (authToken || profile) {
       setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
-  }, [dispatch]);
+  }, [profile]);
   
   // Lọc bác sĩ theo dịch vụ
   const filteredDoctors = selectedService
@@ -352,37 +356,47 @@ const ServiceBooking = () => {
       </div>
     </div>
   );
-
   // Service selection component
   const ServiceSelection = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {services.map(service => (
-        <Card 
-          key={service.id}
-          hoverable
-          className={`service-card transition-all duration-200 ${selectedService === service.id ? 'service-card-active border-blue-500 bg-blue-50' : ''}`}
-          onClick={() => setSelectedService(service.id)}
-        >
-          <div className="flex items-center">
-            <div className={`service-icon-wrapper ${selectedService === service.id ? 'bg-blue-500' : 'bg-gray-200'}`}>
-              <MedicineBoxOutlined className="text-xl" />
+    <div className="service-selection-container">
+      <Title level={3} className="text-center mb-8">Chọn dịch vụ</Title>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {services.map(service => (
+          <div
+            key={service.id}
+            className={`service-item p-6 rounded-lg cursor-pointer border-2 flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:translate-y-[-4px] ${
+              selectedService === service.id 
+                ? 'border-blue-500 bg-blue-50 shadow-lg' 
+                : 'border-transparent bg-white hover:bg-gray-50 hover:shadow-md'
+            }`}
+            onClick={() => setSelectedService(service.id)}
+          >
+            <div className="relative mb-2">
+              {/* Icon container with centered icon */}
+              <div className={`service-item-icon w-16 h-16 flex items-center justify-center rounded-full shadow-md ${
+                selectedService === service.id ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-600'
+              }`}>
+                <MedicineBoxOutlined style={{ fontSize: '28px' }} />
+              </div>
+              {/* Selection indicator dot */}
+              {selectedService === service.id && (
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <div className="text-white" style={{ fontSize: '10px', lineHeight: '1' }}>✓</div>
+                </div>
+              )}
             </div>
-            <div className="ml-4">
-              <Title level={5} className="m-0">{service.name}</Title>
+            <Text className="font-semibold text-base text-center mt-2">{service.name}</Text>            <div className="h-10 flex items-center justify-end mt-2">
+              {selectedService === service.id && (
+                <Button type="primary" onClick={handleNextStep} className="flex items-center">
+                  Tiếp tục <RightOutlined className="ml-1" />
+                </Button>
+              )}
             </div>
           </div>
-          {selectedService === service.id && (
-            <div className="mt-3 text-right">
-              <Button type="primary" size="small" onClick={handleNextStep}>
-                Tiếp tục <RightOutlined />
-              </Button>
-            </div>
-          )}
-        </Card>
-      ))}
+        ))}
+      </div>
     </div>
   );
-
   // Doctor selection component
   const DoctorSelection = () => (
     <>
@@ -395,34 +409,67 @@ const ServiceBooking = () => {
           className="mb-6"
         />
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredDoctors.map(doctor => (
-          <Card 
+          <div 
             key={doctor.id}
-            hoverable
-            className={`doctor-card ${selectedDoctor === doctor.id ? 'doctor-card-active border-blue-500' : ''}`}
+            className={`doctor-card relative rounded-xl cursor-pointer transition-all duration-300 hover:translate-y-[-4px] ${
+              selectedDoctor === doctor.id 
+                ? 'ring-2 ring-blue-500 ring-offset-2 shadow-lg' 
+                : 'border border-gray-100 hover:shadow-md'
+            }`}
             onClick={() => setSelectedDoctor(doctor.id)}
           >
-            <div className="flex items-start">
-              <div className="doctor-avatar">
-                <UserOutlined className="text-3xl" />
+            <div className={`p-6 rounded-xl ${
+              selectedDoctor === doctor.id 
+                ? 'bg-gradient-to-br from-blue-50 to-indigo-50' 
+                : 'bg-white'
+            }`}>
+              <div className="flex items-center">
+                <div className={`w-16 h-16 flex items-center justify-center rounded-full ${
+                  selectedDoctor === doctor.id 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-blue-100 text-blue-600'
+                }`}>
+                  <UserOutlined style={{ fontSize: '28px' }} />
+                </div>
+                <div className="ml-5 flex-1">
+                  <Title level={4} className="m-0 font-bold text-gray-800">{doctor.name}</Title>
+                  <Text className="block mb-2 text-gray-500">{doctor.specialization}</Text>
+                  <div className="mt-2">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      {doctor.certifications}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="ml-4 flex-1">
-                <Title level={5} className="m-0 font-bold">{doctor.name}</Title>
-                <Text type="secondary" className="block mb-2">{doctor.specialization}</Text>
-                <div className="doctor-badge-wrapper">
-                  <div className="doctor-badge">{doctor.certifications}</div>
+              
+              {/* Selection check mark */}
+              {selectedDoctor === doctor.id && (
+                <div className="absolute top-3 right-3 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <div className="text-white">✓</div>
+                </div>
+              )}
+              
+              <div className="mt-5 pt-3 border-t border-gray-100">
+                <div className="flex justify-between items-center">
+                  <Text className="text-gray-500">
+                    <CheckCircleOutlined className="mr-1 text-green-500" /> Lịch khám sẵn sàng
+                  </Text>
+                  {selectedDoctor === doctor.id && (
+                    <Button 
+                      type="primary"
+                      onClick={handleNextStep}
+                      className="flex items-center justify-center"
+                      icon={<RightOutlined />}
+                    >
+                      Chọn lịch
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
-            {selectedDoctor === doctor.id && (
-              <div className="mt-3 text-right">
-                <Button type="primary" size="small" onClick={handleNextStep}>
-                  Chọn lịch <RightOutlined />
-                </Button>
-              </div>
-            )}
-          </Card>
+          </div>
         ))}
       </div>
     </>
@@ -432,27 +479,53 @@ const ServiceBooking = () => {
     navigate(-1); // Navigate to previous page
   };
 
+  const fetchServices = async (page = 1, search = "") => {
+    setLoading(true);
+    try {
+      const response = await servicesService.getPublicServices({ page, limit: 10, search });
+      if (response.data?.data) {
+        setServices(response.data.data.data);
+        setMeta(response.data.data.meta);
+      }
+    } catch (error) {
+      message.error("Failed to fetch services. Please try again.");
+      console.error("Service fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchServices(1, searchTerm);
+  }, [searchTerm]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= meta.totalPages) {
+      fetchServices(newPage, searchTerm);
+    }
+  };
+
   // If not authenticated, show minimal content
   if (!isAuthenticated) {
     return (
-      <div className="booking-container bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[60vh] flex items-center justify-center">
-          <Card className="text-center max-w-md w-full shadow-lg">
-            <MedicineBoxOutlined className="text-5xl text-blue-500 mb-4" />
-            <Title level={3}>Đặt lịch khám</Title>
-            <Paragraph className="mb-6">
-              Vui lòng đăng nhập để sử dụng dịch vụ đặt lịch khám
-            </Paragraph>
-            <Button 
-              type="primary" 
-              size="large"
-              onClick={() => dispatch(handleShowModal(MODAL_TYPE.login))}
-            >
-              Đăng nhập
-            </Button>
+      <main className="service-booking-page pt-[160px]">
+        <div className="container mx-auto p-4 md:p-8">
+          <Card className="max-w-md mx-auto text-center shadow-lg rounded-lg">
+            <div className="p-4">
+              <MedicineBoxOutlined style={{ fontSize: '48px', color: '#1890ff' }} className="mb-4" />
+              <Title level={3}>Đặt lịch khám</Title>
+              <Paragraph>Vui lòng đăng nhập để sử dụng dịch vụ đặt lịch khám</Paragraph>
+              <Button 
+                type="primary" 
+                size="large"
+                onClick={() => dispatch(handleShowModal(MODAL_TYPE.login))}
+              >
+                Đăng nhập
+              </Button>
+            </div>
           </Card>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -524,26 +597,26 @@ const ServiceBooking = () => {
                   </div>
                 </div>
               )}
-              
-              <div className="steps-action mt-8 flex justify-between">
-                {currentStep > 0 && (
-                  <Button onClick={handlePrevStep} className="back-step-button">
-                    <ArrowLeftOutlined /> Quay lại
-                  </Button>
-                )}
-                {currentStep === 0 && (
-                  <Button type="primary" onClick={handleNextStep} disabled={!selectedService}>
-                    Tiếp tục <RightOutlined />
-                  </Button>
-                )}
-                {currentStep === 1 && (
-                  <Button type="primary" onClick={handleNextStep} disabled={!selectedDoctor}>
-                    Xem lịch khám <RightOutlined />
-                  </Button>
-                )}
-                {currentStep === 2 && (
-                  <div></div>
-                )}
+                <div className="steps-action mt-8 flex justify-between">
+                <div>
+                  {currentStep > 0 && (
+                    <Button onClick={handlePrevStep} className="back-step-button">
+                      <ArrowLeftOutlined /> Quay lại
+                    </Button>
+                  )}
+                </div>
+                <div>
+                  {currentStep === 0 && (
+                    <Button type="primary" onClick={handleNextStep} disabled={!selectedService}>
+                      Tiếp tục <RightOutlined />
+                    </Button>
+                  )}
+                  {currentStep === 1 && (
+                    <Button type="primary" onClick={handleNextStep} disabled={!selectedDoctor}>
+                      Xem lịch khám <RightOutlined />
+                    </Button>
+                  )}
+                </div>
               </div>
             </Card>
           </Col>

@@ -145,6 +145,9 @@ const DoctorLayout = () => {
         case 'regimens':
           breadcrumbItems.push({ title: 'Phác đồ điều trị' });
           break;
+        case 'schedule':
+          breadcrumbItems.push({ title: 'Lịch làm việc' });
+          break;
         default:
           break;
       }

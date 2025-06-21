@@ -12,6 +12,8 @@ const getMethodColor = (method) => {
 
 const PermissionSelector = ({ permissions, value, onChange }) => {
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const permissionsPerPage = 9;
 
   // Ensure permissions is always an array
   const permissionArray = Array.isArray(permissions) ? permissions : [];
@@ -25,6 +27,13 @@ const PermissionSelector = ({ permissions, value, onChange }) => {
       (p.description || '').toLowerCase().includes(s)
     );
   }, [permissionArray, search]);
+
+  const paginated = useMemo(() => {
+    const startIndex = (currentPage - 1) * permissionsPerPage;
+    return filtered.slice(startIndex, startIndex + permissionsPerPage);
+  }, [filtered, currentPage, permissionsPerPage]);
+
+  const totalPages = Math.ceil(filtered.length / permissionsPerPage);
 
   const toggle = (id) => {
     if (!value) {
@@ -46,7 +55,10 @@ const PermissionSelector = ({ permissions, value, onChange }) => {
         className="w-full mb-4 rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
         placeholder="Search permissions..."
         value={search}
-        onChange={e => setSearch(e.target.value)}
+        onChange={e => {
+          setSearch(e.target.value);
+          setCurrentPage(1); // Reset to first page on search
+        }}
       />
       {filtered.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
@@ -54,7 +66,7 @@ const PermissionSelector = ({ permissions, value, onChange }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {filtered.map(permission => (
+          {paginated.map(permission => (
             <div
               key={permission.id}
               className={`cursor-pointer border rounded-lg p-3 flex flex-col gap-2 transition-colors duration-150
@@ -76,6 +88,27 @@ const PermissionSelector = ({ permissions, value, onChange }) => {
               )}
             </div>
           ))}
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-4">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       )}
       <div className="mt-4 text-sm text-blue-700">

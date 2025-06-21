@@ -12,7 +12,6 @@ import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 const DoctorDashboard = () => {
   const [searchText, setSearchText] = useState('');
@@ -128,6 +127,7 @@ const DoctorDashboard = () => {
     {
       title: 'Bệnh nhân',
       key: 'patient',
+      width: 220,
       render: (_, record) => (
         <Space>
           <Avatar icon={<UserOutlined />} className="bg-blue-500" />
@@ -177,6 +177,7 @@ const DoctorDashboard = () => {
     {
       title: 'Bệnh nhân',
       key: 'patient',
+      width: 180,
       render: (_, record) => (
         <Space>
           <Avatar icon={<UserOutlined />} className="bg-blue-500" />
@@ -212,6 +213,23 @@ const DoctorDashboard = () => {
       ),
     },
   ];
+
+  const completedTabItems = [
+    {
+      key: 'completed',
+      label: <span><CheckCircleOutlined /> Đã hoàn thành</span>,
+      children: (
+        <Table
+          columns={completedColumns}
+          dataSource={completedPatients}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          scroll={{ x: 'max-content' }}
+        />
+      )
+    }
+  ]
 
   return (
     <div className="p-6">
@@ -280,25 +298,13 @@ const DoctorDashboard = () => {
             dataSource={filteredPatients}
             rowKey="id"
             pagination={false}
+            scroll={{ x: 'max-content' }}
             className="border rounded-lg overflow-hidden"
           />
         </Card>
 
         <Card className="shadow-md">
-          <Tabs defaultActiveKey="completed" className="mb-4">
-            <TabPane 
-              tab={<span><CheckCircleOutlined /> Đã hoàn thành</span>} 
-              key="completed"
-            >
-              <Table
-                columns={completedColumns}
-                dataSource={completedPatients}
-                rowKey="id"
-                pagination={false}
-                size="small"
-              />
-            </TabPane>
-          </Tabs>
+          <Tabs defaultActiveKey="completed" items={completedTabItems} className="mb-4" />
 
           <div className="mt-4 border-t pt-4">
             <div className="flex justify-between items-center mb-4">

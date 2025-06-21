@@ -12,7 +12,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleShowModal, handleLogout } from "@/store/Reducer/authReducer";
 import { MODAL_TYPE } from "@/constant/general";
 import { useState, useEffect } from "react";
-import { getUserRole } from "@/utils/jwt";
 import { PATHS } from "@/constant/path";
 
 const menuItems = {
@@ -59,52 +58,48 @@ const HeaderMidle = () => {
   const location = useLocation();
   const { profile } = useSelector(state => state.auth);
   const [loginBtnHovered, setLoginBtnHovered] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!(profile || (localStorage.getItem('auth') && JSON.parse(localStorage.getItem('auth'))?.accessToken)));
-  
-  // Check for token in local storage
-  const authData = localStorage.getItem('auth');
-  const hasToken = authData ? JSON.parse(authData)?.accessToken : null;
-  const userRole = authData ? JSON.parse(authData)?.user?.role : null;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
   const currentPath = location.pathname;
-  
+
   useEffect(() => {
-    setIsAuthenticated(!!(profile || (localStorage.getItem('auth') && JSON.parse(localStorage.getItem('auth'))?.accessToken)));
+    const updateAuthState = () => {
+      const authDataString = localStorage.getItem('auth');
+      const parsedData = authDataString ? JSON.parse(authDataString) : null;
+      
+      if (profile) {
+        setIsAuthenticated(true);
+        setCurrentUser(profile);
+      } else if (parsedData?.accessToken) {
+        setIsAuthenticated(true);
+        setCurrentUser(parsedData.user);
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      }
+    };
+
+    updateAuthState();
+
+    window.addEventListener("storage", updateAuthState);
+    return () => {
+      window.removeEventListener("storage", updateAuthState);
+    };
   }, [profile]);
 
-  // Listen to storage changes (for multi-tab logout)
-  useEffect(() => {
-    const handleStorage = () => {
-      setIsAuthenticated(!!(localStorage.getItem('auth') && JSON.parse(localStorage.getItem('auth'))?.accessToken));
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
-
-  // Navigation handlers for patient menu items
-  const handleProfileClick = () => {
-    navigate(PATHS.PATIENT.PROFILE);
-  };
-
-  const handleAppointmentsClick = () => {
-    navigate(PATHS.PATIENT.APPOINTMENTS);
-  };
-
-  const handlePrescriptionsClick = () => {
-    navigate(PATHS.PATIENT.PRESCRIPTIONS);
-  };
-
-  const handleMedicalRecordsClick = () => {
-    navigate(PATHS.PATIENT.MEDICAL_RECORDS);
-  };
-
-  // In the logout menu item, after dispatch(handleLogout()), also clear local state
+  const handleProfileClick = () => navigate(PATHS.PATIENT.PROFILE);
+  const handleAppointmentsClick = () => navigate(PATHS.PATIENT.APPOINTMENTS);
+  const handlePrescriptionsClick = () => navigate(PATHS.PATIENT.PRESCRIPTIONS);
+  const handleMedicalRecordsClick = () => navigate(PATHS.PATIENT.MEDICAL_RECORDS);
+  
   const handleLogoutClick = () => {
     dispatch(handleLogout());
-    setIsAuthenticated(false);
     navigate("/");
   };
 
-  // Patient menu items for dropdown
+  const userRole = currentUser?.role;
+
   const patientMenu = (
     <Menu>
       <Menu.Item key="profile" onClick={handleProfileClick}>
@@ -134,7 +129,6 @@ const HeaderMidle = () => {
     </Menu>
   );
 
-  // Admin/Staff/Doctor menu
   const userMenu = (
     <Menu>
       <Menu.Item key="profile">
@@ -203,11 +197,11 @@ const HeaderMidle = () => {
                 onMouseLeave={() => setLoginBtnHovered(false)}
               >
                 <FontAwesomeIcon 
-                  icon={userRole === 'patient' ? faUserCircle : faUserMd} 
+                  icon={userRole && userRole.toLowerCase() === 'patient' ? faUserCircle : faUserMd} 
                   className="mr-2" 
                 />
                 <span>
-                  {profile?.name || profile?.firstName || "Tài khoản"}
+                  {currentUser?.name || currentUser?.firstName || "Tài khoản"}
                 </span>
               </button>
             </Dropdown>
