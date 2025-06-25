@@ -119,7 +119,7 @@ export const adminService = {
     return axiosInstance.post(`/permissions/user/${userId}`, payload);
   },
 
-  removePermissionsFromUser: (userId) => {
-    return axiosInstance.delete(`/permissions/user/${userId}`);
+  removePermissionsFromUser: (userId, payload) => {
+    return axiosInstance.delete(`/permissions/user/${userId}`, { data: payload });
   },
 };

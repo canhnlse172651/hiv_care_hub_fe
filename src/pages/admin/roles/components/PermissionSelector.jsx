@@ -93,6 +93,7 @@ const PermissionSelector = ({ permissions, value, onChange }) => {
       {totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <button
+            type="button"
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50"
@@ -103,6 +104,7 @@ const PermissionSelector = ({ permissions, value, onChange }) => {
             Page {currentPage} of {totalPages}
           </span>
           <button
+            type="button"
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50"

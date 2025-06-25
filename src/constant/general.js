@@ -72,3 +72,8 @@ export const COUPON = {
   removeSuccess : "Remove Coupon Success",
   removeFail  : "Remove Coupon Fail"
 }
+
+export const DOCTOR_SHIFT_TIME = {
+  MORNING: { label: 'Sáng', time: '07:00 - 11:00', start: 7, end: 11 },
+  AFTERNOON: { label: 'Chiều', time: '13:00 - 17:00', start: 13, end: 17 },
+};
