@@ -23,7 +23,8 @@ import {
   SettingOutlined,
   BellOutlined,
   KeyOutlined,
-  SafetyCertificateOutlined
+  SafetyCertificateOutlined,
+  MedicineBoxOutlined
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { handleLogout } from '@/store/Reducer/authReducer';
@@ -87,6 +88,11 @@ const AdminLayout = () => {
         label: <Link to="/admin/permissions">Quản lý quyền</Link>,
     },
     {
+      key: 'doctors',
+      icon: <MedicineBoxOutlined />,
+      label: <Link to="/admin/doctors">Quản lý bác sĩ</Link>,
+    },
+    {
       key: 'appointments',
       icon: <CalendarOutlined />,
       label: <Link to="/admin/appointments">Quản lý lịch hẹn</Link>,
@@ -124,6 +130,9 @@ const AdminLayout = () => {
         case 'permissions':
             breadcrumbItems.push({ title: 'Quản lý quyền' });
             break;
+        case 'doctors':
+          breadcrumbItems.push({ title: 'Quản lý bác sĩ' });
+          break;
         case 'appointments':
           breadcrumbItems.push({ title: 'Quản lý lịch hẹn' });
           break;

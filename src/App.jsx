@@ -42,6 +42,9 @@ import ServiceBookingPage from "./pages/landscape/servicebooking";
 import PatientProfilePage from "./pages/patient/profile";
 import AppointmentListPage from "./pages/patient/appointments";
 import DoctorSchedule from "./pages/doctor/schedule";
+import BlogPage from "./pages/landscape/blog";
+import BlogDetailPage from "./pages/landscape/blog/BlogDetail";
+import DoctorScheduleAdminPage from './pages/admin/doctors/schedule';
 
 function App() {
   const dispatch = useDispatch();
@@ -65,6 +68,8 @@ function App() {
           <Route path={PATHS.ANALYSIS} element={<Analysis />} />
           <Route path={PATHS.PHARMACY} element={<Pharmacy />} />
           <Route path={PATHS.SERVICE_BOOKING} element={<ServiceBookingPage />} />
+          <Route path={PATHS.BLOGS} element={<BlogPage />} />
+          <Route path={PATHS.BLOG_DETAIL} element={<BlogDetailPage />} />
           
           {/* Patient Protected Routes - Using the same MainLayout */}
           <Route element={<PatientRoute />}>
@@ -83,8 +88,9 @@ function App() {
           <Route path="users" element={<UserManagement />} />
           <Route path="roles" element={<RoleManagement />} />
           <Route path="permissions" element={<PermissionManagement />} />
-          <Route path="appointments" element={<AppointmentList />} />
           <Route path="doctors" element={<DoctorManagement />} />
+          <Route path="doctors/:userId/schedule" element={<DoctorScheduleAdminPage />} />
+          <Route path="appointments" element={<AppointmentList />} />
           <Route path="treatments" element={<TreatmentTracking />} />
         </Route>
         

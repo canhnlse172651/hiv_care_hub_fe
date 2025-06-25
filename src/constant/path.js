@@ -12,10 +12,12 @@ export const PATHS = {
     LOGIN: "/login",
     REGISTER: "/register",
     FORUM: "/forum",
-    CONTACT: "/lien-he",
-    ANALYSIS: "/xet-nghiem-hiv",
-    PHARMACY: "/nha-thuoc",
+    CONTACT: "/contact",
+    ANALYSIS: "/analysis",
+    PHARMACY: "/pharmacy",
     SERVICE_BOOKING: "/service-booking",
+    BLOGS: "/blogs",
+    BLOG_DETAIL: "/blogs/:slug",
 
     // Product related paths
     PRODUCTS: PRODUCTS_PATH,

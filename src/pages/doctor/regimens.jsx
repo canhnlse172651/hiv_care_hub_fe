@@ -18,7 +18,10 @@ import {
   Select,
   message,
   Divider,
-  Popconfirm
+  Popconfirm,
+  Row,
+  Col,
+  Pagination
 } from 'antd';
 import {
   PlusOutlined,
@@ -29,9 +32,11 @@ import {
   UserOutlined,
   InfoCircleOutlined,
   FileTextOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { regimenService } from '@/services/regimenService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -46,185 +51,77 @@ const TreatmentProtocolPage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('info');
   const [form] = Form.useForm();
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+    showSizeChanger: true,
+    showQuickJumper: true,
+    showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} phác đồ`,
+  });
 
-  // Fetch protocols from API (mocked here)
+  // Filter state
+  const [filters, setFilters] = useState({
+    targetDisease: '',
+    sortBy: '',
+    sortOrder: ''
+  });
+
+  // Fetch protocols from API
   useEffect(() => {
-    // Simulate API fetch
     fetchProtocols();
-  }, []);
+  }, [pagination.current, pagination.pageSize, searchText, filters]);
 
-  const fetchProtocols = () => {
-    setLoading(true);
-    // Mock data to simulate API response
-    const mockResponse = {
-      "data": {
-        "data": [
-          {
-            "id": 1,
-            "name": "First-line ART",
-            "description": "Standard first-line antiretroviral therapy",
-            "targetDisease": "HIV",
-            "createdById": 5,
-            "updatedById": 5,
-            "createdAt": "2025-06-11T00:23:03.741Z",
-            "updatedAt": "2025-06-11T00:23:03.741Z",
-            "medicines": [
-              {
-                "id": 1,
-                "protocolId": 1,
-                "medicineId": 1,
-                "dosage": "1 tablet",
-                "duration": "MORNING",
-                "notes": null,
-                "createdAt": "2025-06-11T00:23:04.161Z",
-                "updatedAt": "2025-06-11T00:23:04.161Z",
-                "medicine": {
-                  "id": 1,
-                  "name": "Tenofovir",
-                  "description": "Antiretroviral medication",
-                  "unit": "tablet",
-                  "dose": "300mg",
-                  "price": "25",
-                  "createdAt": "2025-06-11T00:23:01.865Z",
-                  "updatedAt": "2025-06-11T00:23:01.865Z"
-                }
-              },
-              {
-                "id": 2,
-                "protocolId": 1,
-                "medicineId": 2,
-                "dosage": "1 tablet",
-                "duration": "MORNING",
-                "notes": null,
-                "createdAt": "2025-06-11T00:23:04.570Z",
-                "updatedAt": "2025-06-11T00:23:04.570Z",
-                "medicine": {
-                  "id": 2,
-                  "name": "Emtricitabine",
-                  "description": "Antiretroviral medication",
-                  "unit": "tablet",
-                  "dose": "200mg",
-                  "price": "20",
-                  "createdAt": "2025-06-11T00:23:02.493Z",
-                  "updatedAt": "2025-06-11T00:23:02.493Z"
-                }
-              },
-              {
-                "id": 3,
-                "protocolId": 1,
-                "medicineId": 3,
-                "dosage": "1 tablet",
-                "duration": "MORNING",
-                "notes": null,
-                "createdAt": "2025-06-11T00:23:04.758Z",
-                "updatedAt": "2025-06-11T00:23:04.758Z",
-                "medicine": {
-                  "id": 3,
-                  "name": "Dolutegravir",
-                  "description": "Antiretroviral medication",
-                  "unit": "tablet",
-                  "dose": "50mg",
-                  "price": "30",
-                  "createdAt": "2025-06-11T00:23:02.930Z",
-                  "updatedAt": "2025-06-11T00:23:02.930Z"
-                }
-              }
-            ],
-            "createdBy": {
-              "id": 5,
-              "name": "Doctor User",
-              "email": "doctor@example.com"
-            },
-            "updatedBy": {
-              "id": 5,
-              "name": "Doctor User",
-              "email": "doctor@example.com"
-            },
-            "patientTreatments": []
-          },
-          {
-            "id": 2,
-            "name": "Second-line ART",
-            "description": "For patients who have developed resistance to first-line therapy",
-            "targetDisease": "HIV",
-            "createdById": 5,
-            "updatedById": 5,
-            "createdAt": "2025-06-11T00:23:03.741Z",
-            "updatedAt": "2025-06-11T00:23:03.741Z",
-            "medicines": [
-              {
-                "id": 4,
-                "protocolId": 2,
-                "medicineId": 4,
-                "dosage": "1 tablet",
-                "duration": "MORNING",
-                "notes": null,
-                "medicine": {
-                  "id": 4,
-                  "name": "Abacavir",
-                  "description": "Antiretroviral medication",
-                  "unit": "tablet",
-                  "dose": "300mg",
-                  "price": "28",
-                }
-              },
-              {
-                "id": 5,
-                "protocolId": 2,
-                "medicineId": 2,
-                "dosage": "1 tablet",
-                "duration": "MORNING",
-                "notes": null,
-                "medicine": {
-                  "id": 2,
-                  "name": "Emtricitabine",
-                  "description": "Antiretroviral medication",
-                  "unit": "tablet",
-                  "dose": "200mg",
-                  "price": "20",
-                }
-              },
-              {
-                "id": 6,
-                "protocolId": 2,
-                "medicineId": 5,
-                "dosage": "1 tablet",
-                "duration": "MORNING",
-                "notes": null,
-                "medicine": {
-                  "id": 5,
-                  "name": "Raltegravir",
-                  "description": "Integrase inhibitor",
-                  "unit": "tablet",
-                  "dose": "400mg",
-                  "price": "35",
-                }
-              }
-            ],
-            "createdBy": {
-              "id": 5,
-              "name": "Doctor User",
-              "email": "doctor@example.com"
-            },
-            "updatedBy": {
-              "id": 5,
-              "name": "Doctor User",
-              "email": "doctor@example.com"
-            },
-            "patientTreatments": [
-              { patientId: 'PT-10001', patientName: 'Nguyễn Văn A', startDate: '2025-01-15' },
-              { patientId: 'PT-10003', patientName: 'Lê Văn C', startDate: '2025-03-20' },
-            ]
-          }
-        ]
+  const fetchProtocols = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        page: pagination.current,
+        limit: pagination.pageSize,
+        search: searchText,
+        targetDisease: filters.targetDisease,
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder
+      };
+
+      const response = await regimenService.getAllRegimens(params);
+      
+      if (response.statusCode === 200) {
+        setProtocols(response.data.data);
+        setPagination(prev => ({
+          ...prev,
+          total: response.data.meta.total,
+          current: response.data.meta.page,
+          pageSize: response.data.meta.limit
+        }));
+      } else {
+        message.error('Có lỗi xảy ra khi tải danh sách phác đồ');
       }
-    };
-    
-    // Set protocols from the mock response
-    setTimeout(() => {
-      setProtocols(mockResponse.data.data);
+    } catch (error) {
+      console.error('Error fetching protocols:', error);
+      message.error('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
+  };
+
+  // Handle search with debounce
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setPagination(prev => ({ ...prev, current: 1 }));
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setPagination(prev => ({ ...prev, current: 1 }));
+  };
+
+  // Handle pagination change
+  const handlePaginationChange = (page, pageSize) => {
+    setPagination(prev => ({ ...prev, current: page, pageSize }));
   };
 
   // Handle protocol view
@@ -236,15 +133,40 @@ const TreatmentProtocolPage = () => {
   // Handle create new protocol
   const handleCreateProtocol = () => {
     form.resetFields();
+    setCurrentProtocol(null);
     setModalVisible(true);
   };
 
   // Handle protocol submission (create/update)
-  const handleSubmitProtocol = (values) => {
-    console.log('Protocol values:', values);
-    message.success(`Phác đồ "${values.name}" đã được ${currentProtocol ? 'cập nhật' : 'tạo'} thành công!`);
-    setModalVisible(false);
-    // In a real app, you would save the protocol to the server
+  const handleSubmitProtocol = async (values) => {
+    try {
+      if (currentProtocol) {
+        // Update existing protocol
+        await regimenService.updateRegimen(currentProtocol.id, values);
+        message.success(`Phác đồ "${values.name}" đã được cập nhật thành công!`);
+      } else {
+        // Create new protocol
+        await regimenService.createRegimen(values);
+        message.success(`Phác đồ "${values.name}" đã được tạo thành công!`);
+      }
+      setModalVisible(false);
+      fetchProtocols(); // Refresh the list
+    } catch (error) {
+      console.error('Error saving protocol:', error);
+      message.error('Có lỗi xảy ra khi lưu phác đồ. Vui lòng thử lại.');
+    }
+  };
+
+  // Handle delete protocol
+  const handleDeleteProtocol = async (protocolId) => {
+    try {
+      await regimenService.deleteRegimen(protocolId);
+      message.success('Phác đồ đã được xóa thành công!');
+      fetchProtocols(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting protocol:', error);
+      message.error('Có lỗi xảy ra khi xóa phác đồ. Vui lòng thử lại.');
+    }
   };
 
   // Format medicine list to display
@@ -253,13 +175,6 @@ const TreatmentProtocolPage = () => {
     
     return medicines.map(item => item.medicine.name).join(' + ');
   };
-
-  // Filter protocols based on search text
-  const filteredProtocols = protocols.filter(protocol => 
-    protocol.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    protocol.description.toLowerCase().includes(searchText.toLowerCase()) ||
-    protocol.targetDisease.toLowerCase().includes(searchText.toLowerCase())
-  );
 
   // Table columns
   const columns = [
@@ -273,7 +188,12 @@ const TreatmentProtocolPage = () => {
       title: 'Mô tả',
       dataIndex: 'description',
       key: 'description',
-      ellipsis: true,
+      width: 300,
+      render: (text) => (
+        <Paragraph ellipsis={{ rows: 3, expandable: true, symbol: 'more' }}>
+          {text}
+        </Paragraph>
+      )
     },
     {
       title: 'Bệnh điều trị',
@@ -284,8 +204,19 @@ const TreatmentProtocolPage = () => {
     {
       title: 'Thuốc',
       key: 'medicines',
-      render: (_, record) => getMedicineList(record.medicines),
-      ellipsis: true,
+      render: (_, record) => (
+        <Space size={[0, 8]} wrap>
+          {record.medicines && record.medicines.length > 0 ? (
+            record.medicines.map((item) => (
+              <Tag color="purple" key={item.medicine.id}>
+                {item.medicine.name}
+              </Tag>
+            ))
+          ) : (
+            <Text type="secondary">Không có thuốc</Text>
+          )}
+        </Space>
+      ),
     },
     {
       title: 'Ngày tạo',
@@ -301,6 +232,17 @@ const TreatmentProtocolPage = () => {
           <Button type="primary" onClick={() => handleViewProtocol(record)}>
             Chi tiết
           </Button>
+          <Popconfirm
+            title="Xóa phác đồ"
+            description="Bạn có chắc chắn muốn xóa phác đồ này không?"
+            onConfirm={() => handleDeleteProtocol(record.id)}
+            okText="Có"
+            cancelText="Không"
+          >
+            <Button type="primary" danger icon={<DeleteOutlined />}>
+              Xóa
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -310,34 +252,98 @@ const TreatmentProtocolPage = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <Title level={2}>Phác đồ điều trị</Title>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
-          onClick={handleCreateProtocol}
-        >
-          Tạo phác đồ mới
-        </Button>
+        <Space>
+          <Button 
+            icon={<ReloadOutlined />} 
+            onClick={fetchProtocols}
+            loading={loading}
+          >
+            Làm mới
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={handleCreateProtocol}
+          >
+            Tạo phác đồ mới
+          </Button>
+        </Space>
       </div>
       
       <div className="mb-6">
-        <Input
-          placeholder="Tìm kiếm phác đồ..."
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={e => setSearchText(e.target.value)}
-          style={{ width: 300 }}
-          allowClear
-        />
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={24} lg={8}>
+            <Input
+              placeholder="Tìm kiếm phác đồ..."
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={e => handleSearch(e.target.value)}
+              allowClear
+            />
+          </Col>
+          <Col xs={24} sm={8} lg={4}>
+            <Select
+              placeholder="Bệnh điều trị"
+              value={filters.targetDisease}
+              onChange={(value) => handleFilterChange('targetDisease', value)}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              <Option value="HIV">HIV</Option>
+              <Option value="AIDS">AIDS</Option>
+              <Option value="HIV/AIDS">HIV/AIDS</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={8} lg={4}>
+            <Select
+              placeholder="Sắp xếp theo"
+              value={filters.sortBy}
+              onChange={(value) => handleFilterChange('sortBy', value)}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              <Option value="name">Tên phác đồ</Option>
+              <Option value="createdAt">Ngày tạo</Option>
+              <Option value="updatedAt">Ngày cập nhật</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={8} lg={4}>
+            <Select
+              placeholder="Thứ tự"
+              value={filters.sortOrder}
+              onChange={(value) => handleFilterChange('sortOrder', value)}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              <Option value="asc">Tăng dần</Option>
+              <Option value="desc">Giảm dần</Option>
+            </Select>
+          </Col>
+        </Row>
       </div>
       
       <Card className="shadow-md">
         <Table
           columns={columns}
-          dataSource={filteredProtocols}
+          dataSource={protocols}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={false}
+          scroll={{ x: 'max-content' }}
         />
+        
+        <div className="mt-4 flex justify-end">
+          <Pagination
+            current={pagination.current}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            showSizeChanger={pagination.showSizeChanger}
+            showQuickJumper={pagination.showQuickJumper}
+            showTotal={pagination.showTotal}
+            onChange={handlePaginationChange}
+            onShowSizeChange={handlePaginationChange}
+          />
+        </div>
       </Card>
       
       {/* Protocol Detail Drawer */}

@@ -322,18 +322,22 @@ const HeaderMidle = () => {
             overlay={
               <Menu>
                 {menuItems.knowledge.children.map(item => (
-                  <Menu.Item key={item.key}>{item.label}</Menu.Item>
+                  <Menu.Item key={item.key}>
+                    <Link to="/blogs">{item.label}</Link>
+                  </Menu.Item>
                 ))}
               </Menu>
             }
-            trigger={[currentPath === getRoutePath('knowledge') ? 'hover' : 'click']}
+            trigger={['hover']}
           >
             <Menu.Item key={menuItems.knowledge.key} className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
-              {menuItems.knowledge.label} 
-              <FontAwesomeIcon 
-                icon={faCaretDown} 
-                className="ml-1 text-xs" 
-              />
+              <Link to="/blogs">
+                {menuItems.knowledge.label} 
+                <FontAwesomeIcon 
+                  icon={faCaretDown} 
+                  className="ml-1 text-xs" 
+                />
+              </Link>
             </Menu.Item>
           </Dropdown>
           

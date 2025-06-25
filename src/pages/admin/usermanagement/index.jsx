@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Table, Card, Button, Space, Typography, Tag,
-  Input, Modal, Form, Select, Popconfirm, message
+  Input, Modal, Form, Select, Popconfirm, message, Avatar, Tooltip
 } from 'antd';
 import { 
   UserAddOutlined, SearchOutlined, EditOutlined, DeleteOutlined,
-  LockOutlined, UnlockOutlined, EyeOutlined, EyeInvisibleOutlined
+  LockOutlined, UnlockOutlined, EyeOutlined, EyeInvisibleOutlined,
+  PlusOutlined, ReloadOutlined, UserOutlined, CheckCircleOutlined, CloseCircleOutlined,
+  MinusOutlined
 } from '@ant-design/icons';
 import { adminService } from '@/services/adminService';
 import dayjs from 'dayjs';
 import useDebounce from '@/hooks/useDebounce';
+import useQuery from "@/hooks/useQuery";
+import UserPermissionSelectorModal from './components/UserPermissionSelectorModal';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -17,13 +21,47 @@ const { Option } = Select;
 const UserManagement = () => {
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 500);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form] = Form.useForm();
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [form] = Form.useForm();
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [sorter, setSorter] = useState({ field: 'createdAt', order: 'descend' });
+  const [isPermissionsModalVisible, setIsPermissionsModalVisible] = useState(false);
+  const [selectedUserForPermissions, setSelectedUserForPermissions] = useState(null);
+  const [permissionAction, setPermissionAction] = useState(null);
+
+  const {
+    data: userData,
+    loading: queryLoading,
+    error,
+    refetch: refetchUsers,
+  } = useQuery(() => adminService.getUsers());
+
+  const usersData = userData?.data?.data || [];
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await adminService.getRoles();
+        const rolesData = response.data?.data?.data;
+        if (rolesData && Array.isArray(rolesData)) {
+          const filteredRoles = rolesData.filter(
+            (role) => role.name.toLowerCase() !== "admin"
+          );
+          setRoles(filteredRoles);
+        } else {
+            message.error("Failed to process roles from API response.");
+        }
+      } catch (error) {
+        message.error("Failed to fetch roles.");
+        console.error("Error fetching roles:", error);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -39,7 +77,7 @@ const UserManagement = () => {
       const { data, meta } = response.data?.data || {};
       setUsers(
         Array.isArray(data)
-          ? data.map((user) => ({ ...user, key: user.id }))
+          ? data.filter(user => !user.deletedAt).map((user) => ({ ...user, key: user.id }))
           : []
       );
       setPagination({
@@ -63,36 +101,40 @@ const UserManagement = () => {
     setEditingUser(user);
     if (user) {
       form.setFieldsValue({
-        ...user,
-        roleId: user.role?.id || null, // Assuming role is an object
+        email: user.email,
+        roleId: user.roleId,
       });
     } else {
       form.resetFields();
     }
-    setIsModalOpen(true);
+    setIsModalVisible(true);
   };
 
   const handleCancel = () => {
-    setIsModalOpen(false);
+    setIsModalVisible(false);
     setEditingUser(null);
     form.resetFields();
   };
 
-  const handleSubmit = async (values) => {
+  const onFinish = async (values) => {
     try {
       if (editingUser) {
-        await adminService.updateUser(editingUser.id, values);
-        message.success('User updated successfully');
+        await adminService.updateUser(editingUser.id, {
+          email: values.email,
+          roleId: values.roleId,
+        });
+        message.success("User updated successfully!");
       } else {
-        await adminService.createUser(values);
-        message.success('User added successfully');
+        await adminService.createUser({
+          email: values.email,
+          roleId: values.roleId,
+        });
+        message.success("User created successfully!");
       }
-      setIsModalOpen(false);
-      form.resetFields();
       fetchUsers();
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || 'An unexpected error occurred.';
-      message.error(`Failed: ${errorMsg}`);
+      handleCancel();
+    } catch (err) {
+      message.error(err.response?.data?.message || "An error occurred.");
     }
   };
 
@@ -131,7 +173,22 @@ const UserManagement = () => {
     });
   };
 
+  const handlePermissionModalClose = (refresh) => {
+    setIsPermissionsModalVisible(false);
+    setSelectedUserForPermissions(null);
+    setPermissionAction(null);
+    if (refresh) {
+      fetchUsers();
+    }
+  };
+
   const columns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      sorter: true,
+    },
     {
       title: 'Name',
       dataIndex: 'name',
@@ -145,14 +202,10 @@ const UserManagement = () => {
       sorter: true,
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role) => {
-        if (!role || !role.name) return <Tag>N/A</Tag>;
-        const roleColor = role.name.toLowerCase() === 'admin' ? 'magenta' : 'blue';
-        return <Tag color={roleColor}>{role.name.toUpperCase()}</Tag>;
-      },
+      title: 'Phone Number',
+      dataIndex: 'phoneNumber',
+      key: 'phoneNumber',
+      sorter: true,
     },
     {
       title: 'Status',
@@ -165,6 +218,12 @@ const UserManagement = () => {
         else color = 'red';
         return <Tag color={color}>{status ? status.toUpperCase() : 'N/A'}</Tag>;
       },
+    },
+    {
+      title: 'Role',
+      dataIndex: ['role', 'name'],
+      key: 'role',
+      render: (roleName) => <Tag color="blue">{roleName}</Tag>,
     },
     {
       title: 'Created At',
@@ -192,6 +251,33 @@ const UserManagement = () => {
             icon={record.status === 'ACTIVE' ? <LockOutlined /> : <UnlockOutlined />}
             size="small"
             onClick={() => handleToggleStatus(record)}
+          />
+        </Space>
+      ),
+    },
+    {
+      title: 'Edit Permission',
+      key: 'edit-permission',
+      render: (_, record) => (
+        <Space size="small">
+          <Button
+            icon={<PlusOutlined />}
+            size="small"
+            onClick={() => {
+              setSelectedUserForPermissions(record);
+              setPermissionAction('add');
+              setIsPermissionsModalVisible(true);
+            }}
+          />
+          <Button
+            icon={<MinusOutlined />}
+            size="small"
+            danger
+            onClick={() => {
+              setSelectedUserForPermissions(record);
+              setPermissionAction('remove');
+              setIsPermissionsModalVisible(true);
+            }}
           />
         </Space>
       ),
@@ -229,51 +315,47 @@ const UserManagement = () => {
 
       <Modal
         title={editingUser ? 'Edit User' : 'Add New User'}
-        open={isModalOpen}
+        open={isModalVisible}
         onCancel={handleCancel}
-        onOk={() => form.submit()}
-        confirmLoading={loading}
+        footer={null}
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
-            name="name"
-            label="Full Name"
-            rules={[{ required: true, message: 'Please enter the user\'s full name' }]}
-          >
-            <Input />
-          </Form.Item>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
             name="email"
-            label="Email Address"
-            rules={[{ required: true, message: 'Please enter a valid email' }, { type: 'email' }]}
+            label="Email"
+            rules={[{ required: true, type: "email", message: "Please input a valid email!" }]}
           >
             <Input />
           </Form.Item>
-          {!editingUser && (
-            <Form.Item
-              name="password"
-              label="Password"
-              rules={[{ required: true, message: 'Password is required' }]}
-            >
-              <Input.Password
-                iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-              />
-            </Form.Item>
-          )}
           <Form.Item
             name="roleId"
             label="Role"
-            rules={[{ required: true, message: 'Please select a role' }]}
+            rules={[{ required: true, message: "Please select a role!" }]}
           >
             <Select placeholder="Select a role">
-              <Option value={1}>Admin</Option>
-              <Option value={2}>Doctor</Option>
-              <Option value={3}>Staff</Option>
-              <Option value={4}>Patient</Option>
+              {roles.map((role) => (
+                <Option key={role.id} value={role.id}>
+                  {role.name}
+                </Option>
+              ))}
             </Select>
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
+              {editingUser ? "Update" : "Create"}
+            </Button>
+            <Button onClick={handleCancel}>Cancel</Button>
           </Form.Item>
         </Form>
       </Modal>
+      {isPermissionsModalVisible && (
+        <UserPermissionSelectorModal
+          visible={isPermissionsModalVisible}
+          onCancel={handlePermissionModalClose}
+          user={selectedUserForPermissions}
+          action={permissionAction}
+        />
+      )}
     </Card>
   );
 };
