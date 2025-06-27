@@ -45,5 +45,22 @@ export const authenService = {
 
   isAuthenticated() {
     return !!localToken.getAccessToken();
+  },
+
+  // Google OAuth methods
+  getGoogleAuthUrl() {
+    return axiosInstance.get('/auth/google-link');
+  },
+
+  handleGoogleCallback(code, state) {
+    return axiosInstance.get(`/auth/google/callback?code=${code}&state=${state}`)
+      .then(response => {
+        console.log('Service response:', response.data);
+        if (response.data?.data) {
+          console.log('Setting tokens:', response.data.data);
+          localToken.set(response.data.data);
+        }
+        return response;
+      });
   }
 };
