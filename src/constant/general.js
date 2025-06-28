@@ -1,9 +1,7 @@
 import { withSuccess } from "antd/es/modal/confirm";
+import { AUTH_MODAL_TYPES } from "./authConfig";
 
-export const MODAL_TYPE = {
-  login: "login",
-  register: "register",
-};
+export const MODAL_TYPE = AUTH_MODAL_TYPES;
 
 export const SORT_OPTION = {
   popularity: {
@@ -35,43 +33,6 @@ export const SORT_OPTION = {
     queryObject: { orderBy: "rating", order: "-1" },
   },
 };
-
-
-export const RANGE_PRICE = {
-    max : 4400,
-    min : 12
-}
-
-
-export const SHIPPING_OPTION = [
-  {
-    value : "free",
-    label : "Free",
-    price : 0
-  },
-  {
-    value : "standard",
-    label : "Standard",
-    price : 10
-  },
-  {
-    value : "express",
-    label : "Express",
-    price : 20
-  }
-]
-
-export const PAYMENT_METHOD = {
-  cash : "cash",
-  card : "card"
-}
-
-export const COUPON = {
-  addSuccess : "Add Coupon Succsess",
-  addFail : "Add Coupon Fail",
-  removeSuccess : "Remove Coupon Success",
-  removeFail  : "Remove Coupon Fail"
-}
 
 export const DOCTOR_SHIFT_TIME = {
   MORNING: { label: 'Sáng', time: '07:00 - 11:00', start: 7, end: 11 },

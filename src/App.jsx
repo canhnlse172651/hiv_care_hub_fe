@@ -1,9 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import MainLayout from "./layouts/MainLayout";
-import AdminLayout from "./layouts/AdminLayout";
-import StaffLayout from "./layouts/StaffLayout";
-import DoctorLayout from "./layouts/DoctorLayout";
+import BaseLayout from "./layouts/BaseLayout";
 import HomePage from "./pages/landscape/home";
 import Forum from "./pages/landscape/forum";
 import Contact from "./pages/landscape/contact";
@@ -81,23 +79,24 @@ function App() {
         {/* Admin Routes */}
         <Route path={PATHS.ADMIN.INDEX} element={
           <AdminRoute>
-            <AdminLayout />
+            <BaseLayout role="admin" />
           </AdminRoute>
         }>
-          <Route index element={<Dashboard />} />          <Route path="dashboard" element={<Dashboard />} />
+          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="roles" element={<RoleManagement />} />
           <Route path="permissions" element={<PermissionManagement />} />
           <Route path="doctors" element={<DoctorManagement />} />
           <Route path="doctors/:userId/schedule" element={<DoctorScheduleAdminPage />} />
           <Route path="appointments" element={<AppointmentList />} />
-          <Route path="treatments" element={<TreatmentTracking />} />
+          <Route path="treatment-tracking" element={<TreatmentTracking />} />
         </Route>
         
         {/* Staff Routes */}
         <Route path={PATHS.STAFF.INDEX} element={
           <StaffRoute>
-            <StaffLayout />
+            <BaseLayout role="staff" />
           </StaffRoute>
         }>
           <Route index element={<StaffDashboard />} />
@@ -109,7 +108,7 @@ function App() {
         {/* Doctor Routes */}
         <Route path="/doctor" element={
           <DoctorRoute>
-            <DoctorLayout />
+            <BaseLayout role="doctor" />
           </DoctorRoute>
         }>
           <Route index element={<DoctorDashboard />} />
