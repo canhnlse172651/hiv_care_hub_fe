@@ -1,34 +1,32 @@
 import React, { useState } from 'react';
 import { 
-  Table, 
-  Card, 
   Button, 
   Space, 
   Typography, 
   Tag,
-  Input,
   Modal,
   Select,
-  Popconfirm,
   message,
   DatePicker,
-  Badge
+  Badge,
+  Input
 } from 'antd';
 import { 
-  SearchOutlined,
   EyeOutlined,
   CheckOutlined,
   CloseOutlined,
   CalendarOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import AdminTable, { StatusTag, ActionButtons, ActionTypes } from '@/components/AdminTable';
+import AdminModal from '@/components/AdminModal';
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+const { TextArea } = Input;
 
 const AppointmentList = () => {
-  const [searchText, setSearchText] = useState('');
   const [dateRange, setDateRange] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentAppointment, setCurrentAppointment] = useState(null);
@@ -120,51 +118,30 @@ const AppointmentList = () => {
   };
 
   const filteredAppointments = appointments.filter(appointment => {
-    let matchesSearch = 
-      appointment.patientName.toLowerCase().includes(searchText.toLowerCase()) ||
-      appointment.doctorName.toLowerCase().includes(searchText.toLowerCase()) ||
-      appointment.patientEmail.toLowerCase().includes(searchText.toLowerCase()) ||
-      appointment.reason.toLowerCase().includes(searchText.toLowerCase());
-    
     // Filter by date range if selected
     if (dateRange && dateRange[0] && dateRange[1]) {
       const appointmentDate = dayjs(appointment.date);
       const startDate = dateRange[0];
       const endDate = dateRange[1];
       
-      return matchesSearch && appointmentDate.isAfter(startDate) && appointmentDate.isBefore(endDate);
+      return appointmentDate.isAfter(startDate) && appointmentDate.isBefore(endDate);
     }
     
-    return matchesSearch;
+    return true;
   });
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'orange';
-      case 'confirmed':
-        return 'blue';
-      case 'completed':
-        return 'green';
-      case 'cancelled':
-        return 'red';
-      default:
-        return 'default';
-    }
-  };
 
   const columns = [
     {
       title: 'Patient',
       dataIndex: 'patientName',
       key: 'patientName',
-      sorter: (a, b) => a.patientName.localeCompare(b.patientName),
+      sorter: true,
     },
     {
       title: 'Doctor',
       dataIndex: 'doctorName',
       key: 'doctorName',
-      sorter: (a, b) => a.doctorName.localeCompare(b.doctorName),
+      sorter: true,
     },
     {
       title: 'Specialty',
@@ -181,10 +158,8 @@ const AppointmentList = () => {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      sorter: (a, b) => new Date(a.date) - new Date(b.date),
-      render: (text) => {
-        return dayjs(text).format('MMM DD, YYYY');
-      }
+      sorter: true,
+      render: (text) => dayjs(text).format('MMM DD, YYYY'),
     },
     {
       title: 'Time',
@@ -195,11 +170,7 @@ const AppointmentList = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Tag color={getStatusColor(status)}>
-          {status.toUpperCase()}
-        </Tag>
-      ),
+      render: (status) => <StatusTag status={status} type="appointment" />,
       filters: [
         { text: 'Pending', value: 'pending' },
         { text: 'Confirmed', value: 'confirmed' },
@@ -211,169 +182,141 @@ const AppointmentList = () => {
     {
       title: 'Actions',
       key: 'actions',
+      width: 200,
       render: (_, record) => (
-        <Space size="small">
-          <Button
-            icon={<EyeOutlined />}
-            size="small"
-            onClick={() => showAppointmentDetails(record)}
-          />
-          {record.status === 'pending' && (
-            <>
-              <Popconfirm
-                title="Confirm this appointment?"
-                onConfirm={() => handleStatusChange(record.id, 'confirmed')}
-                okText="Yes"
-                cancelText="No"
-              >
-                <Button
-                  icon={<CheckOutlined />}
-                  size="small"
-                  type="primary"
-                />
-              </Popconfirm>
-              <Popconfirm
-                title="Cancel this appointment?"
-                onConfirm={() => handleStatusChange(record.id, 'cancelled')}
-                okText="Yes"
-                cancelText="No"
-              >
-                <Button
-                  icon={<CloseOutlined />}
-                  size="small"
-                  danger
-                />
-              </Popconfirm>
-            </>
-          )}
-          {record.status === 'confirmed' && (
-            <Popconfirm
-              title="Mark as completed?"
-              onConfirm={() => handleStatusChange(record.id, 'completed')}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button
-                icon={<CheckOutlined />}
-                size="small"
-                type="primary"
-                style={{ backgroundColor: '#52c41a' }}
-              />
-            </Popconfirm>
-          )}
-        </Space>
+        <ActionButtons
+          record={record}
+          actions={[
+            {
+              ...ActionTypes.VIEW,
+              onClick: showAppointmentDetails,
+            },
+            ...(record.status === 'pending' ? [
+              {
+                type: 'confirm',
+                icon: <CheckOutlined />,
+                onClick: () => handleStatusChange(record.id, 'confirmed'),
+                tooltip: 'Confirm Appointment',
+                confirm: true,
+                confirmTitle: 'Confirm this appointment?',
+              },
+              {
+                type: 'cancel',
+                icon: <CloseOutlined />,
+                onClick: () => handleStatusChange(record.id, 'cancelled'),
+                tooltip: 'Cancel Appointment',
+                danger: true,
+                confirm: true,
+                confirmTitle: 'Cancel this appointment?',
+              },
+            ] : []),
+            ...(record.status === 'confirmed' ? [
+              {
+                type: 'complete',
+                icon: <CheckOutlined />,
+                onClick: () => handleStatusChange(record.id, 'completed'),
+                tooltip: 'Mark as Completed',
+                confirm: true,
+                confirmTitle: 'Mark as completed?',
+              },
+            ] : []),
+          ]}
+        />
       ),
     },
   ];
 
+  const extraActions = (
+    <RangePicker
+      onChange={setDateRange}
+      className="w-64"
+      placeholder={['Start date', 'End date']}
+    />
+  );
+
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={2}>Appointment Management</Title>
-      </div>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <AdminTable
+        title="Appointment Management"
+        columns={columns}
+        dataSource={filteredAppointments}
+        loading={false}
+        pagination={{ pageSize: 10 }}
+        onTableChange={() => {}}
+        searchPlaceholder="Search by patient, doctor, or reason"
+        searchValue=""
+        onSearchChange={() => {}}
+        onRefresh={() => {}}
+        extraActions={extraActions}
+        rowKey="key"
+        showSearch={false}
+      />
 
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <Input
-            placeholder="Search by patient, doctor, or reason"
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            style={{ width: 300 }}
-            allowClear
-          />
-          
-          <RangePicker
-            onChange={setDateRange}
-            style={{ width: 300 }}
-            placeholder={['Start date', 'End date']}
-          />
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <Space>
-            <Badge color={getStatusColor('pending')} text="Pending" />
-            <Badge color={getStatusColor('confirmed')} text="Confirmed" />
-            <Badge color={getStatusColor('completed')} text="Completed" />
-            <Badge color={getStatusColor('cancelled')} text="Cancelled" />
-          </Space>
-        </div>
-
-        <Table 
-          columns={columns} 
-          dataSource={filteredAppointments}
-          pagination={{ pageSize: 10 }}
-          rowKey="key"
-        />
-      </Card>
-
-      <Modal
+      {/* Appointment Details Modal */}
+      <AdminModal
         title="Appointment Details"
         open={isModalVisible}
         onCancel={handleCancel}
-        footer={[
-          <Button key="close" onClick={handleCancel}>
-            Close
-          </Button>,
-        ]}
+        onOk={handleCancel}
+        showFooter={false}
         width={700}
       >
         {currentAppointment && (
-          <div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ flex: '1 1 300px' }}>
-                <h3>Patient Information</h3>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Patient Information</h3>
                 <p><strong>Name:</strong> {currentAppointment.patientName}</p>
                 <p><strong>Email:</strong> {currentAppointment.patientEmail}</p>
               </div>
-              <div style={{ flex: '1 1 300px' }}>
-                <h3>Doctor Information</h3>
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Doctor Information</h3>
                 <p><strong>Name:</strong> {currentAppointment.doctorName}</p>
                 <p><strong>Specialty:</strong> {currentAppointment.doctorSpecialty}</p>
               </div>
             </div>
             
-            <div style={{ marginBottom: '24px' }}>
-              <h3>Appointment Details</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-                <div style={{ flex: '1 1 200px' }}>
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Appointment Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
                   <p><strong>Date:</strong> {dayjs(currentAppointment.date).format('MMMM DD, YYYY')}</p>
                   <p><strong>Time:</strong> {currentAppointment.time}</p>
                 </div>
-                <div style={{ flex: '1 1 200px' }}>
+                <div>
                   <p>
                     <strong>Status:</strong>{' '}
-                    <Tag color={getStatusColor(currentAppointment.status)}>
-                      {currentAppointment.status.toUpperCase()}
-                    </Tag>
+                    <StatusTag status={currentAppointment.status} type="appointment" />
                   </p>
                 </div>
               </div>
             </div>
             
-            <div style={{ marginBottom: '24px' }}>
-              <h3>Reason for Visit</h3>
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Reason for Visit</h3>
               <p>{currentAppointment.reason}</p>
             </div>
             
             <div>
-              <h3>Notes</h3>
-              <Input.TextArea
+              <h3 className="text-lg font-semibold mb-3">Notes</h3>
+              <TextArea
                 rows={4}
                 defaultValue={currentAppointment.notes}
                 onChange={(e) => setCurrentAppointment({...currentAppointment, notes: e.target.value})}
+                className="mb-3"
               />
-              <Button 
-                type="primary" 
-                style={{ marginTop: '8px' }}
-                onClick={() => handleSaveNotes(currentAppointment.notes)}
-              >
-                Save Notes
-              </Button>
+              <div className="flex justify-end">
+                <Button 
+                  type="primary" 
+                  onClick={() => handleSaveNotes(currentAppointment.notes)}
+                >
+                  Save Notes
+                </Button>
+              </div>
             </div>
           </div>
         )}
-      </Modal>
+      </AdminModal>
     </div>
   );
 };

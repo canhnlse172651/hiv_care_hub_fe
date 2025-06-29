@@ -16,11 +16,12 @@ const PermissionFormModal = ({
   onClose, 
   onSubmit, 
   editingPermission,
-  form
+  form,
+  loading = false
 }) => {
   useEffect(() => {
     // Reset form when modal opens/closes or editing permission changes
-    if (!isOpen) {
+    if (!isOpen && form) {
       form.resetFields();
     }
   }, [isOpen, form]);
@@ -47,7 +48,6 @@ const PermissionFormModal = ({
         form={form}
         layout="vertical"
         onFinish={onSubmit}
-        initialValues={editingPermission || {}}
         className="mt-4"
       >
         <Form.Item
@@ -98,8 +98,8 @@ const PermissionFormModal = ({
         </Form.Item>
         
         <div className="flex justify-end gap-2 mt-4">
-          <Button onClick={onClose}>Cancel</Button>
-          <Button type="primary" htmlType="submit">
+          <Button onClick={onClose} disabled={loading}>Cancel</Button>
+          <Button type="primary" htmlType="submit" loading={loading}>
             {editingPermission ? 'Update' : 'Create'}
           </Button>
         </div>

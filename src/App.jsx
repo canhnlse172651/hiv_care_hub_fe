@@ -17,7 +17,7 @@ import { PATHS } from "./constant/path";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { handleGetProfile } from "./store/Reducer/authReducer";
-import { localToken } from "./utils/token";
+import { authManager } from "./utils/auth";
 import { 
   AdminRoute, 
   PatientRoute,
@@ -29,8 +29,6 @@ import StaffDashboard from "./pages/staff/dashboard";
 import StaffPayment from "./pages/staff/payment";
 import StaffPatients from "./pages/staff/patients";
 import DoctorDashboard from "./pages/doctor/dashboard";
-import ConsultationPage from "./pages/doctor/consultation";
-import MedicalRecordsPage from "./pages/doctor/medical-records";
 import DoctorSchedulePage from "./pages/doctor/schedule";
 import TreatmentProtocolPage from "./pages/doctor/regimens";
 import ServiceBooking from "./pages/landscape/servicebooking";
@@ -43,13 +41,14 @@ import DoctorSchedule from "./pages/doctor/schedule";
 import BlogPage from "./pages/landscape/blog";
 import BlogDetailPage from "./pages/landscape/blog/BlogDetail";
 import DoctorScheduleAdminPage from './pages/admin/doctors/schedule';
+import DoctorAppointments from "./pages/doctor/appointments";
 
 function App() {
   const dispatch = useDispatch();
   
   useEffect(() => {
-    // Check if user is already logged in
-    if (localToken.get()?.accessToken) {
+    // Check if user is already authenticated
+    if (authManager.isAuthenticated()) {
       dispatch(handleGetProfile());
     }
   }, [dispatch]);
@@ -113,9 +112,8 @@ function App() {
         }>
           <Route index element={<DoctorDashboard />} />
           <Route path="dashboard" element={<DoctorDashboard />} />
-          <Route path="consultation/:appointmentId" element={<ConsultationPage />} />
-          <Route path="medical-records/:patientId" element={<MedicalRecordsPage />} />
           <Route path="schedule" element={<DoctorSchedule />} />
+          <Route path="appointments" element={<DoctorAppointments />} />
           <Route path="regimens" element={<TreatmentProtocolPage />} />
           {/* Additional doctor routes would go here */}
         </Route>

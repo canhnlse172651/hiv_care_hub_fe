@@ -38,42 +38,48 @@ export const USER_ROLES = {
 };
 
 /**
- * Get the role of a user from the userId
- * In this example, we're using a simple mapping from userId to role
- */
-export const getUserRole = (userId) => {
-  // This is a simplified example
-  // In a real app, you'd decode this from JWT or get it from user object
-  switch (userId) {
-    case 1:
-      return 'admin';
-    case 5:
-      return 'doctor';
-    case 3:
-      return 'staff';
-    case 7:
-      return 'patient';
-    default:
-      return 'user'; // Default role
-  }
-};
-
-/**
  * Check if user has a specific role
+ * @param {string} userRole - User's role
+ * @param {string} requiredRole - Required role
+ * @returns {boolean} Whether user has the required role
  */
 export const hasRole = (userRole, requiredRole) => {
-  // Add console.log for debugging
-  console.log(`Checking if user with role ${userRole} has required role ${requiredRole}`);
-  
   if (!userRole || !requiredRole) return false;
-  
-  // Direct role comparison since we now have string roles
   return userRole === requiredRole;
 };
 
 /**
  * Check if the user is an admin
+ * @param {string} userRole - User's role
+ * @returns {boolean} Whether user is admin
  */
 export const isAdmin = (userRole) => {
   return userRole === USER_ROLES.ADMIN;
+};
+
+/**
+ * Check if the user is a doctor
+ * @param {string} userRole - User's role
+ * @returns {boolean} Whether user is doctor
+ */
+export const isDoctor = (userRole) => {
+  return userRole === USER_ROLES.DOCTOR;
+};
+
+/**
+ * Check if the user is staff
+ * @param {string} userRole - User's role
+ * @returns {boolean} Whether user is staff
+ */
+export const isStaff = (userRole) => {
+  return userRole === USER_ROLES.STAFF;
+};
+
+/**
+ * Check if the user is a patient
+ * @param {string} userRole - User's role
+ * @returns {boolean} Whether user is patient
+ */
+export const isPatient = (userRole) => {
+  return userRole === USER_ROLES.PATIENT;
 };

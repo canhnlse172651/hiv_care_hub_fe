@@ -28,6 +28,7 @@ import {
   FileTextOutlined,
   BookOutlined,
   DollarOutlined,
+  ScheduleOutlined,
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { handleLogout } from '@/store/Reducer/authReducer';
@@ -56,6 +57,7 @@ const ICON_MAPPING = {
   BookOutlined: <BookOutlined />,
   DollarOutlined: <DollarOutlined />,
   UserOutlined: <UserOutlined />,
+  ScheduleOutlined: <ScheduleOutlined />,
 };
 
 // Helper function to get icon component
@@ -78,10 +80,6 @@ const BaseLayout = ({ role }) => {
 
   const onSignOut = () => {
     dispatch(handleLogout());
-    if (role === 'staff') {
-      localStorage.removeItem('auth');
-      localStorage.removeItem('token');
-    }
     navigate("/");
   };
 
@@ -103,10 +101,6 @@ const BaseLayout = ({ role }) => {
   const getActiveMenuKey = (pathname) => {
     const path = pathname.split('/');
     if (path.length > 2) {
-      if (role === 'doctor') {
-        if (path[2] === 'consultation' && path.length > 3) return 'consultation';
-        if (path[2] === 'medical-records' && path.length > 3) return 'medical-records';
-      }
       return path[2];
     }
     return 'dashboard';
@@ -125,9 +119,6 @@ const BaseLayout = ({ role }) => {
       const title = breadcrumbConfig.mappings[section];
       if (title) {
         breadcrumbItems.push({ title });
-        if (role === 'doctor' && (section === 'consultation' || section === 'medical-records') && path.length > 2) {
-          breadcrumbItems.push({ title: `ID: ${path[2]}` });
-        }
       }
     }
     return breadcrumbItems;

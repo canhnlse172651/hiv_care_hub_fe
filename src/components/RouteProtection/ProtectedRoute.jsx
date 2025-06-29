@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { localToken } from '@/utils/token';
-import { USER_ROLES, hasRole } from '@/utils/jwt';
+import { authManager } from '@/utils/auth';
+import { USER_ROLES } from '@/utils/jwt';
 import { PATHS } from '@/constant/path';
 
 /**
@@ -14,24 +14,17 @@ export const ProtectedRoute = ({
   redirectPath = PATHS.HOME,
   children 
 }) => {
-  const auth = localToken.get();
-  const userRole = auth?.user?.role || null;
-  
-  console.log('Auth data:', auth);
-  console.log('User role:', userRole);
-  console.log('Required role:', requiredRole);
+  const isAuthenticated = authManager.isAuthenticated();
+  const userRole = authManager.getUser()?.role;
   
   // Check if user is authenticated and has the required role
-  const isAuthenticated = !!auth?.accessToken;
-  const isAuthorized = isAuthenticated && hasRole(userRole, requiredRole);
+  const isAuthorized = isAuthenticated && authManager.hasRole(requiredRole);
 
   if (!isAuthenticated) {
-    console.log('User not authenticated, redirecting');
-    return <Navigate to={PATHS.LOGIN || '/login'} replace />;
+    return <Navigate to={PATHS.HOME} replace />;
   }
 
   if (!isAuthorized) {
-    console.log(`User with role ${userRole} is not authorized for required role ${requiredRole}, redirecting to ${redirectPath}`);
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -64,4 +57,22 @@ export const StaffRoute = ({ children }) => {
  */
 export const PatientRoute = ({ children }) => {
   return <ProtectedRoute requiredRole={USER_ROLES.PATIENT} children={children} />;
+};
+
+/**
+ * Multi-role route protection - allows any of the specified roles
+ */
+export const MultiRoleRoute = ({ allowedRoles, children }) => {
+  const isAuthenticated = authManager.isAuthenticated();
+  const isAuthorized = isAuthenticated && authManager.hasAnyRole(allowedRoles);
+
+  if (!isAuthenticated) {
+    return <Navigate to={PATHS.HOME} replace />;
+  }
+
+  if (!isAuthorized) {
+    return <Navigate to={PATHS.HOME} replace />;
+  }
+
+  return children || <Outlet />;
 };

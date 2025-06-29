@@ -1,53 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Table, 
-  Card, 
   Button, 
   Space, 
   Typography, 
   Tag,
-  Input,
   Modal,
   Form,
   Select,
-  Popconfirm,
   message,
-  Avatar,
-  Upload,
-  Rate,
   DatePicker,
   InputNumber
 } from 'antd';
 import { 
   UserAddOutlined, 
-  SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  UploadOutlined,
-  UserOutlined,
-  MedicineBoxOutlined,
-  FileTextOutlined,
-  PlusOutlined
+  PlusOutlined,
+  MedicineBoxOutlined
 } from '@ant-design/icons';
 import { adminService } from '@/services/adminService';
 import { doctorService } from '@/services/doctorService';
 import { DOCTOR_SHIFT_TIME } from '@/constant/general';
-import { Link, Outlet } from 'react-router-dom';
-import dayjs from 'dayjs';
+import { Link } from 'react-router-dom';
+import { useAdminTable } from '@/hooks/useAdminTable';
+import AdminTable, { StatusTag, ActionButtons, ActionTypes } from '@/components/AdminTable';
+import AdminModal from '@/components/AdminModal';
 
 const { Title } = Typography;
 const { Option } = Select;
-const { TextArea } = Input;
 
 const DoctorManagement = () => {
-  const [doctors, setDoctors] = useState([]);
-  const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0 });
-  const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
-  const [editingDoctor, setEditingDoctor] = useState(null);
-  const [fileList, setFileList] = useState([]);
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [generateForm] = Form.useForm();
   const [generateLoading, setGenerateLoading] = useState(false);
@@ -57,45 +39,20 @@ const DoctorManagement = () => {
   const [manualForm] = Form.useForm();
   const [manualLoading, setManualLoading] = useState(false);
 
-  // Fetch doctor list
-  const fetchDoctors = async (params = {}) => {
-    setLoading(true);
-    try {
-      const response = await adminService.getDoctors({
-        page: meta.page,
-        limit: meta.limit,
-        search: searchText,
-        ...params,
-      });
-      
-      console.log('API Response:', response.status, '/doctors', response.data);
-      
-      // Extract data from the correct path based on your API response structure
-      const doctorsData = response.data?.data?.data || [];
-      const metaData = response.data?.data?.meta || { page: 1, limit: 10, total: 0 };
-      
-      console.log('Extracted doctors data:', doctorsData);
-      console.log('Extracted meta data:', metaData);
-      
-      // Filter out doctors without user data
-      const validDoctors = Array.isArray(doctorsData) ? doctorsData.filter(d => d.user) : [];
-      
-      setDoctors(validDoctors);
-      setMeta(metaData);
-    } catch (e) {
-      console.error('Error fetching doctors:', e);
-      message.error('Failed to fetch doctors');
-      setDoctors([]);
-      setMeta({ page: 1, limit: 10, total: 0 });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDoctors();
-    // eslint-disable-next-line
-  }, [meta.page, meta.limit, searchText]);
+  // Use the custom hook for table operations
+  const {
+    data: doctors,
+    loading,
+    pagination,
+    handleTableChange,
+    handleSearch,
+    handleRefresh,
+    fetchData,
+  } = useAdminTable({
+    fetchFunction: adminService.getDoctors,
+    searchField: 'search',
+    defaultPageSize: 10,
+  });
 
   // Add doctor
   const handleAddDoctor = async (values) => {
@@ -104,176 +61,11 @@ const DoctorManagement = () => {
       message.success('Doctor added successfully');
       setIsModalOpen(false);
       form.resetFields();
-      fetchDoctors();
+      fetchData();
     } catch (e) {
       message.error('Failed to add doctor');
     }
   };
-
-  const specialties = [
-    'Infectious Disease Specialist', 
-    'General Practitioner', 
-    'Therapist', 
-    'Nutritionist', 
-    'Psychiatrist',
-    'Pharmacologist',
-    'Dermatologist'
-  ];
-
-  const showModal = (doctor = null) => {
-    if (doctor) {
-      setEditingDoctor(doctor);
-      form.setFieldsValue({
-        name: doctor.name,
-        email: doctor.email,
-        specialty: doctor.specialty,
-        experience: doctor.experience,
-        education: doctor.education,
-        status: doctor.status,
-        bio: doctor.bio,
-        consultationFee: doctor.consultationFee
-      });
-      setFileList(doctor.profileImage ? [{
-        uid: '-1',
-        name: 'profile-image.png',
-        status: 'done',
-        url: doctor.profileImage,
-      }] : []);
-    } else {
-      setEditingDoctor(null);
-      form.resetFields();
-      setFileList([]);
-    }
-    setIsModalOpen(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    form.resetFields();
-  };
-
-  const handleSubmit = (values) => {
-    const profileImage = fileList.length > 0 ? fileList[0].url || fileList[0].thumbUrl : null;
-    
-    if (editingDoctor) {
-      // Update existing doctor
-      setDoctors(prevDoctors => 
-        prevDoctors.map(doctor => 
-          doctor.id === editingDoctor.id ? { 
-            ...doctor, 
-            ...values,
-            profileImage 
-          } : doctor
-        )
-      );
-      message.success('Doctor updated successfully');
-    } else {
-      // Add new doctor
-      const newDoctor = {
-        key: String(doctors.length + 1),
-        id: doctors.length + 1,
-        ...values,
-        profileImage,
-        rating: 0,
-        patients: 0
-      };
-      setDoctors([...doctors, newDoctor]);
-      message.success('Doctor added successfully');
-    }
-    setIsModalOpen(false);
-    form.resetFields();
-  };
-
-  const handleDelete = (doctorId) => {
-    setDoctors(doctors.filter(doctor => doctor.id !== doctorId));
-    message.success('Doctor deleted successfully');
-  };
-
-  const handleStatusChange = (doctorId) => {
-    setDoctors(prevDoctors =>
-      prevDoctors.map(doctor =>
-        doctor.id === doctorId ? {
-          ...doctor,
-          status: doctor.status === 'active' ? 'inactive' : 'active'
-        } : doctor
-      )
-    );
-    message.success('Doctor status updated successfully');
-  };
-
-  const columns = [
-    {
-      title: 'User ID',
-      dataIndex: 'userId',
-      key: 'userId',
-      width: 80,
-      sorter: (a, b) => a.userId - b.userId,
-      sortDirections: ['descend', 'ascend'],
-    },
-    {
-      title: 'Name',
-      dataIndex: ['user', 'name'],
-      key: 'name',
-      render: (text, record) => record.user?.name || 'N/A',
-    },
-    {
-      title: 'Email',
-      dataIndex: ['user', 'email'],
-      key: 'email',
-      render: (text, record) => record.user?.email || 'N/A',
-    },
-    {
-      title: 'Specialization',
-      dataIndex: 'specialization',
-      key: 'specialization',
-    },
-    {
-      title: 'Available',
-      dataIndex: 'isAvailable',
-      key: 'isAvailable',
-      render: (isAvailable) => (
-        <Tag color={isAvailable ? 'green' : 'volcano'}>
-          {isAvailable ? 'Available' : 'Unavailable'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Certifications',
-      dataIndex: 'certifications',
-      key: 'certifications',
-      render: (certifications) => (
-        <div>
-          {certifications?.map((cert, index) => (
-            <Tag key={index} color="blue">{cert}</Tag>
-          )) || 'None'}
-        </div>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Link to={`/admin/doctors/${record.id}/schedule`}>
-          <Button size="small">View Schedule</Button>
-        </Link>
-      ),
-    },
-  ];
-
-  const uploadProps = {
-    onRemove: () => {
-      setFileList([]);
-    },
-    beforeUpload: (file) => {
-      setFileList([file]);
-      return false;
-    },
-    fileList,
-    maxCount: 1,
-  };
-
-  // Only allow Sundays in DatePicker
-  const disabledDate = (current) => current && current.day() !== 0;
 
   const handleOpenGenerate = () => {
     setGenerateModalOpen(true);
@@ -282,7 +74,6 @@ const DoctorManagement = () => {
   };
 
   const handleGenerateSchedule = async (values) => {
-    console.log('Generate schedule values:', values);
     setGenerateLoading(true);
     try {
       const payload = {
@@ -324,52 +115,109 @@ const DoctorManagement = () => {
     }
   };
 
+  // Only allow Sundays in DatePicker
+  const disabledDate = (current) => current && current.day() !== 0;
+
+  const columns = [
+    {
+      title: 'User ID',
+      dataIndex: 'userId',
+      key: 'userId',
+      width: 80,
+      sorter: true,
+    },
+    {
+      title: 'Name',
+      dataIndex: ['user', 'name'],
+      key: 'name',
+      render: (text, record) => record.user?.name || 'N/A',
+    },
+    {
+      title: 'Email',
+      dataIndex: ['user', 'email'],
+      key: 'email',
+      render: (text, record) => record.user?.email || 'N/A',
+    },
+    {
+      title: 'Specialization',
+      dataIndex: 'specialization',
+      key: 'specialization',
+    },
+    {
+      title: 'Available',
+      dataIndex: 'isAvailable',
+      key: 'isAvailable',
+      render: (isAvailable) => <StatusTag status={isAvailable} type="doctor" />,
+    },
+    {
+      title: 'Certifications',
+      dataIndex: 'certifications',
+      key: 'certifications',
+      render: (certifications) => (
+        <div>
+          {certifications?.map((cert, index) => (
+            <Tag key={index} color="blue">{cert}</Tag>
+          )) || 'None'}
+        </div>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 150,
+      render: (_, record) => (
+        <Link to={`/admin/doctors/${record.id}/schedule`}>
+          <Button size="small" icon={<MedicineBoxOutlined />}>
+            View Schedule
+          </Button>
+        </Link>
+      ),
+    },
+  ];
+
+  const extraActions = (
+    <Space>
+      <Button 
+        type="primary" 
+        icon={<PlusOutlined />} 
+        onClick={handleOpenGenerate}
+      >
+        Generate Schedule
+      </Button>
+      <Button 
+        type="primary" 
+        icon={<UserAddOutlined />} 
+        onClick={() => setIsModalOpen(true)}
+      >
+        Add Doctor
+      </Button>
+    </Space>
+  );
+
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={2}>Doctor Management</Title>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenGenerate}>
-            Generate Schedule
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<UserAddOutlined />} 
-            onClick={() => setIsModalOpen(true)}
-          >
-            Add Doctor
-          </Button>
-        </div>
-      </div>
-      <Card>
-        <div style={{ marginBottom: 16 }}>
-          <Input
-            placeholder="Search by name or email"
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            style={{ width: 300 }}
-            allowClear
-          />
-        </div>
-        <Table
-          columns={columns}
-          dataSource={doctors}
-          loading={loading}
-          rowKey={record => record.id}
-          pagination={{
-            current: meta.page,
-            pageSize: meta.limit,
-            total: meta.total,
-            onChange: (page, pageSize) => setMeta(m => ({ ...m, page, limit: pageSize })),
-          }}
-        />
-      </Card>
-      <Modal
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <AdminTable
+        title="Doctor Management"
+        columns={columns}
+        dataSource={doctors}
+        loading={loading}
+        pagination={pagination}
+        onTableChange={handleTableChange}
+        searchPlaceholder="Search by name or email"
+        searchValue=""
+        onSearchChange={handleSearch}
+        onRefresh={handleRefresh}
+        extraActions={extraActions}
+        rowKey="id"
+      />
+
+      {/* Add Doctor Modal */}
+      <AdminModal
         title="Add New Doctor"
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
-        footer={null}
+        onOk={() => form.submit()}
+        showFooter={false}
       >
         <Form
           form={form}
@@ -381,27 +229,40 @@ const DoctorManagement = () => {
             label="User ID"
             rules={[{ required: true, message: 'Please enter user ID' }]}
           >
-            <Input placeholder="Enter user ID" />
+            <InputNumber placeholder="Enter user ID" className="w-full" />
           </Form.Item>
           <Form.Item
             name="specialization"
             label="Specialization"
             rules={[{ required: true, message: 'Please enter specialization' }]}
           >
-            <Input placeholder="Enter specialization" />
+            <Select placeholder="Enter specialization" className="w-full">
+              <Option value="Infectious Disease Specialist">Infectious Disease Specialist</Option>
+              <Option value="General Practitioner">General Practitioner</Option>
+              <Option value="Therapist">Therapist</Option>
+              <Option value="Nutritionist">Nutritionist</Option>
+              <Option value="Psychiatrist">Psychiatrist</Option>
+              <Option value="Pharmacologist">Pharmacologist</Option>
+              <Option value="Dermatologist">Dermatologist</Option>
+            </Select>
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button type="primary" htmlType="submit">
               Add Doctor
             </Button>
-          </Form.Item>
+          </div>
         </Form>
-      </Modal>
-      <Modal
+      </AdminModal>
+
+      {/* Generate Schedule Modal */}
+      <AdminModal
         title="Generate Doctor Schedule"
         open={generateModalOpen}
         onCancel={() => setGenerateModalOpen(false)}
-        footer={null}
+        onOk={() => generateForm.submit()}
+        showFooter={false}
+        width={800}
       >
         <Form form={generateForm} layout="vertical" onFinish={handleGenerateSchedule}>
           <Form.Item
@@ -409,80 +270,91 @@ const DoctorManagement = () => {
             label="Start Date (Sunday only)"
             rules={[{ required: true, message: 'Please select a start date' }]}
           >
-            <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
+            <DatePicker disabledDate={disabledDate} className="w-full" />
           </Form.Item>
           <Form.Item
             name="doctorsPerShift"
             label="Doctors Per Shift"
             rules={[{ required: true, message: 'Please enter number of doctors per shift' }]}
           >
-            <InputNumber min={1} max={100} style={{ width: '100%' }} />
+            <InputNumber min={1} max={100} className="w-full" />
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={generateLoading} block>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button onClick={() => setGenerateModalOpen(false)}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={generateLoading}>
               Generate
             </Button>
-          </Form.Item>
+          </div>
         </Form>
+        
         {generateResult && (
-          <div style={{ marginTop: 24 }}>
-            <p><b>{generateResult.message}</b></p>
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <p className="font-semibold">{generateResult.message}</p>
             <p>Total Assigned Shifts: {generateResult.totalAssignedShifts}</p>
             <p>Remaining Shifts: {generateResult.remainingShifts}</p>
             {generateResult.shiftsNeedingDoctors?.length > 0 && (
               <>
-                <p>Shifts Needing Doctors:</p>
-                <Table
-                  columns={[
-                    { title: 'Date', dataIndex: 'date', key: 'date', render: d => d?.slice(0, 10) },
-                    { title: 'Day', dataIndex: 'dayOfWeek', key: 'dayOfWeek' },
-                    { title: 'Shift', dataIndex: 'shift', key: 'shift' },
-                    { title: 'Action', key: 'action', render: (_, record) => (
-                      <Button size="small" onClick={() => handleOpenManual(record)}>
+                <p className="mt-4 font-semibold">Shifts Needing Doctors:</p>
+                <div className="mt-2 space-y-2">
+                  {generateResult.shiftsNeedingDoctors.map((shift, index) => (
+                    <div key={index} className="flex justify-between items-center p-2 bg-white rounded border">
+                      <span>{shift.date?.slice(0, 10)} - {shift.dayOfWeek} - {shift.shift}</span>
+                      <Button 
+                        size="small" 
+                        onClick={() => handleOpenManual(shift)}
+                      >
                         Manual Assign
                       </Button>
-                    ) },
-                  ]}
-                  dataSource={generateResult.shiftsNeedingDoctors}
-                  rowKey={(_, idx) => idx}
-                  pagination={false}
-                  size="small"
-                />
+                    </div>
+                  ))}
+                </div>
               </>
             )}
           </div>
         )}
-      </Modal>
-      <Modal
+      </AdminModal>
+
+      {/* Manual Assign Modal */}
+      <AdminModal
         title="Manual Assign Shift"
         open={manualModalOpen}
         onCancel={() => setManualModalOpen(false)}
-        footer={null}
+        onOk={() => manualForm.submit()}
+        showFooter={false}
       >
         <Form form={manualForm} layout="vertical" onFinish={handleManualAssign}>
-          <Form.Item label="Doctors" name="doctorIds" rules={[{ required: true, message: 'Select doctors' }]}> 
+          <Form.Item 
+            label="Doctors" 
+            name="doctorIds" 
+            rules={[{ required: true, message: 'Select doctors' }]}
+          > 
             <Select
               mode="multiple"
               placeholder="Select doctors"
               optionFilterProp="children"
               showSearch
+              className="w-full"
             >
               {doctors.map(doc => (
                 <Option key={doc.id} value={doc.id}>{doc.user?.name}</Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="Doctors Per Shift" name="doctorsPerShift" rules={[{ required: true, message: 'Enter doctors per shift' }]}> 
-            <InputNumber min={1} max={100} style={{ width: '100%' }} />
+          <Form.Item 
+            label="Doctors Per Shift" 
+            name="doctorsPerShift" 
+            rules={[{ required: true, message: 'Enter doctors per shift' }]}
+          > 
+            <InputNumber min={1} max={100} className="w-full" />
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={manualLoading} block>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button onClick={() => setManualModalOpen(false)}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={manualLoading}>
               Assign
             </Button>
-          </Form.Item>
+          </div>
         </Form>
-      </Modal>
-      <Outlet />
+      </AdminModal>
     </div>
   );
 };

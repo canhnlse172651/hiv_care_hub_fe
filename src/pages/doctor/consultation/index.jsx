@@ -10,7 +10,7 @@ import {
   WarningOutlined, InfoCircleOutlined, PlusOutlined,
   CloseOutlined
 } from '@ant-design/icons';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
@@ -22,7 +22,6 @@ const { Step } = Steps;
 
 const ConsultationPage = () => {
   const { appointmentId } = useParams();
-  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('1');
   const [hivRegimen, setHivRegimen] = useState('standard');
@@ -144,7 +143,6 @@ const ConsultationPage = () => {
   const handleFinishConsultation = () => {
     message.success('Đã hoàn thành buổi khám');
     setConfirmFinishModalVisible(false);
-    navigate('/doctor/dashboard');
   };
   
   return (

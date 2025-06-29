@@ -1,6 +1,6 @@
 import axios from "axios";
 import { BASE_URL } from "@/constant/environment";
-import { localToken } from "./token";
+import { authManager } from "./auth";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -11,19 +11,21 @@ const axiosInstance = axios.create({
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localToken.get()?.accessToken;
+    const token = authManager.getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Log outgoing requests (helpful for debugging)
-    console.log(
-      `API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`,
-      {
-        headers: config.headers,
-        data: config.data,
-      }
-    );
+    // Log outgoing requests in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        `API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`,
+        {
+          headers: config.headers,
+          data: config.data,
+        }
+      );
+    }
 
     return config;
   },
@@ -33,125 +35,61 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Response interceptor with token refresh logic
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Log successful responses (helpful for debugging)
-    console.log(
-      `API Response: ${response.status} ${response.config.url}`,
-      {
-        data: response.data,
-      }
-    );
+    // Log successful responses in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        `API Response: ${response.status} ${response.config.url}`,
+        {
+          data: response.data,
+        }
+      );
+    }
 
     return response;
   },
   async (error) => {
-    // Log detailed error information
-    console.error("Response error:", {
-      url: error.config?.url,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-    });
-
     const originalRequest = error.config;
+
+    // Log error details in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Response error:", {
+        url: error.config?.url,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+      });
+    }
 
     // Handle token refresh for 401/403 errors
     if (
-      (error.response?.status === 403 || error.response?.status === 401) &&
-      !!!originalRequest._retry
+      (error.response?.status === 401 || error.response?.status === 403) &&
+      !originalRequest._retry
     ) {
       originalRequest._retry = true;
 
       try {
-        console.log("Attempting token refresh");
-        const refreshToken = localToken.get()?.refreshToken;
-
-        if (!refreshToken) {
-          console.log("No refresh token available");
-          throw new Error("No refresh token");
-        }
-
-        const res = await axios.post(
-          `${BASE_URL}/auth/refresh-token`,
-          { refreshToken },
-          { skipAuthRefresh: true } // Prevent infinite loops
-        );
-
-        console.log("Token refresh response:", res.data);
-
-        const { token: accessToken, refreshToken: newRefreshToken } =
-          res.data.data || {};
-
-        // Save new tokens
-        localToken.set({
-          accessToken,
-          refreshToken: newRefreshToken,
-        });
-
-        // Update auth header and retry request
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-
-        // Don't immediately remove token and redirect
-        // Instead, let the calling code handle this specific error
-
-        // Return the original error to be handled by calling code
-        return Promise.reject(error);
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-
-// Add a response interceptor for token refresh
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // If error is 401 and we haven't tried to refresh the token yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        // Get refresh token
-        const refreshToken = localToken.getRefreshToken();
-
-        if (!refreshToken) {
-          // No refresh token, redirect to login
-          localToken.remove();
-          window.location.href = "/login";
-          return Promise.reject(error);
-        }
-
-        // Call your refresh token endpoint
-        const response = await axios.post("/auth/refresh-token", {
-          refreshToken,
-        });
-
-        // Update tokens in storage
-        if (response.data.accessToken) {
-          localToken.set({
-            accessToken: response.data.accessToken,
-            refreshToken: response.data.refreshToken || refreshToken,
-            user: localToken.getUser(),
-          });
-
-          // Update Authorization header
-          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-
+        // Attempt to refresh the token
+        const newAccessToken = await authManager.refreshToken();
+        
+        if (newAccessToken) {
+          // Update the Authorization header with the new token
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          
           // Retry the original request
           return axiosInstance(originalRequest);
         }
       } catch (refreshError) {
-        // If refresh fails, clear tokens and redirect to login
-        localToken.remove();
-        window.location.href = "/login";
+        // Token refresh failed, redirect to login
+        authManager.clearAuth();
+        
+        // Only redirect if we're not already on a login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/';
+        }
+        
         return Promise.reject(refreshError);
       }
     }

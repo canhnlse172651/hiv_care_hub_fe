@@ -5,7 +5,7 @@ import { CalendarOutlined, CheckCircleOutlined, ClockCircleOutlined, Exclamation
 import { patientService } from '@/services/patientService';
 import { servicesService } from '@/services/servicesService';
 import { doctorService } from '@/services/doctorService';
-import { localToken } from '@/utils/token';
+import { localToken } from '@/utils/auth';
 import { PATHS } from '@/constant/path';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';

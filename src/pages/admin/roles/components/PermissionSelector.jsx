@@ -1,14 +1,5 @@
 import React, { useState, useMemo } from 'react';
-
-const getMethodColor = (method) => {
-  switch (method) {
-    case 'GET': return 'bg-blue-500 text-white';
-    case 'POST': return 'bg-green-500 text-white';
-    case 'PUT': return 'bg-orange-500 text-white';
-    case 'DELETE': return 'bg-red-500 text-white';
-    default: return 'bg-gray-400 text-white';
-  }
-};
+import { getMethodColor } from '@/constant/admin';
 
 const PermissionSelector = ({ permissions, value, onChange }) => {
   const [search, setSearch] = useState('');

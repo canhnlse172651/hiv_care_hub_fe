@@ -17,7 +17,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { handleShowModal } from '@/store/Reducer/authReducer'
 import { MODAL_TYPE } from '@/constant/general'
-import { localToken } from '@/utils/token'
+import { localToken } from '@/utils/auth'
 import { servicesService } from "@/services/servicesService"
 import { Link } from "react-router-dom"
 

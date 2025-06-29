@@ -15,14 +15,21 @@ const RoleFormModal = ({
   onSubmit, 
   editingRole, 
   permissions,
-  form
+  form,
+  loading = false
 }) => {
   useEffect(() => {
     // Reset form when modal opens/closes or editing role changes
-    if (!isOpen) {
+    if (!isOpen && form) {
       form.resetFields();
     }
   }, [isOpen, form]);
+
+  const handlePermissionChange = (ids) => {
+    if (form) {
+      form.setFieldsValue({ permissionIds: ids });
+    }
+  };
 
   return (
     <Modal
@@ -90,8 +97,8 @@ const RoleFormModal = ({
           >
             <PermissionSelector
               permissions={permissions}
-              value={form.getFieldValue('permissionIds') || []}
-              onChange={ids => form.setFieldsValue({ permissionIds: ids })}
+              value={form?.getFieldValue('permissionIds') || []}
+              onChange={handlePermissionChange}
             />
           </Form.Item>
 
@@ -99,6 +106,7 @@ const RoleFormModal = ({
             <Button 
               onClick={onClose}
               className="rounded-lg"
+              disabled={loading}
             >
               Cancel
             </Button>
@@ -106,6 +114,7 @@ const RoleFormModal = ({
               type="primary" 
               htmlType="submit"
               className="rounded-lg shadow-md hover:shadow-lg transition-shadow"
+              loading={loading}
             >
               {editingRole ? 'Update Role' : 'Create Role'}
             </Button>

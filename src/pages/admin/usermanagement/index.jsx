@@ -1,47 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Table, Card, Button, Space, Typography, Tag,
-  Input, Modal, Form, Select, Popconfirm, message, Avatar, Tooltip
+  Button, 
+  Space, 
+  Typography, 
+  Tag,
+  Modal, 
+  Form, 
+  Select, 
+  message, 
+  Avatar,
+  Input
 } from 'antd';
 import { 
-  UserAddOutlined, SearchOutlined, EditOutlined, DeleteOutlined,
-  LockOutlined, UnlockOutlined, EyeOutlined, EyeInvisibleOutlined,
-  PlusOutlined, ReloadOutlined, UserOutlined, CheckCircleOutlined, CloseCircleOutlined,
+  UserAddOutlined, 
+  EditOutlined, 
+  DeleteOutlined,
+  LockOutlined, 
+  UnlockOutlined, 
+  PlusOutlined, 
   MinusOutlined
 } from '@ant-design/icons';
 import { adminService } from '@/services/adminService';
 import dayjs from 'dayjs';
-import useDebounce from '@/hooks/useDebounce';
-import useQuery from "@/hooks/useQuery";
+import { useAdminTable } from '@/hooks/useAdminTable';
+import AdminTable, { StatusTag, ActionButtons, ActionTypes } from '@/components/AdminTable';
+import AdminModal from '@/components/AdminModal';
 import UserPermissionSelectorModal from './components/UserPermissionSelectorModal';
+import { useModalForm } from '@/hooks/useModalForm';
 
 const { Title } = Typography;
 const { Option } = Select;
 
 const UserManagement = () => {
-  const [searchText, setSearchText] = useState('');
-  const debouncedSearch = useDebounce(searchText, 500);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [form] = Form.useForm();
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-  const [sorter, setSorter] = useState({ field: 'createdAt', order: 'descend' });
   const [isPermissionsModalVisible, setIsPermissionsModalVisible] = useState(false);
   const [selectedUserForPermissions, setSelectedUserForPermissions] = useState(null);
   const [permissionAction, setPermissionAction] = useState(null);
 
+  // Use the custom hook for table operations
   const {
-    data: userData,
-    loading: queryLoading,
-    error,
-    refetch: refetchUsers,
-  } = useQuery(() => adminService.getUsers());
+    data: allUsers,
+    loading,
+    pagination,
+    handleTableChange,
+    handleSearch,
+    handleRefresh,
+    fetchData,
+  } = useAdminTable({
+    fetchFunction: adminService.getUsers,
+    searchField: 'search',
+    defaultPageSize: 10,
+  });
 
-  const usersData = userData?.data?.data || [];
+  // Filter out deleted users
+  const users = allUsers.filter(user => !user.deletedAt);
 
+  // Fetch roles for the form
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -53,7 +67,7 @@ const UserManagement = () => {
           );
           setRoles(filteredRoles);
         } else {
-            message.error("Failed to process roles from API response.");
+          message.error("Failed to process roles from API response.");
         }
       } catch (error) {
         message.error("Failed to fetch roles.");
@@ -63,123 +77,21 @@ const UserManagement = () => {
     fetchRoles();
   }, []);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await adminService.getUsers({
-        page: pagination.current,
-        limit: pagination.pageSize,
-        sortBy: sorter.field,
-        sortOrder: sorter.order === 'ascend' ? 'asc' : 'desc',
-        search: debouncedSearch,
-      });
-
-      const { data, meta } = response.data?.data || {};
-      setUsers(
-        Array.isArray(data)
-          ? data.filter(user => !user.deletedAt).map((user) => ({ ...user, key: user.id }))
-          : []
-      );
-      setPagination({
-        ...pagination,
-        total: meta?.total || 0,
-      });
-    } catch (error) {
-      message.error('Failed to fetch users. Please check the console for details.');
-      console.error('Fetch users error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line
-  }, [debouncedSearch, pagination.current, pagination.pageSize, sorter]);
-
-  const showModal = (user = null) => {
-    setEditingUser(user);
-    if (user) {
-      form.setFieldsValue({
-        email: user.email,
-        roleId: user.roleId,
-      });
-    } else {
-      form.resetFields();
-    }
-    setIsModalVisible(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    setEditingUser(null);
-    form.resetFields();
-  };
-
-  const onFinish = async (values) => {
-    try {
-      if (editingUser) {
-        await adminService.updateUser(editingUser.id, {
-          email: values.email,
-          roleId: values.roleId,
-        });
-        message.success("User updated successfully!");
-      } else {
-        await adminService.createUser({
-          email: values.email,
-          roleId: values.roleId,
-        });
-        message.success("User created successfully!");
-      }
-      fetchUsers();
-      handleCancel();
-    } catch (err) {
-      message.error(err.response?.data?.message || "An error occurred.");
-    }
-  };
-
-  const handleDelete = async (userId) => {
-    try {
-      await adminService.deleteUser(userId);
-      message.success('User deleted successfully');
-      fetchUsers();
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || 'Failed to delete user.';
-      message.error(errorMsg);
-    }
-  };
-
-  const handleToggleStatus = async (user) => {
-    const newStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    try {
-      await adminService.updateUser(user.id, { status: newStatus });
-      message.success(`User status updated to ${newStatus.toLowerCase()}`);
-      fetchUsers();
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || 'Failed to update status.';
-      message.error(errorMsg);
-    }
-  };
-
-  const handleTableChange = (pagination, filters, newSorter) => {
-    setPagination({
-      ...pagination,
-      current: pagination.current,
-      pageSize: pagination.pageSize,
-    });
-    setSorter({
-      field: newSorter.field || 'createdAt',
-      order: newSorter.order || 'descend',
-    });
-  };
+  const { isOpen, editingItem, openModal, closeModal } = useModalForm(Form.useForm());
 
   const handlePermissionModalClose = (refresh) => {
     setIsPermissionsModalVisible(false);
     setSelectedUserForPermissions(null);
     setPermissionAction(null);
     if (refresh) {
-      fetchUsers();
+      fetchData();
     }
+  };
+
+  const handlePermissionAction = (user, action) => {
+    setSelectedUserForPermissions(user);
+    setPermissionAction(action);
+    setIsPermissionsModalVisible(true);
   };
 
   const columns = [
@@ -187,6 +99,7 @@ const UserManagement = () => {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
+      width: 80,
       sorter: true,
     },
     {
@@ -211,13 +124,7 @@ const UserManagement = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => {
-        let color;
-        if (status === 'ACTIVE') color = 'green';
-        else if (status === 'INACTIVE') color = 'volcano';
-        else color = 'red';
-        return <Tag color={color}>{status ? status.toUpperCase() : 'N/A'}</Tag>;
-      },
+      render: (status) => <StatusTag status={status} type="user" />,
     },
     {
       title: 'Role',
@@ -235,91 +142,90 @@ const UserManagement = () => {
     {
       title: 'Actions',
       key: 'actions',
+      width: 200,
       render: (_, record) => (
-        <Space size="small">
-          <Button icon={<EditOutlined />} size="small" type="primary" ghost onClick={() => showModal(record)} />
-          <Popconfirm
-            title="Are you sure you want to delete this user?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-            placement="left"
-          >
-            <Button icon={<DeleteOutlined />} size="small" danger />
-          </Popconfirm>
-          <Button
-            icon={record.status === 'ACTIVE' ? <LockOutlined /> : <UnlockOutlined />}
-            size="small"
-            onClick={() => handleToggleStatus(record)}
-          />
-        </Space>
+        <ActionButtons
+          record={record}
+          actions={[
+            {
+              ...ActionTypes.EDIT,
+              onClick: openModal,
+            },
+            {
+              ...ActionTypes.DELETE,
+              onClick: handleDelete,
+              confirmTitle: "Are you sure you want to delete this user?",
+            },
+            {
+              type: 'toggle_status',
+              icon: record.status === 'ACTIVE' ? <LockOutlined /> : <UnlockOutlined />,
+              onClick: handleToggleStatus,
+              tooltip: record.status === 'ACTIVE' ? 'Deactivate' : 'Activate',
+            },
+          ]}
+        />
       ),
     },
     {
-      title: 'Edit Permission',
-      key: 'edit-permission',
+      title: 'Permissions',
+      key: 'permissions',
+      width: 120,
       render: (_, record) => (
         <Space size="small">
           <Button
             icon={<PlusOutlined />}
             size="small"
-            onClick={() => {
-              setSelectedUserForPermissions(record);
-              setPermissionAction('add');
-              setIsPermissionsModalVisible(true);
-            }}
+            onClick={() => handlePermissionAction(record, 'add')}
+            tooltip="Add Permission"
           />
           <Button
             icon={<MinusOutlined />}
             size="small"
             danger
-            onClick={() => {
-              setSelectedUserForPermissions(record);
-              setPermissionAction('remove');
-              setIsPermissionsModalVisible(true);
-            }}
+            onClick={() => handlePermissionAction(record, 'remove')}
+            tooltip="Remove Permission"
           />
         </Space>
       ),
     },
   ];
 
-  return (
-    <Card>
-      <div className="flex justify-between items-center mb-6">
-        <Title level={3} className="mb-0">User Management</Title>
-        <Space>
-          <Input
-            placeholder="Search by name or email..."
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 250 }}
-            allowClear
-          />
-          <Button type="primary" icon={<UserAddOutlined />} onClick={() => showModal()}>
-            Add User
-          </Button>
-        </Space>
-      </div>
+  const extraActions = (
+    <Button 
+      type="primary" 
+      icon={<UserAddOutlined />} 
+      onClick={() => openModal()}
+    >
+      Add User
+    </Button>
+  );
 
-      <Table
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <AdminTable
+        title="User Management"
         columns={columns}
         dataSource={users}
         loading={loading}
         pagination={pagination}
-        onChange={handleTableChange}
+        onTableChange={handleTableChange}
+        searchPlaceholder="Search by name or email..."
+        searchValue=""
+        onSearchChange={handleSearch}
+        onRefresh={handleRefresh}
+        extraActions={extraActions}
         rowKey="id"
-        scroll={{ x: 'max-content' }}
       />
 
-      <Modal
-        title={editingUser ? 'Edit User' : 'Add New User'}
-        open={isModalVisible}
-        onCancel={handleCancel}
-        footer={null}
+      {/* User Form Modal */}
+      <AdminModal
+        title={editingItem ? 'Edit User' : 'Add New User'}
+        open={isOpen}
+        onCancel={closeModal}
+        onOk={() => Form.useForm().submit()}
+        showFooter={false}
       >
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form form={Form.useForm()} layout="vertical" onFinish={onFinish}>
           <Form.Item
             name="email"
             label="Email"
@@ -340,14 +246,16 @@ const UserManagement = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
-              {editingUser ? "Update" : "Create"}
+          <div className="flex justify-end gap-2 mt-6">
+            <Button onClick={closeModal}>Cancel</Button>
+            <Button type="primary" htmlType="submit">
+              {editingItem ? "Update" : "Create"}
             </Button>
-            <Button onClick={handleCancel}>Cancel</Button>
-          </Form.Item>
+          </div>
         </Form>
-      </Modal>
+      </AdminModal>
+
+      {/* Permission Modal - Keep existing component */}
       {isPermissionsModalVisible && (
         <UserPermissionSelectorModal
           visible={isPermissionsModalVisible}
@@ -356,7 +264,7 @@ const UserManagement = () => {
           action={permissionAction}
         />
       )}
-    </Card>
+    </div>
   );
 };
 

@@ -13,7 +13,8 @@ import {
   FileTextOutlined,
   BookOutlined,
   DollarOutlined,
-  UserOutlined
+  UserOutlined,
+  ScheduleOutlined
 } from '@ant-design/icons';
 
 // User menu items configuration
@@ -134,28 +135,16 @@ export const SIDEBAR_MENU_ITEMS = {
       path: '/doctor/dashboard',
     },
     {
-      key: 'patients',
-      icon: 'TeamOutlined',
-      label: 'Danh sách bệnh nhân',
-      path: '/doctor/patients',
+      key: 'schedule',
+      icon: 'ScheduleOutlined',
+      label: 'Lịch làm việc',
+      path: '/doctor/schedule',
     },
     {
       key: 'appointments',
       icon: 'CalendarOutlined',
       label: 'Lịch hẹn',
       path: '/doctor/appointments',
-    },
-    {
-      key: 'consultation',
-      icon: 'MedicineBoxOutlined',
-      label: 'Khám bệnh',
-      path: '/doctor/consultation',
-    },
-    {
-      key: 'medical-records',
-      icon: 'FileTextOutlined',
-      label: 'Hồ sơ bệnh án',
-      path: '/doctor/medical-records',
     },
     {
       key: 'regimens',
@@ -212,12 +201,9 @@ export const BREADCRUMB_CONFIG = {
     baseTitle: 'Trang chủ',
     mappings: {
       'dashboard': 'Bảng điều khiển',
-      'patients': 'Bệnh nhân',
-      'appointments': 'Lịch hẹn',
-      'consultation': 'Khám bệnh',
-      'medical-records': 'Hồ sơ bệnh án',
-      'regimens': 'Phác đồ điều trị',
       'schedule': 'Lịch làm việc',
+      'appointments': 'Lịch hẹn',
+      'regimens': 'Phác đồ điều trị',
     }
   },
   staff: {

@@ -9,7 +9,7 @@ import {
   HistoryOutlined, MedicineBoxOutlined, CalendarOutlined,
   AreaChartOutlined, LeftOutlined, FileSearchOutlined
 } from '@ant-design/icons';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
