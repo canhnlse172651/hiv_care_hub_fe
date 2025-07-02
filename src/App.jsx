@@ -1,9 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import MainLayout from "./layouts/MainLayout";
-import AdminLayout from "./layouts/AdminLayout";
-import StaffLayout from "./layouts/StaffLayout";
-import DoctorLayout from "./layouts/DoctorLayout";
+import SystemLayout from "./layouts/SystemLayout";
 import HomePage from "./pages/landscape/home";
 import Forum from "./pages/landscape/forum";
 import Contact from "./pages/landscape/contact";
@@ -46,14 +44,11 @@ import BlogPage from "./pages/landscape/blog";
 import BlogDetailPage from "./pages/landscape/blog/BlogDetail";
 import DoctorScheduleAdminPage from "./pages/admin/doctors/schedule";
 import GoogleCallback from "./components/GoogleCallback";
-
+import AppointmentDoctorPage from "./pages/doctor/appointment";
 
 function App() {
   const dispatch = useDispatch();
-  
-  // Use Google auth hook to handle OAuth callback
- 
-  
+
   useEffect(() => {
     // Check if user is already logged in
     if (localToken.get()?.accessToken) {
@@ -100,11 +95,11 @@ function App() {
           path={PATHS.ADMIN.INDEX}
           element={
             <AdminRoute>
-              <AdminLayout />
+              <SystemLayout role="admin" />
             </AdminRoute>
           }
         >
-          <Route index element={<Dashboard />} />{" "}
+          <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="roles" element={<RoleManagement />} />
@@ -123,7 +118,7 @@ function App() {
           path={PATHS.STAFF.INDEX}
           element={
             <StaffRoute>
-              <StaffLayout />
+              <SystemLayout role="staff" />
             </StaffRoute>
           }
         >
@@ -138,7 +133,7 @@ function App() {
           path="/doctor"
           element={
             <DoctorRoute>
-              <DoctorLayout />
+              <SystemLayout role="doctor" />
             </DoctorRoute>
           }
         >
@@ -154,7 +149,7 @@ function App() {
           />
           <Route path="schedule" element={<DoctorSchedule />} />
           <Route path="regimens" element={<TreatmentProtocolPage />} />
-          {/* Additional doctor routes would go here */}
+          <Route path="appointments" element={<AppointmentDoctorPage/>}/>
         </Route>
       </Routes>
       <AuthComponent />
