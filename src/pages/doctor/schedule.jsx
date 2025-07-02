@@ -126,18 +126,18 @@ const DoctorSchedulePage = () => {
   };
 
   const renderEventContent = (eventInfo) => (
-  <div className="rounded-lg px-2 py-1 bg-blue-500 text-white shadow-md flex flex-col items-center justify-center min-h-[40px]">
-    <span className="font-semibold tracking-wide text-base">
-      Lịch trống
-    </span>
-  </div>
-);
+    <div className="rounded-full px-3 py-1 bg-blue-500 text-white flex items-center gap-2 min-h-[36px]">
+    </div>
+  );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 min-h-screen bg-gradient-to-br">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <Title level={2} className="!mb-0 text-blue-700">Lịch làm việc của bác sĩ</Title>
+        <div className="flex justify-between items-center mb-8">
+          <Title level={2} className="!mb-0 text-blue-800 font-bold tracking-tight flex items-center gap-2">
+            <ScheduleOutlined className="text-blue-500 text-3xl" />
+            Lịch làm việc của bác sĩ
+          </Title>
           <Button 
             type="primary" 
             icon={<PlusOutlined />}
@@ -145,26 +145,26 @@ const DoctorSchedulePage = () => {
               setSelectedEvent(null);
               setEventModalVisible(true);
             }}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-full px-6 py-2 shadow-md text-base font-semibold"
           >
             Thêm lịch làm việc
           </Button>
         </div>
-        <div className="mb-4 pb-3 border-b">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <Badge status="processing" className="mr-2" />
-              <Text className="text-gray-600">Ca làm việc đã lên lịch</Text>
-            </div>
+        <div className="mb-6 pb-3 border-b border-blue-200 flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Badge status="processing" className="mr-2" />
+            <Text className="text-blue-700 font-medium flex items-center gap-1">
+              <ClockCircleOutlined className="text-blue-400" /> Ca làm việc đã lên lịch
+            </Text>
           </div>
         </div>
-        <Card className="shadow-lg rounded-xl border-0">
+        <Card className="shadow-xl rounded-2xl border-0 bg-white/90">
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <Spin size="large" />
             </div>
           ) : (
-            <div className="calendar-wrapper">
+            <div className="calendar-wrapper p-2">
               <FullCalendar
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                 initialView="timeGridWeek"
@@ -199,9 +199,9 @@ const DoctorSchedulePage = () => {
         {/* Schedule Modal */}
         <Modal
           title={
-            <div className="flex items-center">
-              <CalendarOutlined className="mr-2 text-blue-600" />
-              <span>{selectedEvent?.id ? 'Edit Schedule' : 'Add New Schedule'}</span>
+            <div className="flex items-center gap-2">
+              <CalendarOutlined className="text-blue-600 text-xl" />
+              <span className="font-semibold text-blue-800">{selectedEvent?.id ? 'Chỉnh sửa lịch' : 'Thêm lịch mới'}</span>
             </div>
           }
           open={eventModalVisible}
@@ -210,16 +210,16 @@ const DoctorSchedulePage = () => {
             setEventModalVisible(false);
             form.resetFields();
           }}
-          okText={selectedEvent?.id ? "Update" : "Create"}
-          cancelText="Cancel"
+          okText={selectedEvent?.id ? "Cập nhật" : "Tạo mới"}
+          cancelText="Hủy"
           centered
-          okButtonProps={{ loading: loading }}
+          okButtonProps={{ loading: loading, className: "bg-blue-600 hover:bg-blue-700" }}
           footer={[
             <Button key="cancel" onClick={() => {
               setEventModalVisible(false);
               form.resetFields();
             }}>
-              Cancel
+              Hủy
             </Button>,
             selectedEvent?.id && (
               <Button 
@@ -228,7 +228,7 @@ const DoctorSchedulePage = () => {
                 onClick={handleDeleteEvent}
                 loading={loading}
               >
-                Delete
+                Xóa
               </Button>
             ),
             <Button 
@@ -236,10 +236,13 @@ const DoctorSchedulePage = () => {
               type="primary" 
               onClick={handleModalOk}
               loading={loading}
+              className="bg-blue-600 hover:bg-blue-700"
             >
-              {selectedEvent?.id ? "Update" : "Create"}
+              {selectedEvent?.id ? "Cập nhật" : "Tạo mới"}
             </Button>
           ]}
+          className="rounded-xl"
+          bodyStyle={{ borderRadius: '1rem', background: '#f8fafc' }}
         >
           <Form form={form} layout="vertical" initialValues={{
             shift: selectedEvent?.extendedProps?.shift || 'MORNING',
@@ -249,8 +252,8 @@ const DoctorSchedulePage = () => {
           }}>
             <Form.Item
               name="shift"
-              label="Shift"
-              rules={[{ required: true, message: 'Please select a shift' }]}
+              label={<span className="font-semibold text-blue-700">Ca làm việc</span>}
+              rules={[{ required: true, message: 'Vui lòng chọn ca làm việc' }]}
             >
               <Select>
                 <Option value="MORNING">Sáng (07:00 - 11:00)</Option>
@@ -260,8 +263,8 @@ const DoctorSchedulePage = () => {
 
             <Form.Item
               name="date"
-              label="Date"
-              rules={[{ required: true, message: 'Please select a date' }]}
+              label={<span className="font-semibold text-blue-700">Ngày</span>}
+              rules={[{ required: true, message: 'Vui lòng chọn ngày' }]}
             >
               <DatePicker 
                 style={{ width: '100%' }}
@@ -271,8 +274,8 @@ const DoctorSchedulePage = () => {
 
             <Form.Item
               name="startTime"
-              label="Start Time"
-              rules={[{ required: true, message: 'Please select start time' }]}
+              label={<span className="font-semibold text-blue-700">Giờ bắt đầu</span>}
+              rules={[{ required: true, message: 'Vui lòng chọn giờ bắt đầu' }]}
             >
               <TimePicker 
                 style={{ width: '100%' }}
@@ -282,8 +285,8 @@ const DoctorSchedulePage = () => {
 
             <Form.Item
               name="endTime"
-              label="End Time"
-              rules={[{ required: true, message: 'Please select end time' }]}
+              label={<span className="font-semibold text-blue-700">Giờ kết thúc</span>}
+              rules={[{ required: true, message: 'Vui lòng chọn giờ kết thúc' }]}
             >
               <TimePicker 
                 style={{ width: '100%' }}
