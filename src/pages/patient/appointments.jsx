@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, Card, Typography, Spin, Alert, Tag, message, Button, Modal, Row, Col, Statistic } from 'antd';
 import { CalendarOutlined, CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { patientService } from '@/services/patientService';
-import { servicesService } from '@/services/servicesService';
-import { doctorService } from '@/services/doctorService';
+import { appointmentService } from '@/services/appointmentService';
 import { localToken } from '@/utils/token';
 import { PATHS } from '@/constant/path';
 import dayjs from 'dayjs';
@@ -19,8 +17,6 @@ const AppointmentListPage = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [services, setServices] = useState({});
-    const [doctors, setDoctors] = useState({});
     const navigate = useNavigate();
 
     const auth = localToken.get();
@@ -37,35 +33,11 @@ const AppointmentListPage = () => {
             setLoading(true);
             setError(null);
             try {
-                const [appointmentRes, serviceRes, doctorRes] = await Promise.all([
-                    patientService.getAppointmentsByUserId(userId),
-                    servicesService.getPublicServices({ limit: 1000 }),
-                    doctorService.getDoctors({ limit: 1000 })
-                ]);
-
-                if (appointmentRes.data?.data) {
-                    setAppointments(appointmentRes.data.data.sort((a, b) => dayjs(b.appointmentTime).diff(dayjs(a.appointmentTime))));
-                }
-
-                if (serviceRes.data?.data?.data) {
-                    const serviceMap = serviceRes.data.data.data.reduce((acc, service) => {
-                        acc[service.id] = service.name;
-                        return acc;
-                    }, {});
-                    setServices(serviceMap);
-                }
-
-                if (doctorRes.data?.data?.data) {
-                    const doctorMap = doctorRes.data.data.data.reduce((acc, doctor) => {
-                        acc[doctor.id] = {
-                            name: doctor.user.name,
-                            specialization: doctor.specialization
-                        };
-                        return acc;
-                    }, {});
-                    setDoctors(doctorMap);
-                }
-
+                const appointmentRes = await appointmentService.getAppointmentsByUserId(userId);
+                console.log('API raw response:', appointmentRes.data);
+                const data = Array.isArray(appointmentRes.data) ? appointmentRes.data : [];
+                setAppointments(data.sort((a, b) => dayjs(b.appointmentTime).diff(dayjs(a.appointmentTime))));
+                console.log('Appointments for table:', data);
             } catch (err) {
                 console.error('Error fetching data:', err);
                 setError('Tải lịch hẹn thất bại. Vui lòng thử lại sau.');
@@ -88,7 +60,7 @@ const AppointmentListPage = () => {
             cancelText: 'Không',
             onOk: async () => {
                 try {
-                    await patientService.cancelAppointment(appointmentId);
+                    await appointmentService.updateAppointmentStatus(appointmentId, { status: 'CANCELLED' });
                     message.success('Hủy lịch hẹn thành công!');
                     setAppointments(prev => prev.map(apt =>
                         apt.id === appointmentId ? { ...apt, status: 'CANCELLED' } : apt
@@ -119,25 +91,29 @@ const AppointmentListPage = () => {
     const columns = [
         {
             title: 'Dịch vụ',
-            dataIndex: 'serviceId',
             key: 'service',
-            render: (serviceId) => <Text strong>{services[serviceId] || `Mã dịch vụ: ${serviceId}`}</Text>,
+            render: (_, record) => (
+                <div>
+                    <Text strong>{record.service?.name || 'N/A'}</Text>
+                    {record.service?.description && (
+                        <div className="text-xs text-gray-500 mt-1">{record.service.description}</div>
+                    )}
+                </div>
+            ),
         },
         {
             title: 'Bác sĩ',
-            dataIndex: 'doctorId',
             key: 'doctor',
-            render: (doctorId) => {
-                const doctor = doctors[doctorId];
-                if (doctor) {
+            render: (_, record) => {
+                if (record.doctor) {
                     return (
                         <div>
-                            <Text strong>{doctor.name}</Text>
-                            <div className="text-xs text-gray-500">{doctor.specialization}</div>
+                            <Text strong>{record.doctor.name}</Text>
+                            <div className="text-xs text-gray-500">{record.doctor.email}</div>
                         </div>
-                    )
+                    );
                 }
-                return `Mã bác sĩ: ${doctorId}`;
+                return record.isAnonymous ? <Text className="text-gray-500">Tư vấn ẩn danh</Text> : 'N/A';
             }
         },
         {
@@ -145,6 +121,16 @@ const AppointmentListPage = () => {
             dataIndex: 'appointmentTime',
             key: 'appointmentTime',
             render: (text) => dayjs(text).format('ddd, DD/MM/YYYY HH:mm'),
+        },
+        {
+            title: 'Loại hình',
+            dataIndex: 'type',
+            key: 'type',
+            render: (type) => (
+                <Tag color={type === 'ONLINE' ? 'blue' : 'green'}>
+                    {type === 'ONLINE' ? 'Trực tuyến' : 'Tại phòng khám'}
+                </Tag>
+            ),
         },
         {
             title: 'Trạng thái',
@@ -157,7 +143,7 @@ const AppointmentListPage = () => {
             key: 'actions',
             render: (_, record) => (
                 <div className="flex gap-2">
-                    {record.status.toUpperCase() === 'PENDING' && (
+                    {['PENDING', 'CONFIRMED'].includes(record.status.toUpperCase()) && (
                         <Button
                             danger
                             size="small"
@@ -171,8 +157,13 @@ const AppointmentListPage = () => {
         },
     ];
 
-    const upcomingAppointments = appointments.filter(apt => dayjs().isBefore(dayjs(apt.appointmentTime)) && apt.status.toUpperCase() === 'PENDING').length;
-    const completedAppointments = appointments.filter(apt => apt.status.toUpperCase() === 'COMPLETED').length;
+    const upcomingAppointments = appointments.filter(apt => 
+        dayjs().isBefore(dayjs(apt.appointmentTime)) && 
+        ['PENDING', 'CONFIRMED'].includes(apt.status.toUpperCase())
+    ).length;
+    const completedAppointments = appointments.filter(apt => 
+        ['COMPLETED', 'PAID'].includes(apt.status.toUpperCase())
+    ).length;
     
     if (loading) {
         return (
@@ -239,4 +230,4 @@ const AppointmentListPage = () => {
     );
 };
 
-export default AppointmentListPage; 
+export default AppointmentListPage;

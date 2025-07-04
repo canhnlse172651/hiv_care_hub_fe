@@ -127,6 +127,7 @@ const DoctorSchedulePage = () => {
 
   const renderEventContent = (eventInfo) => (
     <div className="rounded-full px-3 py-1 bg-blue-500 text-white flex items-center gap-2 min-h-[36px]">
+      <span style={{ color: '#fff', fontWeight: 600 }}>Lịch làm việc</span>
     </div>
   );
 
@@ -138,17 +139,6 @@ const DoctorSchedulePage = () => {
             <ScheduleOutlined className="text-blue-500 text-3xl" />
             Lịch làm việc của bác sĩ
           </Title>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setSelectedEvent(null);
-              setEventModalVisible(true);
-            }}
-            className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-full px-6 py-2 shadow-md text-base font-semibold"
-          >
-            Thêm lịch làm việc
-          </Button>
         </div>
         <div className="mb-6 pb-3 border-b border-blue-200 flex items-center gap-6">
           <div className="flex items-center gap-2">
