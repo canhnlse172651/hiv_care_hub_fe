@@ -19,4 +19,13 @@ export const doctorService = {
   getDoctors(params) {
     return axiosInstance.get("/doctors", { params });
   },
+
+  getDoctorsByDate: async (date) => {
+    try {
+      const response = await axiosInstance.get(`/doctors/schedule/by-date`, { params: { date } });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };

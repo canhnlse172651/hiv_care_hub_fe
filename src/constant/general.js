@@ -77,3 +77,25 @@ export const DOCTOR_SHIFT_TIME = {
   MORNING: { label: 'Sáng', time: '07:00 - 11:00', start: 7, end: 11 },
   AFTERNOON: { label: 'Chiều', time: '13:00 - 17:00', start: 13, end: 17 },
 };
+
+export const ServiceType = {
+  TEST: 'TEST',
+  CONSULT: 'CONSULT',
+  TREATMENT: 'TREATMENT',
+};
+
+export const SLOTS = [
+  { start: '07:00', end: '07:30', shift: 'MORNING' },
+  { start: '07:35', end: '08:05', shift: 'MORNING' },
+  { start: '08:10', end: '08:40', shift: 'MORNING' },
+  { start: '08:45', end: '09:15', shift: 'MORNING' },
+  { start: '09:20', end: '09:50', shift: 'MORNING' },
+  { start: '09:55', end: '10:25', shift: 'MORNING' },
+  { start: '10:30', end: '11:00', shift: 'MORNING' },
+  { start: '13:00', end: '13:30', shift: 'AFTERNOON' },
+  { start: '13:35', end: '14:05', shift: 'AFTERNOON' },
+  { start: '14:10', end: '14:40', shift: 'AFTERNOON' },
+  { start: '14:45', end: '15:15', shift: 'AFTERNOON' },
+  { start: '15:20', end: '15:50', shift: 'AFTERNOON' },
+  { start: '15:55', end: '16:25', shift: 'AFTERNOON' },
+];

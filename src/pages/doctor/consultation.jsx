@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Form, Input, Button, Card, Tabs, Typography, Divider, 
   Select, DatePicker, Space, Tag, Collapse, Table, 
-  Timeline, Checkbox, Radio, Modal, Row, Col, Steps, message
+  Timeline, Checkbox, Radio, Modal, Row, Col, Steps, message, Spin
 } from 'antd';
 import {
   UserOutlined, MedicineBoxOutlined, FileTextOutlined,
@@ -12,6 +12,8 @@ import {
 } from '@ant-design/icons';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { appointmentService } from '@/services/appointmentService';
+import { useEffect } from 'react';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -28,56 +30,119 @@ const ConsultationPage = () => {
   const [hivRegimen, setHivRegimen] = useState('standard');
   const [customRegimenModalVisible, setCustomRegimenModalVisible] = useState(false);
   const [confirmFinishModalVisible, setConfirmFinishModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [appointment, setAppointment] = useState(null);
+  const [patient, setPatient] = useState(null);
+  const [medicalHistory, setMedicalHistory] = useState([]);
+
+  useEffect(() => {
+    const fetchAppointment = async () => {
+      setLoading(true);
+      try {
+        const res = await appointmentService.getAppointmentById(appointmentId);
+        const data = res?.data || res;
+        setAppointment(data);
+        setPatient({
+          id: data.user?.id || '',
+          name: data.user?.name || '',
+          age: data.user?.age || '',
+          gender: data.user?.gender || '',
+          dob: data.user?.dob || '',
+          idNumber: data.user?.idNumber || '',
+          phone: data.user?.phone || data.user?.phoneNumber || '',
+          email: data.user?.email || '',
+          address: data.user?.address || '',
+          appointmentId: data.id,
+          appointmentTime: dayjs(data.appointmentTime).format('HH:mm'),
+          checkInTime: data.checkInTime ? dayjs(data.checkInTime).format('HH:mm') : '',
+          reason: data.reason || data.service?.description || '',
+          isHivPositive: data.user?.isHivPositive || false,
+          startedTreatment: data.user?.startedTreatment || '',
+          currentRegimen: data.user?.currentRegimen || '',
+          allergies: data.user?.allergies || '',
+          chronicConditions: data.user?.chronicConditions || '',
+        });
+        setMedicalHistory(data.user?.medicalHistory || []);
+      } catch (error) {
+        message.error('Không thể tải thông tin lịch hẹn. Dùng dữ liệu mẫu.');
+        // fallback to mock data if needed
+        setPatient({
+          id: 'PT-10001',
+          name: 'Nguyễn Văn A',
+          age: 35,
+          gender: 'Nam',
+          dob: '1989-05-12',
+          idNumber: '0123456789',
+          phone: '0912345678',
+          email: 'nguyenvana@email.com',
+          address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
+          appointmentId: 'AP-2024060001',
+          appointmentTime: '09:00',
+          checkInTime: '08:45',
+          reason: 'Khám định kỳ HIV',
+          isHivPositive: true,
+          startedTreatment: '2022-03-10',
+          currentRegimen: 'TDF + 3TC + DTG',
+          allergies: 'Không',
+          chronicConditions: 'Tăng huyết áp',
+        });
+        setMedicalHistory([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAppointment();
+  }, [appointmentId]);
   
   // Mock data for a patient
-  const patient = {
-    id: 'PT-10001',
-    name: 'Nguyễn Văn A',
-    age: 35,
-    gender: 'Nam',
-    dob: '1989-05-12',
-    idNumber: '0123456789',
-    phone: '0912345678',
-    email: 'nguyenvana@email.com',
-    address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
-    appointmentId: 'AP-2024060001',
-    appointmentTime: '09:00',
-    checkInTime: '08:45',
-    reason: 'Khám định kỳ HIV',
-    isHivPositive: true,
-    startedTreatment: '2022-03-10',
-    currentRegimen: 'TDF + 3TC + DTG',
-    allergies: 'Không',
-    chronicConditions: 'Tăng huyết áp',
-  };
+  // const patient = {
+  //   id: 'PT-10001',
+  //   name: 'Nguyễn Văn A',
+  //   age: 35,
+  //   gender: 'Nam',
+  //   dob: '1989-05-12',
+  //   idNumber: '0123456789',
+  //   phone: '0912345678',
+  //   email: 'nguyenvana@email.com',
+  //   address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
+  //   appointmentId: 'AP-2024060001',
+  //   appointmentTime: '09:00',
+  //   checkInTime: '08:45',
+  //   reason: 'Khám định kỳ HIV',
+  //   isHivPositive: true,
+  //   startedTreatment: '2022-03-10',
+  //   currentRegimen: 'TDF + 3TC + DTG',
+  //   allergies: 'Không',
+  //   chronicConditions: 'Tăng huyết áp',
+  // };
   
   // Mock data for patient's medical history
-  const medicalHistory = [
-    {
-      date: '2024-03-15',
-      doctor: 'BS. Trần Văn B',
-      diagnosis: 'Nhiễm HIV ổn định, tuân thủ điều trị tốt',
-      symptoms: 'Không có triệu chứng bất thường',
-      prescription: 'TDF + 3TC + DTG, uống 1 lần/ngày',
-      notes: 'Xét nghiệm CD4: 650 cells/mm³, Tải lượng virus: Không phát hiện',
-    },
-    {
-      date: '2023-12-20',
-      doctor: 'BS. Trần Văn B',
-      diagnosis: 'Nhiễm HIV ổn định, tuân thủ điều trị tốt',
-      symptoms: 'Đau đầu nhẹ, mệt mỏi',
-      prescription: 'TDF + 3TC + DTG, uống 1 lần/ngày',
-      notes: 'Xét nghiệm CD4: 620 cells/mm³, Tải lượng virus: Không phát hiện',
-    },
-    {
-      date: '2023-09-18',
-      doctor: 'BS. Lê Thị C',
-      diagnosis: 'Nhiễm HIV ổn định, nhiễm trùng đường hô hấp trên',
-      symptoms: 'Ho, đau họng, sổ mũi',
-      prescription: 'TDF + 3TC + DTG, uống 1 lần/ngày; Amoxicillin 500mg, uống 3 lần/ngày trong 5 ngày',
-      notes: 'Cần uống nhiều nước và nghỉ ngơi',
-    },
-  ];
+  // const medicalHistory = [
+  //   {
+  //     date: '2024-03-15',
+  //     doctor: 'BS. Trần Văn B',
+  //     diagnosis: 'Nhiễm HIV ổn định, tuân thủ điều trị tốt',
+  //     symptoms: 'Không có triệu chứng bất thường',
+  //     prescription: 'TDF + 3TC + DTG, uống 1 lần/ngày',
+  //     notes: 'Xét nghiệm CD4: 650 cells/mm³, Tải lượng virus: Không phát hiện',
+  //   },
+  //   {
+  //     date: '2023-12-20',
+  //     doctor: 'BS. Trần Văn B',
+  //     diagnosis: 'Nhiễm HIV ổn định, tuân thủ điều trị tốt',
+  //     symptoms: 'Đau đầu nhẹ, mệt mỏi',
+  //     prescription: 'TDF + 3TC + DTG, uống 1 lần/ngày',
+  //     notes: 'Xét nghiệm CD4: 620 cells/mm³, Tải lượng virus: Không phát hiện',
+  //   },
+  //   {
+  //     date: '2023-09-18',
+  //     doctor: 'BS. Lê Thị C',
+  //     diagnosis: 'Nhiễm HIV ổn định, nhiễm trùng đường hô hấp trên',
+  //     symptoms: 'Ho, đau họng, sổ mũi',
+  //     prescription: 'TDF + 3TC + DTG, uống 1 lần/ngày; Amoxicillin 500mg, uống 3 lần/ngày trong 5 ngày',
+  //     notes: 'Cần uống nhiều nước và nghỉ ngơi',
+  //   },
+  // ];
   
   // Mock HIV regimen data
   const standardRegimens = [
@@ -141,19 +206,34 @@ const ConsultationPage = () => {
   };
   
   // Finish consultation
-  const handleFinishConsultation = () => {
-    message.success('Đã hoàn thành buổi khám');
-    setConfirmFinishModalVisible(false);
-    navigate('/doctor/dashboard');
+  const handleFinishConsultation = async () => {
+    setLoading(true);
+    try {
+      await appointmentService.updateAppointmentStatus(appointmentId, { status: 'COMPLETED' });
+      message.success('Đã hoàn thành buổi khám');
+      setConfirmFinishModalVisible(false);
+      navigate('/doctor/dashboard');
+    } catch (error) {
+      message.error('Không thể cập nhật trạng thái lịch hẹn.');
+    } finally {
+      setLoading(false);
+    }
   };
   
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
   return (
     <div className="p-6">
       <div className="flex items-center mb-6">
         <Link to="/doctor/dashboard" className="mr-4">
           <Button icon={<LeftOutlined />}>Quay lại</Button>
         </Link>
-        <Title level={3} className="mb-0">Khám bệnh - {patient.name}</Title>
+        <Title level={3} className="mb-0">Khám bệnh - {patient?.name}</Title>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -164,8 +244,8 @@ const ConsultationPage = () => {
               <UserOutlined className="text-xl text-blue-500" />
             </div>
             <div>
-              <div className="font-bold text-lg">{patient.name}</div>
-              <div className="text-gray-500 text-sm">{patient.age} tuổi | {patient.gender}</div>
+              <div className="font-bold text-lg">{patient?.name}</div>
+              <div className="text-gray-500 text-sm">{patient?.age} tuổi | {patient?.gender}</div>
             </div>
           </div>
 
@@ -174,11 +254,11 @@ const ConsultationPage = () => {
           <div className="mb-3">
             <div className="font-medium mb-1">Thông tin cá nhân</div>
             <div className="text-sm space-y-1">
-              <div><strong>Ngày sinh:</strong> {dayjs(patient.dob).format('DD/MM/YYYY')}</div>
-              <div><strong>CMND/CCCD:</strong> {patient.idNumber}</div>
-              <div><strong>SĐT:</strong> {patient.phone}</div>
-              <div><strong>Email:</strong> {patient.email}</div>
-              <div><strong>Địa chỉ:</strong> {patient.address}</div>
+              <div><strong>Ngày sinh:</strong> {dayjs(patient?.dob).format('DD/MM/YYYY')}</div>
+              <div><strong>CMND/CCCD:</strong> {patient?.idNumber}</div>
+              <div><strong>SĐT:</strong> {patient?.phone}</div>
+              <div><strong>Email:</strong> {patient?.email}</div>
+              <div><strong>Địa chỉ:</strong> {patient?.address}</div>
             </div>
           </div>
           
@@ -187,10 +267,10 @@ const ConsultationPage = () => {
           <div className="mb-3">
             <div className="font-medium mb-1">Thông tin buổi khám</div>
             <div className="text-sm space-y-1">
-              <div><strong>Mã lịch hẹn:</strong> {patient.appointmentId}</div>
-              <div><strong>Giờ hẹn:</strong> {patient.appointmentTime}</div>
-              <div><strong>Check-in lúc:</strong> {patient.checkInTime}</div>
-              <div><strong>Lý do khám:</strong> {patient.reason}</div>
+              <div><strong>Mã lịch hẹn:</strong> {patient?.appointmentId}</div>
+              <div><strong>Giờ hẹn:</strong> {patient?.appointmentTime}</div>
+              <div><strong>Check-in lúc:</strong> {patient?.checkInTime}</div>
+              <div><strong>Lý do khám:</strong> {patient?.reason}</div>
             </div>
           </div>
           
@@ -199,15 +279,15 @@ const ConsultationPage = () => {
           <div className="mb-3">
             <div className="font-medium mb-1">Thông tin y tế</div>
             <div className="text-sm space-y-1">
-              {patient.isHivPositive && (
+              {patient?.isHivPositive && (
                 <div className="flex items-center">
                   <Tag color="blue">HIV+</Tag>
-                  <span>Bắt đầu điều trị: {dayjs(patient.startedTreatment).format('DD/MM/YYYY')}</span>
+                  <span>Bắt đầu điều trị: {dayjs(patient?.startedTreatment).format('DD/MM/YYYY')}</span>
                 </div>
               )}
-              <div><strong>Phác đồ hiện tại:</strong> {patient.currentRegimen}</div>
-              <div><strong>Dị ứng:</strong> {patient.allergies}</div>
-              <div><strong>Bệnh mãn tính:</strong> {patient.chronicConditions}</div>
+              <div><strong>Phác đồ hiện tại:</strong> {patient?.currentRegimen}</div>
+              <div><strong>Dị ứng:</strong> {patient?.allergies}</div>
+              <div><strong>Bệnh mãn tính:</strong> {patient?.chronicConditions}</div>
             </div>
           </div>
           
@@ -321,7 +401,7 @@ const ConsultationPage = () => {
               </TabPane>
               
               <TabPane tab="Phác đồ điều trị" key="2">
-                {patient.isHivPositive && (
+                {patient?.isHivPositive && (
                   <div className="mb-6 border rounded-md p-4 bg-blue-50">
                     <Title level={5} className="mb-3">Phác đồ điều trị HIV</Title>
                     
@@ -339,7 +419,7 @@ const ConsultationPage = () => {
                     {hivRegimen === 'standard' ? (
                       <Form.Item 
                         name="hivRegimen" 
-                        rules={[{ required: patient.isHivPositive, message: 'Vui lòng chọn phác đồ HIV' }]}
+                        rules={[{ required: patient?.isHivPositive, message: 'Vui lòng chọn phác đồ HIV' }]}
                       >
                         <Select
                           placeholder="Chọn phác đồ điều trị HIV"
@@ -732,7 +812,7 @@ const ConsultationPage = () => {
             <div className="flex items-start">
               <InfoCircleOutlined className="text-blue-500 mr-2 mt-1" />
               <div>
-                <p className="m-0">Bạn sẽ hoàn thành buổi khám cho bệnh nhân <strong>{patient.name}</strong>.</p>
+                <p className="m-0">Bạn sẽ hoàn thành buổi khám cho bệnh nhân <strong>{patient?.name}</strong>.</p>
                 <p className="m-0 mt-1">Sau khi xác nhận, thông tin buổi khám sẽ được lưu vào hồ sơ bệnh án của bệnh nhân.</p>
               </div>
             </div>

@@ -194,6 +194,17 @@ export const handleGetProfile = createAsyncThunk(
   }
 );
 
+export const syncAuthStateFromStorage = createAsyncThunk(
+  "auth/syncAuthStateFromStorage",
+  async () => {
+    const authData = localToken.get();
+    if (authData?.user) {
+      return authData.user;
+    }
+    return null;
+  }
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -211,6 +222,9 @@ export const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(handleGetProfile.fulfilled, (state, action) => {
+        state.profile = action.payload;
+      })
+      .addCase(syncAuthStateFromStorage.fulfilled, (state, action) => {
         state.profile = action.payload;
       })
       .addCase(handleLogin.pending, (state) => {
