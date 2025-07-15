@@ -1,42 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  Typography,
-  Table,
-  Tag,
-  Button,
-  Space,
-  Drawer,
-  Descriptions,
-  Tabs,
-  List,
-  Badge,
-  Empty,
-  Input,
-  Modal,
-  Form,
-  Select,
-  message,
-  Divider,
-  Popconfirm,
-  Row,
-  Col,
-  Pagination
-} from 'antd';
-import {
-  PlusOutlined,
-  SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  MedicineBoxOutlined,
-  UserOutlined,
-  InfoCircleOutlined,
-  FileTextOutlined,
-  ClockCircleOutlined,
-  ReloadOutlined
-} from '@ant-design/icons';
+import { Card, Typography, Table, Tag, Button, Space, Drawer, Descriptions, Tabs, List, Badge, Empty, Input, Select, message, Divider, Popconfirm, Row, Col, Pagination, Form } from 'antd';
+import { PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, MedicineBoxOutlined, UserOutlined, InfoCircleOutlined, ReloadOutlined, TeamOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { regimenService } from '@/services/regimenService';
+
+// Import components
+import ProtocolModal from './components/ProtocolModal';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -176,13 +145,45 @@ const TreatmentProtocolPage = () => {
     return medicines.map(item => item.medicine.name).join(' + ');
   };
 
-  // Table columns
+  const actions = (
+    <Space>
+      <Button 
+        icon={<ReloadOutlined />} 
+        onClick={fetchProtocols}
+        loading={loading}
+        className="rounded-xl border-white/30 text-white hover:bg-white/20"
+      >
+        Làm mới
+      </Button>
+      <Button 
+        type="primary" 
+        icon={<PlusOutlined />} 
+        onClick={handleCreateProtocol}
+        className="bg-white/20 border-white/30 text-white hover:bg-white/30 rounded-xl"
+      >
+        Tạo phác đồ mới
+      </Button>
+    </Space>
+  );
+
+  // Enhanced table columns with better styling
   const columns = [
+    {
+      title: '#',
+      dataIndex: 'index',
+      key: 'index',
+      width: 60,
+      render: (_, __, index) => (
+        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm">
+          {(pagination.current - 1) * pagination.pageSize + index + 1}
+        </div>
+      ),
+    },
     {
       title: 'Tên phác đồ',
       dataIndex: 'name',
       key: 'name',
-      render: (text) => <span className="font-medium">{text}</span>,
+      render: (text) => <span className="font-semibold text-gray-900">{text}</span>,
     },
     {
       title: 'Mô tả',
@@ -190,47 +191,86 @@ const TreatmentProtocolPage = () => {
       key: 'description',
       width: 300,
       render: (text) => (
-        <Paragraph ellipsis={{ rows: 3, expandable: true, symbol: 'more' }}>
-          {text}
-        </Paragraph>
+        <div className="text-gray-600">
+          <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: 'xem thêm' }}>
+            {text}
+          </Paragraph>
+        </div>
       )
     },
     {
       title: 'Bệnh điều trị',
       dataIndex: 'targetDisease',
       key: 'targetDisease',
-      render: (text) => <Tag color="blue">{text}</Tag>,
+      render: (text) => (
+        <Tag color="blue" className="rounded-full px-3 py-1 font-medium">
+          {text}
+        </Tag>
+      ),
     },
     {
       title: 'Thuốc',
       key: 'medicines',
       render: (_, record) => (
-        <Space size={[0, 8]} wrap>
+        <div className="space-y-1">
           {record.medicines && record.medicines.length > 0 ? (
-            record.medicines.map((item) => (
-              <Tag color="purple" key={item.medicine.id}>
-                {item.medicine.name}
-              </Tag>
-            ))
+            <div className="flex flex-wrap gap-1">
+              {record.medicines.slice(0, 3).map((item) => (
+                <Tag color="purple" key={item.medicine.id} className="rounded-full text-xs">
+                  {item.medicine.name}
+                </Tag>
+              ))}
+              {record.medicines.length > 3 && (
+                <Tag className="rounded-full text-xs bg-gray-100 text-gray-600">
+                  +{record.medicines.length - 3} thuốc khác
+                </Tag>
+              )}
+            </div>
           ) : (
-            <Text type="secondary">Không có thuốc</Text>
+            <Text type="secondary" className="italic">Không có thuốc</Text>
           )}
-        </Space>
+        </div>
       ),
     },
     {
       title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (text) => dayjs(text).format('DD/MM/YYYY'),
+      render: (text) => (
+        <div className="text-gray-600">
+          {dayjs(text).format('DD/MM/YYYY')}
+        </div>
+      ),
     },
     {
       title: 'Thao tác',
       key: 'action',
+      width: 200,
       render: (_, record) => (
-        <Space size="middle">
-          <Button type="primary" onClick={() => handleViewProtocol(record)}>
+        <Space size="small">
+          <Button 
+            type="primary" 
+            size="small"
+            onClick={() => handleViewProtocol(record)}
+            className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg"
+          >
             Chi tiết
+          </Button>
+          <Button 
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => {
+              form.setFieldsValue({
+                name: record.name,
+                description: record.description,
+                targetDisease: record.targetDisease,
+              });
+              setCurrentProtocol(record);
+              setModalVisible(true);
+            }}
+            className="border-gray-300 rounded-lg hover:border-blue-400 hover:text-blue-600"
+          >
+            Sửa
           </Button>
           <Popconfirm
             title="Xóa phác đồ"
@@ -238,8 +278,14 @@ const TreatmentProtocolPage = () => {
             onConfirm={() => handleDeleteProtocol(record.id)}
             okText="Có"
             cancelText="Không"
+            okButtonProps={{ className: 'bg-red-500 hover:bg-red-600 border-red-500' }}
           >
-            <Button type="primary" danger icon={<DeleteOutlined />}>
+            <Button 
+              danger 
+              size="small"
+              icon={<DeleteOutlined />}
+              className="rounded-lg"
+            >
               Xóa
             </Button>
           </Popconfirm>
@@ -249,372 +295,334 @@ const TreatmentProtocolPage = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <Title level={2}>Phác đồ điều trị</Title>
-        <Space>
-          <Button 
-            icon={<ReloadOutlined />} 
-            onClick={fetchProtocols}
-            loading={loading}
-          >
-            Làm mới
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={handleCreateProtocol}
-          >
-            Tạo phác đồ mới
-          </Button>
-        </Space>
-      </div>
-      
-      <div className="mb-6">
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={24} lg={8}>
-            <Input
-              placeholder="Tìm kiếm phác đồ..."
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={e => handleSearch(e.target.value)}
-              allowClear
-            />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto p-6">
+        
+        {/* Filter Section */}
+        <Card className="shadow-lg mb-8 rounded-2xl border-0 overflow-hidden">
+          <div className="p-6 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+            <div className="flex items-center space-x-2 mb-4">
+              <SearchOutlined className="text-blue-600" />
+              <Text strong className="text-gray-900 text-lg">Tìm kiếm và lọc phác đồ</Text>
+            </div>
+            
+            <Row gutter={[16, 16]} align="middle">
+              <Col xs={24} sm={24} lg={8}>
+                <Text strong className="block mb-2 text-gray-700">Tìm kiếm</Text>
+                <Input
+                  placeholder="Tìm kiếm theo tên phác đồ..."
+                  prefix={<SearchOutlined className="text-gray-400" />}
+                  value={searchText}
+                  onChange={e => handleSearch(e.target.value)}
+                  allowClear
+                  className="rounded-lg border-gray-200 hover:border-blue-400 focus:border-blue-500"
+                />
+              </Col>
+              <Col xs={24} sm={8} lg={4}>
+                <Text strong className="block mb-2 text-gray-700">Bệnh điều trị</Text>
+                <Select
+                  placeholder="Chọn bệnh"
+                  value={filters.targetDisease}
+                  onChange={(value) => handleFilterChange('targetDisease', value)}
+                  allowClear
+                  style={{ width: '100%' }}
+                  className="rounded-lg"
+                >
+                  <Option value="HIV">HIV</Option>
+                  <Option value="AIDS">AIDS</Option>
+                  <Option value="HIV/AIDS">HIV/AIDS</Option>
+                </Select>
+              </Col>
+              <Col xs={24} sm={8} lg={4}>
+                <Text strong className="block mb-2 text-gray-700">Sắp xếp theo</Text>
+                <Select
+                  placeholder="Chọn tiêu chí"
+                  value={filters.sortBy}
+                  onChange={(value) => handleFilterChange('sortBy', value)}
+                  allowClear
+                  style={{ width: '100%' }}
+                  className="rounded-lg"
+                >
+                  <Option value="name">Tên phác đồ</Option>
+                  <Option value="createdAt">Ngày tạo</Option>
+                  <Option value="updatedAt">Ngày cập nhật</Option>
+                </Select>
+              </Col>
+              <Col xs={24} sm={8} lg={4}>
+                <Text strong className="block mb-2 text-gray-700">Thứ tự</Text>
+                <Select
+                  placeholder="Chọn thứ tự"
+                  value={filters.sortOrder}
+                  onChange={(value) => handleFilterChange('sortOrder', value)}
+                  allowClear
+                  style={{ width: '100%' }}
+                  className="rounded-lg"
+                >
+                  <Option value="asc">Tăng dần</Option>
+                  <Option value="desc">Giảm dần</Option>
+                </Select>
+              </Col>
+            </Row>
+          </div>
+        </Card>
+        
+        {/* Statistics Cards */}
+        <Row gutter={[24, 24]} className="mb-8">
+          <Col xs={24} sm={8}>
+            <Card className="shadow-lg border-0 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-50 to-blue-100">
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <MedicineBoxOutlined className="text-blue-600 text-xl" />
+                </div>
+                <div className="text-2xl font-bold text-blue-600 mb-1">{protocols.length}</div>
+                <div className="text-gray-600 font-medium">Tổng phác đồ</div>
+              </div>
+            </Card>
           </Col>
-          <Col xs={24} sm={8} lg={4}>
-            <Select
-              placeholder="Bệnh điều trị"
-              value={filters.targetDisease}
-              onChange={(value) => handleFilterChange('targetDisease', value)}
-              allowClear
-              style={{ width: '100%' }}
-            >
-              <Option value="HIV">HIV</Option>
-              <Option value="AIDS">AIDS</Option>
-              <Option value="HIV/AIDS">HIV/AIDS</Option>
-            </Select>
+          <Col xs={24} sm={8}>
+            <Card className="shadow-lg border-0 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-green-50 to-green-100">
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <TeamOutlined className="text-green-600 text-xl" />
+                </div>
+                <div className="text-2xl font-bold text-green-600 mb-1">
+                  {protocols.filter(p => p.targetDisease === 'HIV').length}
+                </div>
+                <div className="text-gray-600 font-medium">Phác đồ HIV</div>
+              </div>
+            </Card>
           </Col>
-          <Col xs={24} sm={8} lg={4}>
-            <Select
-              placeholder="Sắp xếp theo"
-              value={filters.sortBy}
-              onChange={(value) => handleFilterChange('sortBy', value)}
-              allowClear
-              style={{ width: '100%' }}
-            >
-              <Option value="name">Tên phác đồ</Option>
-              <Option value="createdAt">Ngày tạo</Option>
-              <Option value="updatedAt">Ngày cập nhật</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={8} lg={4}>
-            <Select
-              placeholder="Thứ tự"
-              value={filters.sortOrder}
-              onChange={(value) => handleFilterChange('sortOrder', value)}
-              allowClear
-              style={{ width: '100%' }}
-            >
-              <Option value="asc">Tăng dần</Option>
-              <Option value="desc">Giảm dần</Option>
-            </Select>
+          <Col xs={24} sm={8}>
+            <Card className="shadow-lg border-0 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-purple-50 to-purple-100">
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <MedicineBoxOutlined className="text-purple-600 text-xl" />
+                </div>
+                <div className="text-2xl font-bold text-purple-600 mb-1">
+                  {protocols.filter(p => p.targetDisease === 'AIDS').length}
+                </div>
+                <div className="text-gray-600 font-medium">Phác đồ AIDS</div>
+              </div>
+            </Card>
           </Col>
         </Row>
-      </div>
-      
-      <Card className="shadow-md">
-        <Table
-          columns={columns}
-          dataSource={protocols}
-          rowKey="id"
+        
+        {/* Main Table */}
+        <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <MedicineBoxOutlined className="text-blue-600" />
+                </div>
+                <Title level={4} className="mb-0 text-gray-900">
+                  Danh sách phác đồ điều trị
+                </Title>
+              </div>
+              <Badge count={protocols.length} className="bg-blue-500" />
+            </div>
+
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <Text className="text-gray-500">Đang tải danh sách phác đồ...</Text>
+              </div>
+            ) : protocols.length === 0 ? (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  <div className="text-center py-8">
+                    <MedicineBoxOutlined className="text-6xl text-gray-300 mb-4" />
+                    <div className="text-gray-500 text-lg mb-2">Chưa có phác đồ nào</div>
+                    <div className="text-gray-400">Tạo phác đồ đầu tiên để bắt đầu</div>
+                  </div>
+                }
+                className="py-12"
+              >
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />}
+                  size="large"
+                  onClick={handleCreateProtocol}
+                  className="bg-blue-500 hover:bg-blue-600 border-none rounded-xl h-12 px-6 font-semibold"
+                >
+                  Tạo phác đồ đầu tiên
+                </Button>
+              </Empty>
+            ) : (
+              <>
+                <Table
+                  columns={columns}
+                  dataSource={protocols}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={false}
+                  scroll={{ x: 'max-content' }}
+                  rowClassName="hover:bg-blue-50 transition-colors duration-200"
+                  className="custom-table"
+                />
+                
+                <div className="mt-6 flex justify-center">
+                  <Pagination
+                    current={pagination.current}
+                    pageSize={pagination.pageSize}
+                    total={pagination.total}
+                    showSizeChanger={pagination.showSizeChanger}
+                    showQuickJumper={pagination.showQuickJumper}
+                    showTotal={pagination.showTotal}
+                    onChange={handlePaginationChange}
+                    onShowSizeChange={handlePaginationChange}
+                    className="custom-pagination"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </Card>
+        
+        {/* Protocol Modal */}
+        <ProtocolModal
+          visible={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          onSubmit={handleSubmitProtocol}
+          form={form}
+          currentProtocol={currentProtocol}
           loading={loading}
-          pagination={false}
-          scroll={{ x: 'max-content' }}
         />
         
-        <div className="mt-4 flex justify-end">
-          <Pagination
-            current={pagination.current}
-            pageSize={pagination.pageSize}
-            total={pagination.total}
-            showSizeChanger={pagination.showSizeChanger}
-            showQuickJumper={pagination.showQuickJumper}
-            showTotal={pagination.showTotal}
-            onChange={handlePaginationChange}
-            onShowSizeChange={handlePaginationChange}
-          />
-        </div>
-      </Card>
-      
-      {/* Protocol Detail Drawer */}
-      <Drawer
-        title={
-          <div className="flex items-center">
-            <MedicineBoxOutlined className="text-blue-500 text-xl mr-2" />
-            <span className="text-xl">Chi tiết phác đồ</span>
-          </div>
-        }
-        width={700}
-        placement="right"
-        onClose={() => setDrawerVisible(false)}
-        open={drawerVisible}
-        extra={
-          <Space>
-            <Button 
-              type="primary" 
-              icon={<EditOutlined />}
-              onClick={() => {
-                // Pre-populate form
-                form.setFieldsValue({
-                  name: currentProtocol?.name,
-                  description: currentProtocol?.description,
-                  targetDisease: currentProtocol?.targetDisease,
-                });
-                setDrawerVisible(false);
-                setModalVisible(true);
-              }}
-            >
-              Chỉnh sửa
-            </Button>
-          </Space>
-        }
-      >
-        {currentProtocol && (
-          <div>
-            <Tabs activeKey={activeTab} onChange={setActiveTab}>
-              <TabPane 
-                tab={<span><InfoCircleOutlined /> Thông tin</span>}
-                key="info"
+        {/* Protocol Detail Drawer */}
+        <Drawer
+          title={
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <MedicineBoxOutlined className="text-blue-600" />
+              </div>
+              <div>
+                <div className="text-xl font-semibold text-gray-900">Chi tiết phác đồ</div>
+                <div className="text-sm text-gray-500">{currentProtocol?.name}</div>
+              </div>
+            </div>
+          }
+          width={700}
+          placement="right"
+          onClose={() => setDrawerVisible(false)}
+          open={drawerVisible}
+          extra={
+            <Space>
+              <Button 
+                type="primary" 
+                icon={<EditOutlined />}
+                onClick={() => {
+                  form.setFieldsValue({
+                    name: currentProtocol?.name,
+                    description: currentProtocol?.description,
+                    targetDisease: currentProtocol?.targetDisease,
+                  });
+                  setDrawerVisible(false);
+                  setModalVisible(true);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg"
               >
-                <Descriptions title="Thông tin phác đồ" bordered column={1} className="mb-6">
-                  <Descriptions.Item label="Tên phác đồ">{currentProtocol.name}</Descriptions.Item>
-                  <Descriptions.Item label="Mô tả">{currentProtocol.description}</Descriptions.Item>
-                  <Descriptions.Item label="Bệnh điều trị">
-                    <Tag color="blue">{currentProtocol.targetDisease}</Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Người tạo">{currentProtocol.createdBy?.name}</Descriptions.Item>
-                  <Descriptions.Item label="Ngày tạo">
-                    {dayjs(currentProtocol.createdAt).format('DD/MM/YYYY HH:mm')}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Cập nhật lần cuối">
-                    {dayjs(currentProtocol.updatedAt).format('DD/MM/YYYY HH:mm')}
-                  </Descriptions.Item>
-                </Descriptions>
-              </TabPane>
-              
-              <TabPane 
-                tab={<span><MedicineBoxOutlined /> Thuốc ({currentProtocol.medicines?.length || 0})</span>}
-                key="medicines"
-              >
-                <List
-                  itemLayout="horizontal"
-                  dataSource={currentProtocol.medicines || []}
-                  renderItem={item => (
-                    <List.Item>
-                      <List.Item.Meta
-                        avatar={<Badge count={item.medicine?.dose} className="mt-2" />}
-                        title={
-                          <div className="flex justify-between">
-                            <span className="font-medium">{item.medicine?.name}</span>
-                            <span className="text-gray-500">{item.dosage}</span>
-                          </div>
-                        }
-                        description={
-                          <div>
-                            <div>{item.medicine?.description}</div>
-                            <div className="mt-1">
-                              <Tag color="green">{item.duration}</Tag>
-                              {item.notes && <Text type="secondary"> - {item.notes}</Text>}
-                            </div>
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                  locale={{
-                    emptyText: <Empty description="Không có thuốc nào trong phác đồ này" />
-                  }}
-                />
-              </TabPane>
-              
-              <TabPane 
-                tab={<span><UserOutlined /> Bệnh nhân</span>}
-                key="patients"
-              >
-                {currentProtocol.patientTreatments && currentProtocol.patientTreatments.length > 0 ? (
+                Chỉnh sửa
+              </Button>
+            </Space>
+          }
+          className="custom-drawer"
+        >
+          {currentProtocol && (
+            <div>
+              <Tabs activeKey={activeTab} onChange={setActiveTab}>
+                <TabPane 
+                  tab={<span><InfoCircleOutlined /> Thông tin</span>}
+                  key="info"
+                >
+                  <Descriptions title="Thông tin phác đồ" bordered column={1} className="mb-6">
+                    <Descriptions.Item label="Tên phác đồ">{currentProtocol.name}</Descriptions.Item>
+                    <Descriptions.Item label="Mô tả">{currentProtocol.description}</Descriptions.Item>
+                    <Descriptions.Item label="Bệnh điều trị">
+                      <Tag color="blue">{currentProtocol.targetDisease}</Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Người tạo">{currentProtocol.createdBy?.name}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày tạo">
+                      {dayjs(currentProtocol.createdAt).format('DD/MM/YYYY HH:mm')}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Cập nhật lần cuối">
+                      {dayjs(currentProtocol.updatedAt).format('DD/MM/YYYY HH:mm')}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </TabPane>
+                
+                <TabPane 
+                  tab={<span><MedicineBoxOutlined /> Thuốc ({currentProtocol.medicines?.length || 0})</span>}
+                  key="medicines"
+                >
                   <List
                     itemLayout="horizontal"
-                    dataSource={currentProtocol.patientTreatments}
-                    renderItem={patient => (
+                    dataSource={currentProtocol.medicines || []}
+                    renderItem={item => (
                       <List.Item>
                         <List.Item.Meta
-                          avatar={
-                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                              <UserOutlined className="text-blue-500" />
+                          avatar={<Badge count={item.medicine?.dose} className="mt-2" />}
+                          title={
+                            <div className="flex justify-between">
+                              <span className="font-medium">{item.medicine?.name}</span>
+                              <span className="text-gray-500">{item.dosage}</span>
                             </div>
                           }
-                          title={patient.patientName}
                           description={
                             <div>
-                              <div>Mã bệnh nhân: {patient.patientId}</div>
-                              <div>Bắt đầu sử dụng: {dayjs(patient.startDate).format('DD/MM/YYYY')}</div>
+                              <div>{item.medicine?.description}</div>
+                              <div className="mt-1">
+                                <Tag color="green">{item.duration}</Tag>
+                                {item.notes && <Text type="secondary"> - {item.notes}</Text>}
+                              </div>
                             </div>
                           }
                         />
                       </List.Item>
                     )}
+                    locale={{
+                      emptyText: <Empty description="Không có thuốc nào trong phác đồ này" />
+                    }}
                   />
-                ) : (
-                  <Empty description="Chưa có bệnh nhân nào sử dụng phác đồ này" />
-                )}
-              </TabPane>
-            </Tabs>
-          </div>
-        )}
-      </Drawer>
-      
-      {/* Create/Edit Protocol Modal */}
-      <Modal
-        title={
-          <div className="flex items-center">
-            <FileTextOutlined className="text-blue-500 text-lg mr-2" />
-            {currentProtocol ? 'Chỉnh sửa phác đồ' : 'Tạo phác đồ mới'}
-          </div>
-        }
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={720}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmitProtocol}
-        >
-          <Form.Item
-            name="name"
-            label="Tên phác đồ"
-            rules={[{ required: true, message: 'Vui lòng nhập tên phác đồ' }]}
-          >
-            <Input placeholder="Nhập tên phác đồ" />
-          </Form.Item>
-          
-          <Form.Item
-            name="description"
-            label="Mô tả"
-            rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
-          >
-            <Input.TextArea rows={3} placeholder="Nhập mô tả chi tiết về phác đồ" />
-          </Form.Item>
-          
-          <Form.Item
-            name="targetDisease"
-            label="Bệnh điều trị"
-            rules={[{ required: true, message: 'Vui lòng chọn bệnh điều trị' }]}
-          >
-            <Select placeholder="Chọn bệnh điều trị">
-              <Option value="HIV">HIV</Option>
-              <Option value="AIDS">AIDS</Option>
-              <Option value="HIV/AIDS">HIV/AIDS</Option>
-            </Select>
-          </Form.Item>
-          
-          <Divider>Danh sách thuốc</Divider>
-          
-          <Form.List name="medicines">
-            {(fields, { add, remove }) => (
-              <div className="space-y-3">
-                {fields.map((field, index) => (
-                  <div key={field.key} className="border rounded-md p-3 bg-gray-50 relative">
-                    <div className="absolute top-3 right-3">
-                      <Button 
-                        type="text" 
-                        danger 
-                        icon={<DeleteOutlined />} 
-                        onClick={() => remove(field.name)}
-                      />
-                    </div>
-                    
-                    <Row gutter={16}>
-                      <Col span={12}>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, 'medicineId']}
-                          label="Thuốc"
-                          rules={[{ required: true, message: 'Vui lòng chọn thuốc' }]}
-                        >
-                          <Select placeholder="Chọn thuốc">
-                            <Option value={1}>Tenofovir (300mg)</Option>
-                            <Option value={2}>Emtricitabine (200mg)</Option>
-                            <Option value={3}>Dolutegravir (50mg)</Option>
-                            <Option value={4}>Abacavir (300mg)</Option>
-                            <Option value={5}>Raltegravir (400mg)</Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, 'dosage']}
-                          label="Liều dùng"
-                          rules={[{ required: true, message: 'Vui lòng nhập liều dùng' }]}
-                        >
-                          <Input placeholder="VD: 1 viên" />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                    
-                    <Row gutter={16}>
-                      <Col span={12}>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, 'duration']}
-                          label="Thời điểm dùng"
-                          rules={[{ required: true, message: 'Vui lòng chọn thời điểm dùng' }]}
-                        >
-                          <Select placeholder="Chọn thời điểm">
-                            <Option value="MORNING">Buổi sáng</Option>
-                            <Option value="NOON">Buổi trưa</Option>
-                            <Option value="EVENING">Buổi tối</Option>
-                            <Option value="BEDTIME">Trước khi ngủ</Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, 'notes']}
-                          label="Ghi chú"
-                        >
-                          <Input placeholder="Ghi chú thêm (nếu có)" />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+                </TabPane>
                 
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
+                <TabPane 
+                  tab={<span><UserOutlined /> Bệnh nhân</span>}
+                  key="patients"
                 >
-                  Thêm thuốc
-                </Button>
-              </div>
-            )}
-          </Form.List>
-          
-          <div className="flex justify-end mt-6">
-            <Button className="mr-2" onClick={() => setModalVisible(false)}>
-              Hủy
-            </Button>
-            <Button type="primary" htmlType="submit">
-              {currentProtocol ? 'Cập nhật' : 'Tạo mới'}
-            </Button>
-          </div>
-        </Form>
-      </Modal>
+                  {currentProtocol.patientTreatments && currentProtocol.patientTreatments.length > 0 ? (
+                    <List
+                      itemLayout="horizontal"
+                      dataSource={currentProtocol.patientTreatments}
+                      renderItem={patient => (
+                        <List.Item>
+                          <List.Item.Meta
+                            avatar={
+                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <UserOutlined className="text-blue-500" />
+                              </div>
+                            }
+                            title={patient.patientName}
+                            description={
+                              <div>
+                                <div>Mã bệnh nhân: {patient.patientId}</div>
+                                <div>Bắt đầu sử dụng: {dayjs(patient.startDate).format('DD/MM/YYYY')}</div>
+                              </div>
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  ) : (
+                    <Empty description="Chưa có bệnh nhân nào sử dụng phác đồ này" />
+                  )}
+                </TabPane>
+              </Tabs>
+            </div>
+          )}
+        </Drawer>
+      </div>
     </div>
   );
 };

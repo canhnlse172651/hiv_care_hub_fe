@@ -68,12 +68,6 @@ export const sidebarMenuItems = {
       path: '/doctor/dashboard',
     },
     {
-      key: 'patients',
-      icon: 'TeamOutlined',
-      label: 'Danh sách bệnh nhân',
-      path: '/doctor/patients',
-    },
-    {
       key: 'schedule',
       icon: 'TeamOutlined',
       label: 'Lịch làm việc',
@@ -99,24 +93,24 @@ export const sidebarMenuItems = {
       label: 'Bảng điều khiển',
       path: '/staff/dashboard',
     },
-    {
-      key: 'payment',
-      icon: 'DollarOutlined',
-      label: 'Thanh toán',
-      path: '/staff/payment',
-    },
-    {
-      key: 'patients',
-      icon: 'TeamOutlined',
-      label: 'Danh sách bệnh nhân',
-      path: '/staff/patients',
-    },
-    {
-      key: 'appointments',
-      icon: 'CalendarOutlined',
-      label: 'Lịch hẹn',
-      path: '/staff/appointments',
-    },
+    // {
+    //   key: 'payment',
+    //   icon: 'DollarOutlined',
+    //   label: 'Thanh toán',
+    //   path: '/staff/payment',
+    // },
+    // {
+    //   key: 'patients',
+    //   icon: 'TeamOutlined',
+    //   label: 'Danh sách bệnh nhân',
+    //   path: '/staff/patients',
+    // },
+    // {
+    //   key: 'appointments',
+    //   icon: 'CalendarOutlined',
+    //   label: 'Lịch hẹn',
+    //   path: '/staff/appointments',
+    // },
   ],
 };
 

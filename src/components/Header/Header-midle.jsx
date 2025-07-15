@@ -217,37 +217,11 @@ const HeaderMidle = () => {
               <span>ĐĂNG NHẬP/ĐĂNG KÝ</span>
             </button>
           )}
-
-          {/* Shopping Cart Button */}
-          <Dropdown
-            overlay={
-              <div className="bg-white rounded-lg shadow-lg p-6 min-w-[260px] md:min-w-[300px]">
-                <div className="flex flex-col items-center text-center py-6">
-                  <FontAwesomeIcon 
-                    icon={faBagShopping} 
-                    className="text-4xl text-gray-400 mb-4" 
-                  />
-                  <p className="text-gray-500 mb-4">Chưa có sản phẩm trong giỏ hàng</p>
-                  <button className="px-4 py-2 bg-blue-500 text-white rounded min-w-[160px] hover:bg-blue-600 transition-colors">
-                    Quay lại cửa hàng
-                  </button>
-                </div>
-              </div>
-            }
-            trigger={['hover']}
-            placement="bottomRight"
-          >
-            <Badge count={0} size="small">
-              <button className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm">
-                <FontAwesomeIcon icon={faBagShopping} />
-              </button>
-            </Badge>
-          </Dropdown>
         </div>
       </div>
       
       {/* Bottom Row: Navigation Menu - Increased height and centered */}
-      <div className="flex justify-center items-center border-t border-gray-100 py-4 max-w-[1100px] mx-auto w-full overflow-x-auto">
+      <div className="menu-scroll-container flex justify-center items-center border-t border-gray-100 py-4 max-w-[1100px] mx-auto w-full overflow-x-auto">
         <Link to="/" className="text-xl md:text-2xl mr-4 md:mr-8 flex-shrink-0 text-black hover:text-blue-500 transition-colors">
           <FontAwesomeIcon icon={faHouse} />
         </Link>
@@ -268,34 +242,19 @@ const HeaderMidle = () => {
         `}</style>
         
         <Menu mode="horizontal" className="bg-transparent border-none flex flex-nowrap whitespace-nowrap justify-center">
-          <Dropdown
-            overlay={
-              <Menu>
-                {menuItems.services.children.map(item => (
-                  <Menu.Item key={item.key}>
-                    <Link to={item.path}>{item.label}</Link>
-                  </Menu.Item>
-                ))}
-              </Menu>
-            }
-            trigger={[currentPath === getRoutePath('services') ? 'hover' : 'click']}
-          >
-            <Menu.Item key={menuItems.services.key} className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
-              {menuItems.services.label} 
-              <FontAwesomeIcon 
-                icon={faCaretDown} 
-                className="ml-1 text-xs" 
-              />
-            </Menu.Item>
-          </Dropdown>
+          <Menu.Item key={menuItems.services.key} className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
+            <Link to="/service-booking">
+              {menuItems.services.label}
+            </Link>
+          </Menu.Item>
           
           {/* HIV Test and Pharmacy items */}
           <Menu.Item key="hiv-test" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
             <Link to={getRoutePath('hiv-test')}>Xét nghiệm HIV</Link>
           </Menu.Item>
-          <Menu.Item key="pharmacy" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
+          {/* <Menu.Item key="pharmacy" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
             <Link to={getRoutePath('pharmacy')}>Nhà thuốc</Link>
-          </Menu.Item>
+          </Menu.Item> */}
 
           {/* News Dropdown */}
           <Dropdown

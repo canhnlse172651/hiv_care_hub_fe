@@ -72,4 +72,12 @@ export const appointmentService = {
       throw error;
     }
   },
+  getStaffAppointments: async (params = {}) => {
+    try {
+      const response = await axiosInstance.get('/appointments/staff', { params });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };

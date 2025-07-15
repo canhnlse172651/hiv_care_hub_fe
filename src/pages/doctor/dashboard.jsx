@@ -1,359 +1,372 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Typography, Badge, Input, message, Row, Col, Card, Button, Avatar, Space } from 'antd';
 import { 
-  Table, Card, Button, Avatar, Space, Tag, Tabs, 
-  Typography, Badge, Input, Statistic, Timeline, Tooltip 
-} from 'antd';
-import { 
-  UserOutlined, SearchOutlined, ClockCircleOutlined, 
-  CheckCircleOutlined, MedicineBoxOutlined, CalendarOutlined,
-  FileTextOutlined, ScheduleOutlined, RightOutlined
+  SearchOutlined, CalendarOutlined, CheckCircleOutlined, ClockCircleOutlined,
+  FileTextOutlined, ScheduleOutlined, RightOutlined, BellOutlined, TeamOutlined, UserOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
+import { appointmentService } from '@/services/appointmentService';
+import { localToken } from '@/utils/token';
+
+// Import components
+import StatisticCard from './components/StatisticCard';
+import AppointmentCard from './components/AppointmentCard';
 
 const { Title, Text } = Typography;
 
 const DoctorDashboard = () => {
   const [searchText, setSearchText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  const [allAppointments, setAllAppointments] = useState([]);
+  const [statistics, setStatistics] = useState({
+    totalAppointments: 0,
+    completed: 0,
+    waiting: 0,
+    cancelled: 0
+  });
+  
   const today = dayjs().format('DD/MM/YYYY');
+  const todayDate = dayjs().format('YYYY-MM-DD');
   
-  // Sample data
-  const patientList = [
-    {
-      id: 'PT-10001',
-      appointmentId: 'AP-2024060001',
-      name: 'Nguyễn Văn A',
-      age: 35,
-      gender: 'Nam',
-      checkInTime: '08:45',
-      appointmentTime: '09:00',
-      reason: 'Khám định kỳ HIV',
-      status: 'waiting',
-      priority: 'normal'
-    },
-    {
-      id: 'PT-10022',
-      appointmentId: 'AP-2024060012',
-      name: 'Trần Thị B',
-      age: 28,
-      gender: 'Nữ',
-      checkInTime: '08:50',
-      appointmentTime: '09:15',
-      reason: 'Theo dõi phản ứng phụ thuốc ARV',
-      status: 'waiting',
-      priority: 'high'
-    },
-    {
-      id: 'PT-10035',
-      appointmentId: 'AP-2024060024',
-      name: 'Lê Văn C',
-      age: 42,
-      gender: 'Nam',
-      checkInTime: '09:10',
-      appointmentTime: '09:30',
-      reason: 'Tư vấn kết quả xét nghiệm mới',
-      status: 'waiting',
-      priority: 'normal'
-    },
-    {
-      id: 'PT-10047',
-      appointmentId: 'AP-2024060031',
-      name: 'Phạm Thị D',
-      age: 32,
-      gender: 'Nữ',
-      checkInTime: '09:25',
-      appointmentTime: '09:45',
-      reason: 'Đánh giá hiệu quả điều trị',
-      status: 'waiting',
-      priority: 'normal'
-    },
-  ];
+  // Get current doctor info
+  const currentUser = localToken.getUser();
+  const doctorId = currentUser?.id;
 
-  const filteredPatients = patientList.filter(patient => 
-    patient.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    patient.id.toLowerCase().includes(searchText.toLowerCase()) ||
-    patient.reason.toLowerCase().includes(searchText.toLowerCase())
+  // Fetch appointments for the current doctor
+  const fetchAppointments = async () => {
+    if (!doctorId) {
+      message.error('Không thể xác định thông tin bác sĩ');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await appointmentService.getAppointmentsByDoctorId(doctorId);
+      const allAppointmentsData = response.data || [];
+      
+      // Filter for today's appointments only
+      const todayAppointments = allAppointmentsData.filter(appointment => 
+        dayjs(appointment.appointmentTime).format('YYYY-MM-DD') === todayDate
+      );
+      
+      // Filter for offline appointments with PENDING status (for waiting list)
+      const offlinePendingAppointments = todayAppointments.filter(appointment => 
+        appointment.type === 'OFFLINE' && appointment.status === 'PENDING'
+      );
+
+      setAllAppointments(allAppointmentsData);
+      setAppointments(offlinePendingAppointments);
+      
+      // Calculate statistics for today only
+      const stats = {
+        totalAppointments: todayAppointments.length,
+        completed: todayAppointments.filter(apt => apt.status === 'COMPLETED').length,
+        waiting: todayAppointments.filter(apt => apt.status === 'PENDING').length,
+        cancelled: todayAppointments.filter(apt => apt.status === 'CANCELLED').length
+      };
+      setStatistics(stats);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      message.error('Không thể tải danh sách lịch hẹn');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [doctorId]);
+
+  // Filter appointments based on search text
+  const filteredAppointments = appointments.filter(appointment => 
+    appointment.user?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+    appointment.service?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+    appointment.id?.toString().includes(searchText)
   );
-  
-  const completedPatients = [
-    {
-      id: 'PT-10005',
-      appointmentId: 'AP-2024060005',
-      name: 'Hoàng Văn E',
-      age: 45,
-      gender: 'Nam',
-      appointmentTime: '08:00',
-      consultationTime: '08:10-08:35',
-      diagnosis: 'Nhiễm HIV ổn định',
-      status: 'completed'
-    },
-    {
-      id: 'PT-10008',
-      appointmentId: 'AP-2024060008',
-      name: 'Mai Thị F',
-      age: 29,
-      gender: 'Nữ',
-      appointmentTime: '08:30',
-      consultationTime: '08:40-09:05',
-      diagnosis: 'Tác dụng phụ của thuốc ARV - điều chỉnh liều',
-      status: 'completed'
-    }
-  ];
 
-  const statistics = {
-    totalAppointments: 8,
-    completed: 2,
-    waiting: 4,
-    cancelled: 2
-  };
-
-  const getStatusTag = (status, priority) => {
-    if (status === 'waiting') {
-      return priority === 'high' ? 
-        <Tag color="orange" icon={<ClockCircleOutlined />}>Ưu tiên</Tag> :
-        <Tag color="blue" icon={<ClockCircleOutlined />}>Đang chờ</Tag>;
-    }
-    return <Tag color="green" icon={<CheckCircleOutlined />}>Hoàn thành</Tag>;
-  };
-
-  const patientColumns = [
-    {
-      title: 'STT',
-      dataIndex: 'index',
-      key: 'index',
-      width: 60,
-      render: (_, __, index) => index + 1,
-    },
-    {
-      title: 'Bệnh nhân',
-      key: 'patient',
-      width: 220,
-      render: (_, record) => (
-        <Space>
-          <Avatar icon={<UserOutlined />} className="bg-blue-500" />
-          <div>
-            <div className="font-medium">{record.name}</div>
-            <div className="text-gray-500 text-xs">
-              {record.age} tuổi | {record.gender} | Mã: {record.id}
-            </div>
-          </div>
-        </Space>
-      ),
-    },
-    {
-      title: 'Giờ hẹn',
-      dataIndex: 'appointmentTime',
-      key: 'appointmentTime',
-      width: 100,
-      render: (time) => <span className="text-gray-600">{time}</span>
-    },
-    {
-      title: 'Lý do khám',
-      dataIndex: 'reason',
-      key: 'reason',
-      ellipsis: true
-    },
-    {
-      title: 'Trạng thái',
-      key: 'status',
-      width: 120,
-      render: (_, record) => getStatusTag(record.status, record.priority)
-    },
-    {
-      title: 'Hành động',
-      key: 'action',
-      width: 120, // Increased width to prevent button from being cut off
-      render: (_, record) => (
-        <Link to={`/doctor/consultation/${record.appointmentId}`}>
-          <Button type="primary">
-            Khám ngay
-          </Button>
-        </Link>
-      ),
-    },
-  ];
-
-  const completedColumns = [
-    {
-      title: 'Bệnh nhân',
-      key: 'patient',
-      width: 180,
-      render: (_, record) => (
-        <Space>
-          <Avatar icon={<UserOutlined />} className="bg-blue-500" />
-          <div>
-            <div className="font-medium">{record.name}</div>
-            <div className="text-gray-500 text-xs">
-              {record.age} tuổi | {record.gender} | Mã: {record.id}
-            </div>
-          </div>
-        </Space>
-      ),
-    },
-    {
-      title: 'Thời gian khám',
-      dataIndex: 'consultationTime',
-      key: 'consultationTime',
-      width: 150,
-    },
-    {
-      title: 'Chẩn đoán',
-      dataIndex: 'diagnosis',
-      key: 'diagnosis',
-      ellipsis: true
-    },
-    {
-      title: '',
-      key: 'action',
-      width: 100,
-      render: (_, record) => (
-        <Link to={`/doctor/medical-records/${record.id}`}>
-          <Button type="link">Xem chi tiết</Button>
-        </Link>
-      ),
-    },
-  ];
-
-  const completedTabItems = [
-    {
-      key: 'completed',
-      label: <span><CheckCircleOutlined /> Đã hoàn thành</span>,
-      children: (
-        <Table
-          columns={completedColumns}
-          dataSource={completedPatients}
-          rowKey="id"
-          pagination={false}
-          size="small"
-          scroll={{ x: 'max-content' }}
-        />
-      )
-    }
-  ]
+  // Get today's completed appointments
+  const todayCompletedAppointments = allAppointments.filter(appointment => 
+    dayjs(appointment.appointmentTime).format('YYYY-MM-DD') === todayDate &&
+    appointment.status === 'COMPLETED'
+  );
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <Title level={2} className="mb-2">Bảng điều khiển bác sĩ</Title>
-          <Text className="text-gray-500">Ngày hôm nay: {today}</Text>
-        </div>
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 mt-4 md:mt-0">
-          <div className="text-lg font-semibold mb-1">Chào mừng, Bác sĩ Nguyễn</div>
-          <div className="text-blue-100">Chúc một ngày làm việc hiệu quả</div>
-        </Card>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto p-6">
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="shadow-sm hover:shadow-md transition-shadow bg-blue-50 border-blue-200">
-          <Statistic 
-            title="Tổng lịch hẹn" 
-            value={statistics.totalAppointments} 
-            valueStyle={{ color: '#1890ff' }}
-            prefix={<CalendarOutlined />} 
-          />
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-shadow bg-green-50 border-green-200">
-          <Statistic 
-            title="Đã hoàn thành" 
-            value={statistics.completed} 
-            valueStyle={{ color: '#52c41a' }}
-            prefix={<CheckCircleOutlined />} 
-          />
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-shadow bg-yellow-50 border-yellow-200">
-          <Statistic 
-            title="Đang chờ khám" 
-            value={statistics.waiting} 
-            valueStyle={{ color: '#faad14' }}
-            prefix={<ClockCircleOutlined />} 
-          />
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-shadow bg-gray-50 border-gray-200">
-          <Statistic 
-            title="Đã hủy" 
-            value={statistics.cancelled} 
-            valueStyle={{ color: '#cf1322' }}
-            prefix={<FileTextOutlined />} 
-          />
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <Card className="col-span-1 xl:col-span-2 shadow-md">
-          <div className="flex justify-between items-center mb-4">
-            <Title level={4} className="mb-0">Danh sách chờ khám</Title>
-            <Input
-              placeholder="Tìm kiếm bệnh nhân..."
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              style={{ width: 250 }}
-              allowClear
+        {/* Statistics Cards */}
+        <Row gutter={[24, 24]} className="mb-8">
+          <Col xs={24} sm={12} lg={6}>
+            <StatisticCard
+              title="Lịch hẹn hôm nay"
+              value={statistics.totalAppointments}
+              icon={<CalendarOutlined />}
+              color="#3b82f6"
+              bgGradient="from-blue-50 to-blue-100"
             />
-          </div>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <StatisticCard
+              title="Đã hoàn thành"
+              value={statistics.completed}
+              icon={<CheckCircleOutlined />}
+              color="#10b981"
+              bgGradient="from-green-50 to-green-100"
+              iconBgColor="bg-green-100"
+              iconColor="text-green-600"
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <StatisticCard
+              title="Đang chờ khám"
+              value={statistics.waiting}
+              icon={<ClockCircleOutlined />}
+              color="#f59e0b"
+              bgGradient="from-yellow-50 to-yellow-100"
+              iconBgColor="bg-yellow-100"
+              iconColor="text-yellow-600"
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <StatisticCard
+              title="Đã hủy"
+              value={statistics.cancelled}
+              icon={<FileTextOutlined />}
+              color="#ef4444"
+              bgGradient="from-red-50 to-red-100"
+              iconBgColor="bg-red-100"
+              iconColor="text-red-600"
+            />
+          </Col>
+        </Row>
 
-          <Table
-            columns={patientColumns}
-            dataSource={filteredPatients}
-            rowKey="id"
-            pagination={false}
-            scroll={{ x: 'max-content' }}
-            className="border rounded-lg overflow-hidden"
-          />
-        </Card>
+        {/* Main Content */}
+        <Row gutter={[24, 24]}>
+          {/* Patient Queue */}
+          <Col xs={24} xl={16}>
+            <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <TeamOutlined className="text-blue-600" />
+                    </div>
+                    <Title level={4} className="mb-0 text-gray-900">
+                      Danh sách chờ khám hôm nay
+                    </Title>
+                    <Badge count={filteredAppointments.length} className="ml-2" />
+                  </div>
+                  <Input
+                    placeholder="Tìm kiếm bệnh nhân..."
+                    prefix={<SearchOutlined className="text-gray-400" />}
+                    value={searchText}
+                    onChange={e => setSearchText(e.target.value)}
+                    style={{ width: 280 }}
+                    allowClear
+                    className="rounded-lg border-gray-200 hover:border-blue-400 focus:border-blue-500"
+                  />
+                </div>
+              </div>
 
-        <Card className="shadow-md">
-          <Tabs defaultActiveKey="completed" items={completedTabItems} className="mb-4" />
+              <div className="p-6">
+                {filteredAppointments.length === 0 ? (
+                  <div className="text-center py-12">
+                    <TeamOutlined className="text-6xl text-gray-300 mb-4" />
+                    <div className="text-gray-500 text-lg mb-2">Không có lịch hẹn nào đang chờ</div>
+                    <div className="text-gray-400">Danh sách chờ khám sẽ xuất hiện tại đây</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredAppointments.map(appointment => (
+                      <AppointmentCard 
+                        key={appointment.id} 
+                        appointment={appointment} 
+                        size="small"
+                        showMedicalRecordLink={true}
+                      />
+                    ))}
+                  </div>
+                )}
 
-          <div className="mt-4 border-t pt-4">
-            <div className="flex justify-between items-center mb-4">
-              <Title level={5} className="mb-0">Lịch làm việc</Title>
-              <Link to="/doctor/schedule">
-                <Button type="primary" icon={<CalendarOutlined />}>
-                  Xem lịch đầy đủ
-                </Button>
-              </Link>
+                <div className="mt-6 text-center border-t border-gray-100 pt-6">
+                  <Link to="/doctor/appointments">
+                    <Button 
+                      type="primary" 
+                      icon={<CalendarOutlined />}
+                      size="large"
+                      className="bg-blue-500 hover:bg-blue-600 border-none rounded-xl h-12 px-8 font-semibold"
+                    >
+                      Xem tất cả lịch hẹn
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          </Col>
+
+          {/* Sidebar */}
+          <Col xs={24} xl={8}>
+            <div className="space-y-6">
+              {/* Completed Appointments */}
+              <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
+                <div className="p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <CheckCircleOutlined className="text-green-600" />
+                    </div>
+                    <Title level={5} className="mb-0 text-gray-900">
+                      Đã hoàn thành hôm nay
+                    </Title>
+                  </div>
+
+                  <div className="space-y-2">
+                    {todayCompletedAppointments.length === 0 ? (
+                      <div className="text-center py-4 text-gray-500">
+                        Chưa có lịch hẹn nào hoàn thành
+                      </div>
+                    ) : (
+                      todayCompletedAppointments.map(appointment => (
+                        <div key={appointment.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                          <Link to={`/doctor/medical-records/${appointment.user?.id}`}>
+                            <Avatar 
+                              src={appointment.user?.avatar} 
+                              icon={<UserOutlined />} 
+                              size={32}
+                              className="bg-blue-500 cursor-pointer hover:shadow-md transition-shadow duration-200" 
+                            />
+                          </Link>
+                          <div className="flex-1">
+                            <Link 
+                              to={`/doctor/medical-records/${appointment.user?.id}`}
+                              className="text-sm font-medium hover:text-blue-600 transition-colors duration-200"
+                            >
+                              {appointment.user?.name || 'Không có tên'}
+                            </Link>
+                            <div className="text-xs text-gray-500">
+                              {dayjs(appointment.appointmentTime).format('HH:mm')} - {appointment.service?.name}
+                            </div>
+                          </div>
+                          <Link to={`/doctor/medical-records/${appointment.user?.id}`}>
+                            <Button type="link" size="small" className="hover:text-blue-600">Chi tiết</Button>
+                          </Link>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </Card>
+
+              {/* Schedule */}
+              <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <ScheduleOutlined className="text-purple-600" />
+                      </div>
+                      <Title level={5} className="mb-0 text-gray-900">Lịch làm việc hôm nay</Title>
+                    </div>
+                    <Link to="/doctor/schedule">
+                      <Button 
+                        type="link" 
+                        icon={<RightOutlined />}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        Xem chi tiết
+                      </Button>
+                    </Link>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Badge status="processing" />
+                          <div>
+                            <div className="font-semibold text-gray-900">Ca sáng</div>
+                            <div className="text-sm text-gray-600">08:00 - 12:00</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-blue-600">
+                            {allAppointments.filter(apt => {
+                              const hour = dayjs(apt.appointmentTime).hour();
+                              const date = dayjs(apt.appointmentTime).format('YYYY-MM-DD');
+                              return hour >= 8 && hour < 12 && date === todayDate;
+                            }).length}
+                          </div>
+                          <div className="text-xs text-gray-500">lịch hẹn</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Badge status="success" />
+                          <div>
+                            <div className="font-semibold text-gray-900">Ca chiều</div>
+                            <div className="text-sm text-gray-600">13:30 - 17:00</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600">
+                            {allAppointments.filter(apt => {
+                              const hour = dayjs(apt.appointmentTime).hour();
+                              const date = dayjs(apt.appointmentTime).format('YYYY-MM-DD');
+                              return hour >= 13 && hour < 17 && date === todayDate;
+                            }).length}
+                          </div>
+                          <div className="text-xs text-gray-500">lịch hẹn</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Notifications */}
+              <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
+                <div className="p-6">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <BellOutlined className="text-orange-600" />
+                    </div>
+                    <Title level={5} className="mb-0 text-gray-900">Thông báo mới</Title>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                      <div className="flex items-start space-x-3">
+                        <Badge status="processing" className="mt-1" />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 mb-1">
+                            Hội thảo cập nhật phác đồ điều trị HIV mới
+                          </div>
+                          <div className="text-sm text-gray-600">14:00, 15/06/2024</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
+                      <div className="flex items-start space-x-3">
+                        <Badge status="success" className="mt-1" />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 mb-1">
+                            Kết quả xét nghiệm của bệnh nhân đã có
+                          </div>
+                          <div className="text-sm text-gray-600">Cập nhật 30 phút trước</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
-                <Badge status="processing" className="mr-2" />
-                <div>
-                  <div>Ca sáng: 08:00 - 12:00</div>
-                  <div className="text-xs text-gray-500">4 lịch hẹn đã đặt</div>
-                </div>
-              </div>
-              <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-100">
-                <Badge status="success" className="mr-2" />
-                <div>
-                  <div>Ca chiều: 13:30 - 17:00</div>
-                  <div className="text-xs text-gray-500">2 lịch hẹn đã đặt</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 border-t pt-4">
-            <Title level={5}>Thông báo mới</Title>
-            <div className="space-y-3">
-              <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
-                <Badge status="processing" className="mr-2" />
-                <div>
-                  <div>Hội thảo cập nhật phác đồ điều trị HIV mới</div>
-                  <div className="text-xs text-gray-500">14:00, 15/06/2024</div>
-                </div>
-              </div>
-              <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-100">
-                <Badge status="success" className="mr-2" />
-                <div>
-                  <div>Kết quả xét nghiệm của bệnh nhân Nguyễn Văn A đã có</div>
-                  <div className="text-xs text-gray-500">Cập nhật 30 phút trước</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
+          </Col>
+        </Row>
       </div>
     </div>
   );

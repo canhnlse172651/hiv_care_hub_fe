@@ -69,3 +69,13 @@
 .fade {
   transition: opacity .15s linear !important;
 }
+
+/* Prevent Ant Design Menu from showing overflow ellipsis */
+.ant-menu-overflow-item-rest {
+  display: none !important;
+}
+
+.menu-scroll-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
