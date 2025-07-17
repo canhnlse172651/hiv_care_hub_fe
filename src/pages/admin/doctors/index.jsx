@@ -34,6 +34,8 @@ import { doctorService } from '@/services/doctorService';
 import { DOCTOR_SHIFT_TIME } from '@/constant/general';
 import { Link, Outlet } from 'react-router-dom';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -211,6 +213,15 @@ const DoctorManagement = () => {
       sortDirections: ['descend', 'ascend'],
     },
     {
+      title: 'Doctor ID',
+      dataIndex: 'id',
+      key: 'doctorId',
+      width: 80,
+      render: (text, record) => record.id,
+      sorter: (a, b) => a.id - b.id,
+      sortDirections: ['descend', 'ascend'],
+    },
+    {
       title: 'Name',
       dataIndex: ['user', 'name'],
       key: 'name',
@@ -272,8 +283,8 @@ const DoctorManagement = () => {
     maxCount: 1,
   };
 
-  // Only allow Sundays in DatePicker
-  const disabledDate = (current) => current && current.day() !== 0;
+  // Only allow Mondays in DatePicker
+  const disabledDate = (current) => current && current.day() !== 1;
 
   const handleOpenGenerate = () => {
     setGenerateModalOpen(true);
@@ -282,17 +293,21 @@ const DoctorManagement = () => {
   };
 
   const handleGenerateSchedule = async (values) => {
-    console.log('Generate schedule values:', values);
+    console.log('Submitting values:', values);
     setGenerateLoading(true);
     try {
+      // Ensure startDate is a dayjs object
+      const startDate = dayjs(values.startDate);
       const payload = {
-        startDate: values.startDate.utc().hour(10).minute(0).second(0).millisecond(0).toISOString(),
+        startDate: startDate.utc().hour(10).minute(0).second(0).millisecond(0).toISOString(),
         doctorsPerShift: values.doctorsPerShift,
       };
+      console.log('Payload:', payload);
       const res = await doctorService.generateSchedule(payload);
       setGenerateResult(res.data?.data || null);
       message.success(res.data?.data?.message || 'Schedule generated successfully');
     } catch (e) {
+      console.error('Error in handleGenerateSchedule:', e);
       message.error('Failed to generate schedule');
     } finally {
       setGenerateLoading(false);
@@ -406,7 +421,7 @@ const DoctorManagement = () => {
         <Form form={generateForm} layout="vertical" onFinish={handleGenerateSchedule}>
           <Form.Item
             name="startDate"
-            label="Start Date (Sunday only)"
+            label="Start Date (Monday only)"
             rules={[{ required: true, message: 'Please select a start date' }]}
           >
             <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />

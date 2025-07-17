@@ -45,7 +45,8 @@ const AppointmentListPage = () => {
             try {
                 const appointmentRes = await appointmentService.getAppointmentsByUserId(userId);
                 console.log('API raw response:', appointmentRes.data);
-                const data = Array.isArray(appointmentRes.data) ? appointmentRes.data : [];
+                const appointmentsData = appointmentRes.data?.data || [];
+                const data = Array.isArray(appointmentsData) ? appointmentsData : [];
                 const sortedData = data.sort((a, b) => dayjs(b.appointmentTime).diff(dayjs(a.appointmentTime)));
                 setAppointments(sortedData);
                 setFilteredAppointments(sortedData);

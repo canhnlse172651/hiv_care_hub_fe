@@ -27,9 +27,37 @@ const DateSlotSelection = ({
     }
   };
 
-  // Group slots by shift
-  const morningSlots = availableSlots.filter(slot => slot.shift === 'MORNING');
-  const afternoonSlots = availableSlots.filter(slot => slot.shift === 'AFTERNOON');
+  // Define static slots
+  const slots = [
+    { start: '07:00', end: '07:30' },
+    { start: '07:35', end: '08:05' },
+    { start: '08:10', end: '08:40' },
+    { start: '08:45', end: '09:15' },
+    { start: '09:20', end: '09:50' },
+    { start: '09:55', end: '10:25' },
+    { start: '10:30', end: '11:00' },
+    { start: '13:00', end: '13:30' },
+    { start: '13:35', end: '14:05' },
+    { start: '14:10', end: '14:40' },
+    { start: '14:45', end: '15:15' },
+    { start: '15:20', end: '15:50' },
+    { start: '15:55', end: '16:25' },
+    { start: '16:30', end: '17:00' },
+  ];
+
+  // Helper to check if a time is in the morning or afternoon
+  const isMorning = (start) => {
+    const hour = parseInt(start.split(':')[0], 10);
+    return hour >= 7 && hour < 12;
+  };
+  const isAfternoon = (start) => {
+    const hour = parseInt(start.split(':')[0], 10);
+    return hour >= 13 && hour < 18;
+  };
+
+  // Group slots by time
+  const morningSlots = slots.filter(slot => isMorning(slot.start));
+  const afternoonSlots = slots.filter(slot => isAfternoon(slot.start));
 
   const SlotGroup = ({ title, icon, slots, bgColor, iconColor }) => (
     <div className={`${bgColor} rounded-2xl p-6 border border-gray-100`}>
@@ -43,35 +71,38 @@ const DateSlotSelection = ({
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {slots.map(slot => (
-          <button
-            key={slot.start + slot.end}
-            className={`
-              relative p-4 rounded-xl border-2 transition-all duration-300 text-center group
-              ${selectedSlot === slot 
-                ? 'border-blue-500 bg-blue-500 text-white shadow-lg transform scale-105' 
-                : 'border-gray-200 bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md hover:transform hover:scale-102'
-              }
-            `}
-            onClick={() => setSelectedSlot(slot)}
-          >
-            {selectedSlot === slot && (
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+        {slots.map(slot => {
+          const isSelected = selectedSlot && selectedSlot.start === slot.start && selectedSlot.end === slot.end;
+          return (
+            <button
+              key={slot.start + slot.end}
+              className={`
+                relative p-4 rounded-xl border-2 transition-all duration-300 text-center group
+                ${isSelected
+                  ? 'border-blue-500 bg-blue-500 text-white shadow-lg transform scale-105' 
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md hover:transform hover:scale-102'
+                }
+              `}
+              onClick={() => setSelectedSlot(slot)}
+            >
+              {isSelected && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+              
+              <div className={`font-bold text-lg mb-1 ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                {slot.start} - {slot.end}
               </div>
-            )}
-            
-            <div className={`font-bold text-lg mb-1 ${selectedSlot === slot ? 'text-white' : 'text-gray-800'}`}>
-              {slot.start} - {slot.end}
-            </div>
-            
-            <div className={`text-sm ${selectedSlot === slot ? 'text-blue-100' : 'text-gray-500'}`}>
-              Khả dụng
-            </div>
-          </button>
-        ))}
+              
+              <div className={`text-sm ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
+                Khả dụng
+              </div>
+            </button>
+          );
+        })}
       </div>
       
       {slots.length === 0 && (
