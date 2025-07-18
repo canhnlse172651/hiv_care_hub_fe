@@ -71,6 +71,7 @@ const ServiceSelection = ({
   setCurrentStep 
 }) => {
   const handleServiceSelect = (service) => {
+    console.log('Selected service:', service);
     setSelectedService(service);
     const slots = generateSlotsForService(service);
     setAvailableSlots(slots);
