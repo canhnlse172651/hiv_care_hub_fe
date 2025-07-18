@@ -47,23 +47,29 @@ export const sidebarMenuItems = {
       label: 'Quản lý bác sĩ',
       path: '/admin/doctors',
     },
-    {
-      key: 'appointments',
-      icon: 'CalendarOutlined',
-      label: 'Quản lý lịch hẹn',
-      path: '/admin/appointments',
-    },
-    {
-      key: 'treatment-tracking',
-      icon: 'FileDoneOutlined',
-      label: 'Theo dõi điều trị',
-      path: '/admin/treatment-tracking',
-    },
+    // {
+    //   key: 'appointments',
+    //   icon: 'CalendarOutlined',
+    //   label: 'Quản lý lịch hẹn',
+    //   path: '/admin/appointments',
+    // },
+    // {
+    //   key: 'treatment-tracking',
+    //   icon: 'FileDoneOutlined',
+    //   label: 'Theo dõi điều trị',
+    //   path: '/admin/treatment-tracking',
+    // },
     {
       key: 'medicine',
       icon: 'MedicineBoxOutlined',
       label: 'Quản lý thuốc',
       path: '/admin/medicine',
+    },
+    {
+      key: 'service',
+      icon: 'MedicineBoxOutlined',
+      label: 'Quản lý dịch vụ',
+      path: '/admin/service',
     },
   ],
   doctor: [

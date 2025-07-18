@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Table, 
-  Card, 
-  Button, 
-  Space, 
-  Typography, 
+import {
+  Table,
+  Card,
+  Button,
+  Space,
+  Typography,
   Tag,
   Input,
   Modal,
@@ -16,10 +16,11 @@ import {
   Upload,
   Rate,
   DatePicker,
-  InputNumber
+  InputNumber,
+  Tabs,
 } from 'antd';
-import { 
-  UserAddOutlined, 
+import {
+  UserAddOutlined,
   SearchOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -27,7 +28,9 @@ import {
   UserOutlined,
   MedicineBoxOutlined,
   FileTextOutlined,
-  PlusOutlined
+  PlusOutlined,
+  CalendarOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import { adminService } from '@/services/adminService';
 import { doctorService } from '@/services/doctorService';
@@ -38,8 +41,8 @@ import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 
 const { Title } = Typography;
+const { TabPane } = Tabs;
 const { Option } = Select;
-const { TextArea } = Input;
 
 const DoctorManagement = () => {
   const [doctors, setDoctors] = useState([]);
@@ -58,6 +61,14 @@ const DoctorManagement = () => {
   const [manualShift, setManualShift] = useState(null);
   const [manualForm] = Form.useForm();
   const [manualLoading, setManualLoading] = useState(false);
+
+  // Weekly schedule state
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [weeklySchedule, setWeeklySchedule] = useState(null);
+  const [weekRange, setWeekRange] = useState({
+    startDate: dayjs().day(1), // Monday
+    endDate: dayjs().day(7),   // Sunday
+  });
 
   // Fetch doctor list
   const fetchDoctors = async (params = {}) => {
@@ -203,72 +214,76 @@ const DoctorManagement = () => {
     message.success('Doctor status updated successfully');
   };
 
+  // Doctor list columns styled like schedule table
   const columns = [
     {
-      title: 'User ID',
+      title: <span className="font-semibold">Bác sĩ</span>,
+      dataIndex: 'doctor',
+      key: 'doctor',
+      render: (_, record) => (
+        <div>
+          <div className="font-semibold">{record.user?.name}</div>
+          <div className="text-gray-500 text-xs">{record.specialization}</div>
+        </div>
+      ),
+      fixed: 'left',
+      width: 180,
+    },
+    {
+      title: <span className="font-semibold">Email</span>,
+      dataIndex: ['user', 'email'],
+      key: 'email',
+      render: (text, record) => (
+        <span className="text-gray-700">{record.user?.email || 'N/A'}</span>
+      ),
+    },
+    {
+      title: <span className="font-semibold">Chuyên môn</span>,
+      dataIndex: 'specialization',
+      key: 'specialization',
+      render: (text) => <span className="text-gray-700">{text}</span>,
+    },
+    {
+      title: <span className="font-semibold">Trạng thái</span>,
+      dataIndex: 'isAvailable',
+      key: 'isAvailable',
+      render: (isAvailable) => (
+        <Tag color={isAvailable ? 'green' : 'volcano'}>
+          {isAvailable ? 'Đang làm việc' : 'Nghỉ'}
+        </Tag>
+      ),
+    },
+    {
+      title: <span className="font-semibold">Chứng chỉ</span>,
+      dataIndex: 'certifications',
+      key: 'certifications',
+      render: (certifications) => (
+        <Space wrap>
+          {certifications?.map((cert, index) => (
+            <Tag key={index} color="blue">{cert}</Tag>
+          )) || <span className="text-gray-400">Không có</span>}
+        </Space>
+      ),
+    },
+    {
+      title: <span className="font-semibold">ID người dùng</span>,
       dataIndex: 'userId',
       key: 'userId',
       width: 80,
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ['descend', 'ascend'],
+      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: 'Doctor ID',
+      title: <span className="font-semibold">ID bác sĩ</span>,
       dataIndex: 'id',
       key: 'doctorId',
       width: 80,
-      render: (text, record) => record.id,
       sorter: (a, b) => a.id - b.id,
       sortDirections: ['descend', 'ascend'],
+      render: (text) => <span className="text-gray-700">{text}</span>,
     },
-    {
-      title: 'Name',
-      dataIndex: ['user', 'name'],
-      key: 'name',
-      render: (text, record) => record.user?.name || 'N/A',
-    },
-    {
-      title: 'Email',
-      dataIndex: ['user', 'email'],
-      key: 'email',
-      render: (text, record) => record.user?.email || 'N/A',
-    },
-    {
-      title: 'Specialization',
-      dataIndex: 'specialization',
-      key: 'specialization',
-    },
-    {
-      title: 'Available',
-      dataIndex: 'isAvailable',
-      key: 'isAvailable',
-      render: (isAvailable) => (
-        <Tag color={isAvailable ? 'green' : 'volcano'}>
-          {isAvailable ? 'Available' : 'Unavailable'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Certifications',
-      dataIndex: 'certifications',
-      key: 'certifications',
-      render: (certifications) => (
-        <div>
-          {certifications?.map((cert, index) => (
-            <Tag key={index} color="blue">{cert}</Tag>
-          )) || 'None'}
-        </div>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Link to={`/admin/doctors/${record.id}/schedule`}>
-          <Button size="small">View Schedule</Button>
-        </Link>
-      ),
-    },
+    // No actions column
   ];
 
   const uploadProps = {
@@ -339,164 +354,342 @@ const DoctorManagement = () => {
     }
   };
 
+  // Fetch weekly schedule
+  const fetchWeeklySchedule = async (startDate, endDate) => {
+    setScheduleLoading(true);
+    try {
+      const res = await doctorService.getWeeklySchedule({
+        startDate: startDate.format('YYYY-MM-DD'),
+        endDate: endDate.format('YYYY-MM-DD'),
+      });
+      setWeeklySchedule(res.data?.data || null);
+    } catch (e) {
+      message.error('Không thể tải lịch làm việc tuần');
+      setWeeklySchedule(null);
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWeeklySchedule(weekRange.startDate, weekRange.endDate);
+    // eslint-disable-next-line
+  }, [weekRange]);
+
+  // Week navigation
+  const handlePrevWeek = () => {
+    setWeekRange(prev => {
+      const monday = prev.startDate.subtract(7, 'day').day(1);
+      const sunday = monday.add(6, 'day');
+      return {
+        startDate: monday,
+        endDate: sunday,
+      };
+    });
+  };
+  const handleNextWeek = () => {
+    setWeekRange(prev => {
+      const monday = prev.startDate.add(7, 'day').day(1);
+      const sunday = monday.add(6, 'day');
+      return {
+        startDate: monday,
+        endDate: sunday,
+      };
+    });
+  };
+  const handleCurrentWeek = () => {
+    const monday = dayjs().day(1);
+    const sunday = monday.add(6, 'day');
+    setWeekRange({
+      startDate: monday,
+      endDate: sunday,
+    });
+  };
+
+  // Helper for days of week
+  const daysOfWeek = [
+    { key: 'MONDAY', label: 'Thứ 2' },
+    { key: 'TUESDAY', label: 'Thứ 3' },
+    { key: 'WEDNESDAY', label: 'Thứ 4' },
+    { key: 'THURSDAY', label: 'Thứ 5' },
+    { key: 'FRIDAY', label: 'Thứ 6' },
+    { key: 'SATURDAY', label: 'Thứ 7' },
+    { key: 'SUNDAY', label: 'CN' },
+  ];
+
+  // Render cell for schedule table
+  function renderScheduleCell(schedules, dayKey, date) {
+    // Compare using UTC and only date part
+    const dateStr = date.utc().format('YYYY-MM-DD');
+    const shifts = schedules?.filter(
+      s => s.dayOfWeek === dayKey && dayjs(s.date).utc().format('YYYY-MM-DD') === dateStr
+    ) || [];
+    if (shifts.length === 0) return <span className="text-gray-400">-</span>;
+    return (
+      <Space direction="vertical" size={4}>
+        {shifts.map((shift, idx) => {
+          if (shift.isOff) return <Tag key={idx} color="default">Nghỉ</Tag>;
+          if (shift.shift === 'MORNING')
+            return <Tag key={idx} color="blue" className="bg-blue-50 text-blue-700 border-0">Sáng</Tag>;
+          if (shift.shift === 'AFTERNOON')
+            return <Tag key={idx} color="green" className="bg-green-50 text-green-700 border-0">Chiều</Tag>;
+          return null;
+        })}
+      </Space>
+    );
+  }
+
+  // Weekly schedule table columns
+  const scheduleColumns = [
+    {
+      title: <span className="font-semibold">Bác sĩ</span>,
+      dataIndex: 'doctor',
+      key: 'doctor',
+      render: (_, record) => (
+        <div>
+          <div className="font-semibold">{record.user?.name}</div>
+          <div className="text-gray-500 text-xs">{record.specialization}</div>
+        </div>
+      ),
+      fixed: 'left',
+      width: 180,
+    },
+    ...daysOfWeek.map((day, idx) => ({
+      title: (
+        <div>
+          <div className="font-semibold">{day.label}</div>
+          <div className="text-xs text-gray-500">{weekRange.startDate.day(1 + idx).format('DD/MM')}</div>
+        </div>
+      ),
+      dataIndex: day.key,
+      key: day.key,
+      align: 'center',
+      render: (_, record) =>
+        renderScheduleCell(
+          record.schedules,
+          day.key,
+          weekRange.startDate.day(1 + idx).utc()
+        ),
+      width: 110,
+    })),
+  ];
+
+  // Weekly schedule data for table
+  const scheduleData = weeklySchedule?.doctors?.map(doc => ({
+    ...doc,
+    key: doc.id,
+  })) || [];
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={2}>Doctor Management</Title>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenGenerate}>
-            Generate Schedule
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<UserAddOutlined />} 
-            onClick={() => setIsModalOpen(true)}
-          >
-            Add Doctor
-          </Button>
-        </div>
-      </div>
-      <Card>
-        <div style={{ marginBottom: 16 }}>
-          <Input
-            placeholder="Search by name or email"
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            style={{ width: 300 }}
-            allowClear
-          />
-        </div>
-        <Table
-          columns={columns}
-          dataSource={doctors}
-          loading={loading}
-          rowKey={record => record.id}
-          pagination={{
-            current: meta.page,
-            pageSize: meta.limit,
-            total: meta.total,
-            onChange: (page, pageSize) => setMeta(m => ({ ...m, page, limit: pageSize })),
-          }}
-        />
-      </Card>
-      <Modal
-        title="Add New Doctor"
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        footer={null}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleAddDoctor}
+      <Title level={2}>Quản lý bác sĩ</Title>
+      <Tabs defaultActiveKey="list" className="mb-6">
+        <TabPane
+          tab={
+            <span>
+              <UserOutlined /> Danh sách
+            </span>
+          }
+          key="list"
         >
-          <Form.Item
-            name="userId"
-            label="User ID"
-            rules={[{ required: true, message: 'Please enter user ID' }]}
+          <Card className="mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <span className="font-semibold text-lg mr-2">Danh sách bác sĩ</span>
+              </div>
+              <Space>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenGenerate}>
+                  Generate Schedule
+                </Button>
+                <Button 
+                  type="primary" 
+                  icon={<UserAddOutlined />} 
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Add Doctor
+                </Button>
+              </Space>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <Input
+                placeholder="Tìm kiếm theo tên hoặc email"
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                style={{ width: 300 }}
+                allowClear
+              />
+            </div>
+            <Table
+              columns={columns}
+              dataSource={doctors}
+              loading={loading}
+              rowKey={record => record.id}
+              pagination={{
+                current: meta.page,
+                pageSize: meta.limit,
+                total: meta.total,
+                onChange: (page, pageSize) => setMeta(m => ({ ...m, page, limit: pageSize })),
+              }}
+              scroll={{ x: 'max-content' }}
+              bordered
+              className="bg-white rounded-xl"
+            />
+          </Card>
+          <Modal
+            title="Add New Doctor"
+            open={isModalOpen}
+            onCancel={() => setIsModalOpen(false)}
+            footer={null}
           >
-            <Input placeholder="Enter user ID" />
-          </Form.Item>
-          <Form.Item
-            name="specialization"
-            label="Specialization"
-            rules={[{ required: true, message: 'Please enter specialization' }]}
-          >
-            <Input placeholder="Enter specialization" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Add Doctor
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Modal
-        title="Generate Doctor Schedule"
-        open={generateModalOpen}
-        onCancel={() => setGenerateModalOpen(false)}
-        footer={null}
-      >
-        <Form form={generateForm} layout="vertical" onFinish={handleGenerateSchedule}>
-          <Form.Item
-            name="startDate"
-            label="Start Date (Monday only)"
-            rules={[{ required: true, message: 'Please select a start date' }]}
-          >
-            <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="doctorsPerShift"
-            label="Doctors Per Shift"
-            rules={[{ required: true, message: 'Please enter number of doctors per shift' }]}
-          >
-            <InputNumber min={1} max={100} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={generateLoading} block>
-              Generate
-            </Button>
-          </Form.Item>
-        </Form>
-        {generateResult && (
-          <div style={{ marginTop: 24 }}>
-            <p><b>{generateResult.message}</b></p>
-            <p>Total Assigned Shifts: {generateResult.totalAssignedShifts}</p>
-            <p>Remaining Shifts: {generateResult.remainingShifts}</p>
-            {generateResult.shiftsNeedingDoctors?.length > 0 && (
-              <>
-                <p>Shifts Needing Doctors:</p>
-                <Table
-                  columns={[
-                    { title: 'Date', dataIndex: 'date', key: 'date', render: d => d?.slice(0, 10) },
-                    { title: 'Day', dataIndex: 'dayOfWeek', key: 'dayOfWeek' },
-                    { title: 'Shift', dataIndex: 'shift', key: 'shift' },
-                    { title: 'Action', key: 'action', render: (_, record) => (
-                      <Button size="small" onClick={() => handleOpenManual(record)}>
-                        Manual Assign
-                      </Button>
-                    ) },
-                  ]}
-                  dataSource={generateResult.shiftsNeedingDoctors}
-                  rowKey={(_, idx) => idx}
-                  pagination={false}
-                  size="small"
-                />
-              </>
-            )}
-          </div>
-        )}
-      </Modal>
-      <Modal
-        title="Manual Assign Shift"
-        open={manualModalOpen}
-        onCancel={() => setManualModalOpen(false)}
-        footer={null}
-      >
-        <Form form={manualForm} layout="vertical" onFinish={handleManualAssign}>
-          <Form.Item label="Doctors" name="doctorIds" rules={[{ required: true, message: 'Select doctors' }]}> 
-            <Select
-              mode="multiple"
-              placeholder="Select doctors"
-              optionFilterProp="children"
-              showSearch
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleAddDoctor}
             >
-              {doctors.map(doc => (
-                <Option key={doc.id} value={doc.id}>{doc.user?.name}</Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item label="Doctors Per Shift" name="doctorsPerShift" rules={[{ required: true, message: 'Enter doctors per shift' }]}> 
-            <InputNumber min={1} max={100} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={manualLoading} block>
-              Assign
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+              <Form.Item
+                name="userId"
+                label="User ID"
+                rules={[{ required: true, message: 'Please enter user ID' }]}
+              >
+                <Input placeholder="Enter user ID" />
+              </Form.Item>
+              <Form.Item
+                name="specialization"
+                label="Specialization"
+                rules={[{ required: true, message: 'Please enter specialization' }]}
+              >
+                <Input placeholder="Enter specialization" />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit" block>
+                  Add Doctor
+                </Button>
+              </Form.Item>
+            </Form>
+          </Modal>
+          <Modal
+            title="Generate Doctor Schedule"
+            open={generateModalOpen}
+            onCancel={() => setGenerateModalOpen(false)}
+            footer={null}
+          >
+            <Form form={generateForm} layout="vertical" onFinish={handleGenerateSchedule}>
+              <Form.Item
+                name="startDate"
+                label="Start Date (Monday only)"
+                rules={[{ required: true, message: 'Please select a start date' }]}
+              >
+                <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item
+                name="doctorsPerShift"
+                label="Doctors Per Shift"
+                rules={[{ required: true, message: 'Please enter number of doctors per shift' }]}
+              >
+                <InputNumber min={1} max={100} style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit" loading={generateLoading} block>
+                  Generate
+                </Button>
+              </Form.Item>
+            </Form>
+            {generateResult && (
+              <div style={{ marginTop: 24 }}>
+                <p><b>{generateResult.message}</b></p>
+                <p>Total Assigned Shifts: {generateResult.totalAssignedShifts}</p>
+                <p>Remaining Shifts: {generateResult.remainingShifts}</p>
+                {generateResult.shiftsNeedingDoctors?.length > 0 && (
+                  <>
+                    <p>Shifts Needing Doctors:</p>
+                    <Table
+                      columns={[
+                        { title: 'Date', dataIndex: 'date', key: 'date', render: d => d?.slice(0, 10) },
+                        { title: 'Day', dataIndex: 'dayOfWeek', key: 'dayOfWeek' },
+                        { title: 'Shift', dataIndex: 'shift', key: 'shift' },
+                        { title: 'Action', key: 'action', render: (_, record) => (
+                          <Button size="small" onClick={() => handleOpenManual(record)}>
+                            Manual Assign
+                          </Button>
+                        ) },
+                      ]}
+                      dataSource={generateResult.shiftsNeedingDoctors}
+                      rowKey={(_, idx) => idx}
+                      pagination={false}
+                      size="small"
+                    />
+                  </>
+                )}
+              </div>
+            )}
+          </Modal>
+          <Modal
+            title="Manual Assign Shift"
+            open={manualModalOpen}
+            onCancel={() => setManualModalOpen(false)}
+            footer={null}
+          >
+            <Form form={manualForm} layout="vertical" onFinish={handleManualAssign}>
+              <Form.Item label="Doctors" name="doctorIds" rules={[{ required: true, message: 'Select doctors' }]}> 
+                <Select
+                  mode="multiple"
+                  placeholder="Select doctors"
+                  optionFilterProp="children"
+                  showSearch
+                >
+                  {doctors.map(doc => (
+                    <Option key={doc.id} value={doc.id}>{doc.user?.name}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+              <Form.Item label="Doctors Per Shift" name="doctorsPerShift" rules={[{ required: true, message: 'Enter doctors per shift' }]}> 
+                <InputNumber min={1} max={100} style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit" loading={manualLoading} block>
+                  Assign
+                </Button>
+              </Form.Item>
+            </Form>
+          </Modal>
+        </TabPane>
+        <TabPane
+          tab={
+            <span>
+              <CalendarOutlined /> Lịch làm việc
+            </span>
+          }
+          key="schedule"
+        >
+          <Card className="mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <span className="font-semibold text-lg mr-2">Lịch làm việc tuần</span>
+                <span className="text-gray-500">
+                  {weekRange.startDate.format('DD/MM/YYYY')} - {weekRange.endDate.format('DD/MM/YYYY')}
+                </span>
+              </div>
+              <Space>
+                <Button icon={<SwapOutlined />} onClick={handlePrevWeek}>Tuần trước</Button>
+                <Button onClick={handleCurrentWeek}>Tuần hiện tại</Button>
+                <Button icon={<SwapOutlined />} onClick={handleNextWeek}>Tuần sau</Button>
+                <Button type="primary" icon={<PlusOutlined />}>Thêm lịch</Button>
+              </Space>
+            </div>
+            <Table
+              columns={scheduleColumns}
+              dataSource={scheduleData}
+              loading={scheduleLoading}
+              pagination={false}
+              scroll={{ x: 'max-content' }}
+              bordered
+              rowKey="key"
+              className="bg-white rounded-xl"
+            />
+          </Card>
+        </TabPane>
+      </Tabs>
       <Outlet />
     </div>
   );

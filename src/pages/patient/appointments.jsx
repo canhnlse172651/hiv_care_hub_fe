@@ -235,10 +235,10 @@ const AppointmentListPage = () => {
                                 {appointment.doctor ? (
                                     <>
                                         <Text strong className="text-gray-900 block">
-                                            {appointment.doctor.name}
+                                            {appointment.doctor.user.name}
                                         </Text>
                                         <Text className="text-gray-600 text-sm">
-                                            {appointment.doctor.email}
+                                            {appointment.doctor.user.email}
                                         </Text>
                                     </>
                                 ) : (

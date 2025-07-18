@@ -34,4 +34,10 @@ export const doctorService = {
     const response = await axiosInstance.get('/auth/profile');
     return response.data?.data?.doctorId;
   },
+
+  getWeeklySchedule: ({ startDate, endDate }) => {
+    return axiosInstance.get('/doctors/schedule/weekly', {
+      params: { startDate, endDate }
+    });
+  },
 };

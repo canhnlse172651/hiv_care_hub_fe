@@ -49,6 +49,7 @@ import DoctorScheduleAdminPage from "./pages/admin/doctors/schedule";
 import AppointmentList from "./pages/admin/appointments";
 import TreatmentTracking from "./pages/admin/treatment-tracking";
 import MedicineManagement from './pages/admin/medicine';
+import ServiceManagement from './pages/admin/service';
 
 // Staff Pages
 import StaffDashboard from "./pages/staff/dashboard";
@@ -135,6 +136,7 @@ function App() {
           <Route path="doctors" element={<DoctorManagement />} />
           <Route path="doctors/:userId/schedule" element={<DoctorScheduleAdminPage />} />
           <Route path="medicine" element={<MedicineManagement />} />
+          <Route path="service" element={<ServiceManagement />} />
           
           {/* Appointments & Treatments */}
           <Route path="appointments" element={<AppointmentList />} />
