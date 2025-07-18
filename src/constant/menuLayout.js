@@ -59,6 +59,12 @@ export const sidebarMenuItems = {
       label: 'Theo dõi điều trị',
       path: '/admin/treatment-tracking',
     },
+    {
+      key: 'medicine',
+      icon: 'MedicineBoxOutlined',
+      label: 'Quản lý thuốc',
+      path: '/admin/medicine',
+    },
   ],
   doctor: [
     {
