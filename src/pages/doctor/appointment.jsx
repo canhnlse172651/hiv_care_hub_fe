@@ -6,6 +6,7 @@ import { servicesService } from "@/services/servicesService";
 import { localToken } from "@/utils/token";
 import { useNavigate, Link } from 'react-router-dom';
 import dayjs from "dayjs";
+import { ensureDoctorId } from '@/utils/doctorId';
 
 // Import components
 import StatisticCard from './components/StatisticCard';
@@ -14,32 +15,31 @@ import FilterPanel from './components/FilterPanel';
 const { Title, Text } = Typography;
 
 const AppointmentDoctorPage = () => {
+  // All hooks at the top!
   const [appointments, setAppointments] = useState([]);
   const [allAppointments, setAllAppointments] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [servicesLoading, setServicesLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [doctorId, setDoctorId] = useState(undefined); // undefined = loading, null = not found
   // Filters state
   const [searchText, setSearchText] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
-
   // Pagination state
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   });
-
-  // Get current doctor info
-  const currentUser = localToken.getUser();
-  const doctorId = currentUser?.id;
-
   const navigate = useNavigate();
+
+  useEffect(() => {
+    ensureDoctorId().then(id => setDoctorId(id));
+  }, []);
 
   // Fetch services for dropdown
   const fetchServices = async () => {
@@ -67,7 +67,7 @@ const AppointmentDoctorPage = () => {
     setError(null);
     try {
       const response = await appointmentService.getAppointmentsByDoctorId(doctorId);
-      const appointmentsData = response.data || [];
+      const appointmentsData = response.data?.data || [];
       setAllAppointments(appointmentsData);
       setPagination(prev => ({ ...prev, total: appointmentsData.length }));
       applyFilters(appointmentsData);
@@ -157,12 +157,16 @@ const AppointmentDoctorPage = () => {
   };
 
   useEffect(() => {
-    fetchAppointments();
-    fetchServices();
+    if (doctorId) {
+      fetchAppointments();
+      fetchServices();
+    }
+    // eslint-disable-next-line
   }, [doctorId]);
 
   useEffect(() => {
     handleFilterChange();
+    // eslint-disable-next-line
   }, [searchText, selectedDate, selectedService, selectedStatus, selectedType]);
 
   const getStatusTag = (status, type) => {
@@ -345,6 +349,7 @@ const AppointmentDoctorPage = () => {
     },
   ];
 
+  // Only render conditionally, do not skip hooks!
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex justify-center items-center">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Card, Typography, Button, Modal, Form, Input, 
   TimePicker, message, Radio, Divider, Tooltip, 
-  DatePicker, Spin, Badge, Select
+  DatePicker, Spin, Badge, Select, Alert
 } from 'antd';
 import { 
   PlusOutlined, CalendarOutlined, 
@@ -18,11 +18,13 @@ import dayjs from 'dayjs';
 import { doctorService } from '@/services/doctorService';
 import { localToken } from '@/utils/token';
 import { DOCTOR_SHIFT_TIME } from '@/constant/general';
+import { ensureDoctorId } from '@/utils/doctorId';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 const DoctorSchedulePage = () => {
+  // All hooks at the top!
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [scheduleData, setScheduleData] = useState([]);
@@ -30,10 +32,11 @@ const DoctorSchedulePage = () => {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [form] = Form.useForm();
-  
-  // Get current doctor ID from auth
-  const auth = localToken.get();
-  const doctorId = auth?.user?.id;
+  const [doctorId, setDoctorId] = useState(undefined); // undefined = loading, null = not found
+
+  useEffect(() => {
+    ensureDoctorId().then(id => setDoctorId(id));
+  }, []);
 
   // Fetch doctor schedule
   const fetchSchedule = async () => {
@@ -89,7 +92,9 @@ const DoctorSchedulePage = () => {
   };
 
   useEffect(() => {
-    fetchSchedule();
+    if (doctorId) {
+      fetchSchedule();
+    }
     // eslint-disable-next-line
   }, [doctorId]);
 
@@ -130,6 +135,14 @@ const DoctorSchedulePage = () => {
       <span style={{ color: '#fff', fontWeight: 600 }}>Lịch làm việc</span>
     </div>
   );
+
+  // Only render conditionally, do not skip hooks!
+  if (doctorId === undefined) {
+    return <Spin className="flex justify-center items-center min-h-screen" size="large" />;
+  }
+  if (!doctorId) {
+    return <Alert message="Doctor ID not found" type="error" showIcon className="m-8" />;
+  }
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br">

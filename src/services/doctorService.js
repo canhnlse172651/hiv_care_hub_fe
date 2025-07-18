@@ -28,4 +28,10 @@ export const doctorService = {
       throw error;
     }
   },
+
+  getDoctorIdByUserId: async (userId) => {
+    // Use /auth/profile to get doctorId for the current user
+    const response = await axiosInstance.get('/auth/profile');
+    return response.data?.data?.doctorId;
+  },
 };

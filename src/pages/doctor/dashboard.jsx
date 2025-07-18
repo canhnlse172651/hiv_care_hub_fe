@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Badge, Input, message, Row, Col, Card, Button, Avatar, Space } from 'antd';
+import { Typography, Badge, Input, message, Row, Col, Card, Button, Avatar, Space, Spin, Alert } from 'antd';
 import { 
   SearchOutlined, CalendarOutlined, CheckCircleOutlined, ClockCircleOutlined,
   FileTextOutlined, ScheduleOutlined, RightOutlined, BellOutlined, TeamOutlined, UserOutlined
@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { appointmentService } from '@/services/appointmentService';
 import { localToken } from '@/utils/token';
+import { ensureDoctorId } from '@/utils/doctorId';
 
 // Import components
 import StatisticCard from './components/StatisticCard';
@@ -16,6 +17,7 @@ import AppointmentCard from './components/AppointmentCard';
 const { Title, Text } = Typography;
 
 const DoctorDashboard = () => {
+  // All hooks at the top!
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
@@ -26,13 +28,28 @@ const DoctorDashboard = () => {
     waiting: 0,
     cancelled: 0
   });
-  
+  const [doctorId, setDoctorId] = useState(undefined); // undefined = loading, null = not found
   const today = dayjs().format('DD/MM/YYYY');
   const todayDate = dayjs().format('YYYY-MM-DD');
-  
-  // Get current doctor info
-  const currentUser = localToken.getUser();
-  const doctorId = currentUser?.id;
+
+  useEffect(() => {
+    ensureDoctorId().then(id => setDoctorId(id));
+  }, []);
+
+  useEffect(() => {
+    if (doctorId) {
+      fetchAppointments();
+    }
+    // eslint-disable-next-line
+  }, [doctorId]);
+
+  // Only render conditionally, do not skip hooks!
+  if (doctorId === undefined) {
+    return <Spin className="flex justify-center items-center min-h-screen" size="large" />;
+  }
+  if (!doctorId) {
+    return <Alert message="Doctor ID not found" type="error" showIcon className="m-8" />;
+  }
 
   // Fetch appointments for the current doctor
   const fetchAppointments = async () => {
@@ -44,7 +61,7 @@ const DoctorDashboard = () => {
     setLoading(true);
     try {
       const response = await appointmentService.getAppointmentsByDoctorId(doctorId);
-      const allAppointmentsData = response.data || [];
+      const allAppointmentsData = response.data?.data || [];
       
       // Filter for today's appointments only
       const todayAppointments = allAppointmentsData.filter(appointment => 
@@ -74,10 +91,6 @@ const DoctorDashboard = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchAppointments();
-  }, [doctorId]);
 
   // Filter appointments based on search text
   const filteredAppointments = appointments.filter(appointment => 

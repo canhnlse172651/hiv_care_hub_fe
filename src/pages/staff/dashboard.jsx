@@ -36,7 +36,8 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   TeamOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { appointmentService } from '@/services/appointmentService';
@@ -63,7 +64,7 @@ const StaffDashboard = () => {
     setLoading(true);
     try {
       // Try to get all appointments instead of staff-specific endpoint
-      const res = await appointmentService.getAllAppointments();
+      const res = await appointmentService.getStaffAppointments();
       console.log('Fetched appointments:', res);
       
       // Handle different response structures
@@ -290,6 +291,17 @@ const StaffDashboard = () => {
       message.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
     }
   };
+
+  // Add this function to handle status update
+  const handleConfirmAppointment = async (appointmentId) => {
+    try {
+      await appointmentService.updateAppointmentStatus(appointmentId, { status: 'CONFIRMED' });
+      message.success('Đã xác nhận lịch hẹn thành công!');
+      fetchAppointments();
+    } catch (error) {
+      message.error('Không thể cập nhật trạng thái.');
+    }
+  };
   
   const columns = [
     {
@@ -374,17 +386,58 @@ const StaffDashboard = () => {
     },
     {
       title: 'Hành động',
-      key: 'action',
-      width: 100,
+      key: 'actions',
       render: (_, record) => (
-        <Button 
-          type="primary" 
-          size="small"
-          onClick={() => showDrawer(record)}
-          className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg"
-        >
-          Chi tiết
-        </Button>
+        <Space>
+          <Button 
+            type="primary" 
+            size="small"
+            onClick={() => showDrawer(record)}
+            className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg"
+          >
+            Chi tiết
+          </Button>
+          {record.status === 'PENDING' && (
+            <Button type="primary" onClick={() => handleConfirmAppointment(record.id)}>
+              Xác nhận
+            </Button>
+          )}
+          {/* Invoice generation - only for completed appointments */}
+          {record.status === 'COMPLETED' && !record.invoiceGenerated && (
+            <Button 
+              type="primary" 
+              icon={<DollarOutlined />}
+              onClick={() => handleGenerateInvoice(record)}
+              className="bg-green-500 hover:bg-green-600 border-none"
+            >
+              Tạo hóa đơn
+            </Button>
+          )}
+          
+          {/* Mark as paid - only for completed appointments with invoice */}
+          {record.status === 'COMPLETED' && 
+           record.invoiceGenerated && 
+           record.paymentStatus === 'pending_payment' && (
+            <Button 
+              type="primary" 
+              icon={<CheckCircleOutlined />}
+              onClick={() => handleMarkAsPaid(record)}
+              className="bg-blue-500 hover:bg-blue-600 border-none"
+            >
+              Đánh dấu đã thanh toán
+            </Button>
+          )}
+          
+          {/* View invoice - for appointments with invoices */}
+          {record.invoiceGenerated && (
+            <Button 
+              icon={<FileTextOutlined />}
+              className="border-green-500 text-green-600 hover:bg-green-50"
+            >
+              Xem hóa đơn
+            </Button>
+          )}
+        </Space>
       ),
     },
   ];
