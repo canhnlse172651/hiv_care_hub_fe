@@ -94,12 +94,17 @@ const DoctorScheduleAdminPage = () => {
 };
 
 function renderEventContent(eventInfo) {
+  // Determine shift time
+  const shift = eventInfo.event.extendedProps.shift;
+  let timeText = '';
+  if (shift === 'MORNING') {
+    timeText = '07:00 - 11:00';
+  } else if (shift === 'AFTERNOON') {
+    timeText = '13:00 - 17:00';
+  }
   return (
-    <div>
-      <b>{eventInfo.event.title}</b>
-      <div style={{ fontSize: 12 }}>
-        {eventInfo.event.extendedProps.dayOfWeek}
-      </div>
+    <div style={{ background: '#e0f2fe', color: '#0c4a6e', borderRadius: '8px', padding: '6px 10px', fontWeight: 600, fontSize: 14, minHeight: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      Lịch làm việc {timeText && `(${timeText})`}
     </div>
   );
 }

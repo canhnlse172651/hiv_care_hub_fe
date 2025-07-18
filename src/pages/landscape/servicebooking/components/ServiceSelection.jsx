@@ -1,9 +1,37 @@
 import React from 'react';
-import { Typography, Button } from 'antd';
+import { Typography, Button, Tag } from 'antd';
 import { MedicineBoxOutlined, RightOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
+
+// Helper function to convert service type to Vietnamese
+const getServiceTypeLabel = (type) => {
+  switch (type) {
+    case 'TEST':
+      return 'Xét nghiệm';
+    case 'CONSULT':
+      return 'Tư vấn';
+    case 'TREATMENT':
+      return 'Điều trị';
+    default:
+      return type;
+  }
+};
+
+// Helper function to get service type color
+const getServiceTypeColor = (type) => {
+  switch (type) {
+    case 'TEST':
+      return 'blue';
+    case 'CONSULT':
+      return 'green';
+    case 'TREATMENT':
+      return 'orange';
+    default:
+      return 'default';
+  }
+};
 
 // Slot generator function
 function generateSlotsForService(service) {
@@ -99,6 +127,18 @@ const ServiceSelection = ({
 
               {/* Service info */}
               <div className="flex-1 text-center">
+                {/* Service type badge */}
+                {service.type && (
+                  <div className="mb-3">
+                    <Tag 
+                      color={getServiceTypeColor(service.type)}
+                      className="text-xs font-medium px-3 py-1 rounded-full"
+                    >
+                      {getServiceTypeLabel(service.type)}
+                    </Tag>
+                  </div>
+                )}
+                
                 <Title level={4} className="text-gray-900 mb-3 line-clamp-2">
                   {service.name}
                 </Title>

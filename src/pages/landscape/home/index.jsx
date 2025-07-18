@@ -41,38 +41,6 @@ const { Title, Paragraph } = Typography;
 const HomePage = () => {
   return (
     <div className="home-container">
-      {/* Hero Section */}
-      <div className="hero-section">
-        <div className="hero-content">
-          {/* Left Banner (3/4 width) */}
-          <div className="hero-main-banner">
-            <img
-              src="/assets/banner-1.png"
-              alt="Main Banner"
-              className="hero-banner-image"
-            />
-
-          </div>
-
-          {/* Right Banners (1/4 width) */}
-          <div className="hero-side-banners">
-            <div className="hero-side-banner">
-              <img
-                src="/assets/banner-2.png"
-                alt="Secondary Banner"
-                className="hero-banner-image"
-              />
-            </div>
-            <div className="hero-side-banner">
-              <img
-                src="/assets/banner-3.png"
-                alt="Third Banner"
-                className="hero-banner-image"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
       {/* Services Section */}
       <div className="services-section">
         <Title level={2} className="services-title">

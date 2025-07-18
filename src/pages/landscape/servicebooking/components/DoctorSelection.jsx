@@ -27,10 +27,9 @@ const DoctorSelection = ({
       .finally(() => setLoading(false));
   }, [selectedDate, setDoctors, setLoading]);
 
-  const slotShift = selectedSlot?.shift;
-  const filteredDoctors = doctors.filter(doc =>
-    Array.isArray(doc.schedules) && doc.schedules.some(sch => sch.shift === slotShift && !sch.isOff)
-  );
+  // Remove the filtering logic that's preventing doctors from showing
+  // The API already returns available doctors for the selected date
+  const filteredDoctors = doctors;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
