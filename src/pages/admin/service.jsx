@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Card, Button, Space, Tag, Input, Popconfirm, message, Tooltip, Select } from 'antd';
-import { EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { servicesService } from '@/services/servicesService';
 import { ServiceType } from '@/constant/general';
 

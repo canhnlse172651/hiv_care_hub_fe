@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Spin, Alert, Empty, Card, Typography, message, Row, Col, Avatar, Tooltip, Space, Tag, Button } from "antd";
-import { CalendarOutlined, UserOutlined, ClockCircleOutlined, CheckCircleOutlined, ExclamationCircleOutlined, EyeOutlined } from "@ant-design/icons";
+import { CalendarOutlined, UserOutlined, ClockCircleOutlined, CheckOutlined, ExclamationOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { appointmentService } from "@/services/appointmentService";
 import { servicesService } from "@/services/servicesService";
 import { localToken } from "@/utils/token";
@@ -172,9 +172,9 @@ const AppointmentDoctorPage = () => {
   const getStatusTag = (status, type) => {
     const statusConfig = {
       'PENDING': { color: 'gold', text: 'Đang chờ xác nhận', icon: <ClockCircleOutlined />, bgColor: 'bg-yellow-50', textColor: 'text-yellow-700' },
-      'CONFIRMED': { color: 'blue', text: 'Đã xác nhận', icon: <CheckCircleOutlined />, bgColor: 'bg-blue-50', textColor: 'text-blue-700' },
-      'COMPLETED': { color: 'green', text: 'Hoàn thành', icon: <CheckCircleOutlined />, bgColor: 'bg-green-50', textColor: 'text-green-700' },
-      'CANCELLED': { color: 'red', text: 'Đã hủy', icon: <ExclamationCircleOutlined />, bgColor: 'bg-red-50', textColor: 'text-red-700' }
+      'CONFIRMED': { color: 'blue', text: 'Đã xác nhận', icon: <CheckOutlined />, bgColor: 'bg-blue-50', textColor: 'text-blue-700' },
+      'COMPLETED': { color: 'green', text: 'Hoàn thành', icon: <CheckOutlined />, bgColor: 'bg-green-50', textColor: 'text-green-700' },
+      'CANCELLED': { color: 'red', text: 'Đã hủy', icon: <ExclamationOutlined />, bgColor: 'bg-red-50', textColor: 'text-red-700' }
     };
 
     const typeConfig = {
@@ -327,7 +327,7 @@ const AppointmentDoctorPage = () => {
             <Button
               type="primary"
               size="small"
-              icon={<EyeOutlined />}
+              icon={<InfoCircleOutlined />}
               onClick={() => navigate(`/doctor/consultation/${record.id}`)}
               className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg font-medium"
             >
@@ -337,7 +337,7 @@ const AppointmentDoctorPage = () => {
           {record.status.toUpperCase() === 'COMPLETED' && (
             <Button
               size="small"
-              icon={<EyeOutlined />}
+              icon={<InfoCircleOutlined />}
               onClick={() => navigate(`/doctor/consultation/${record.id}`)}
               className="border-gray-300 rounded-lg hover:border-blue-400 hover:text-blue-600"
             >
@@ -396,7 +396,7 @@ const AppointmentDoctorPage = () => {
             <StatisticCard
               title="Hoàn thành"
               value={allAppointments.filter(apt => apt.status === 'COMPLETED').length}
-              icon={<CheckCircleOutlined />}
+              icon={<CheckOutlined />}
               color="#10b981"
               bgGradient="from-green-50 to-green-100"
               iconBgColor="bg-green-100"
@@ -407,7 +407,7 @@ const AppointmentDoctorPage = () => {
             <StatisticCard
               title="Đã hủy"
               value={allAppointments.filter(apt => apt.status === 'CANCELLED').length}
-              icon={<ExclamationCircleOutlined />}
+              icon={<ExclamationOutlined />}
               color="#ef4444"
               bgGradient="from-red-50 to-red-100"
               iconBgColor="bg-red-100"

@@ -1,12 +1,18 @@
-import React, { useEffect } from 'react';
-import {
-  Modal,
-  Form,
-  Input,
-  Button,
-  Select
+import React, { useState, useEffect } from 'react';
+import { 
+  Modal, 
+  Form, 
+  Input, 
+  Select, 
+  Button, 
+  Space, 
+  Alert, 
+  Typography,
+  Row,
+  Col,
+  Divider
 } from 'antd';
-import { KeyOutlined } from '@ant-design/icons';
+import { FileTextOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -32,7 +38,7 @@ const PermissionFormModal = ({
     <Modal
       title={
         <div className="flex items-center gap-2 text-lg font-semibold text-gray-800">
-          <KeyOutlined className="text-blue-500" />
+          <FileTextOutlined className="text-blue-500" />
           {editingPermission ? 'Edit Permission' : 'Create New Permission'}
         </div>
       }

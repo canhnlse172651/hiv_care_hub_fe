@@ -1,13 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Table, Card, Button, Space, Typography, Tag,
-  Input, Modal, Form, Select, Popconfirm, message, Avatar, Tooltip
+  Table, 
+  Button, 
+  Input, 
+  Select, 
+  Space, 
+  Tag, 
+  Badge, 
+  Tooltip, 
+  Modal, 
+  Form, 
+  Alert, 
+  Typography,
+  Row,
+  Col,
+  Statistic,
+  Divider,
+  Card,
+  Popconfirm,
+  message
 } from 'antd';
 import { 
-  UserAddOutlined, SearchOutlined, EditOutlined, DeleteOutlined,
-  LockOutlined, UnlockOutlined, EyeOutlined, EyeInvisibleOutlined,
-  PlusOutlined, ReloadOutlined, UserOutlined, CheckCircleOutlined, CloseCircleOutlined,
-  MinusOutlined
+  UserOutlined, 
+  LockOutlined, 
+  UnlockOutlined, 
+  InfoCircleOutlined,
+  SearchOutlined, 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined,
+  CheckOutlined, 
+  WarningOutlined, 
+  FileTextOutlined, 
+  PrinterOutlined, 
+  ShareAltOutlined,
+  MinusCircleOutlined
 } from '@ant-design/icons';
 import { adminService } from '@/services/adminService';
 import dayjs from 'dayjs';
@@ -270,7 +297,7 @@ const UserManagement = () => {
             }}
           />
           <Button
-            icon={<MinusOutlined />}
+            icon={<MinusCircleOutlined />}
             size="small"
             danger
             onClick={() => {
@@ -297,7 +324,7 @@ const UserManagement = () => {
             style={{ width: 250 }}
             allowClear
           />
-          <Button type="primary" icon={<UserAddOutlined />} onClick={() => showModal()}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
             Add User
           </Button>
         </Space>

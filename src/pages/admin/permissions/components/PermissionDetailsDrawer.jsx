@@ -1,13 +1,16 @@
 import React from 'react';
-import {
-  Drawer,
-  Button,
-  Typography,
-  Tag,
-  Descriptions,
-  Space
+import { 
+  Drawer, 
+  Descriptions, 
+  Button, 
+  Space, 
+  Tag, 
+  Typography, 
+  Divider,
+  List,
+  Avatar
 } from 'antd';
-import { EditOutlined, KeyOutlined } from '@ant-design/icons';
+import { EditOutlined, FileTextOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -31,7 +34,7 @@ const PermissionDetailsDrawer = ({
       title={
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-            <KeyOutlined className="text-blue-600" />
+            <FileTextOutlined className="text-blue-600" />
           </div>
           <div>
             <div className="text-lg font-semibold text-gray-800">{permission.name}</div>

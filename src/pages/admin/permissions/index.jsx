@@ -16,8 +16,12 @@ import {
   SearchOutlined,
   EditOutlined,
   DeleteOutlined,
-  EyeOutlined,
-  KeyOutlined
+  CheckOutlined,
+  WarningOutlined,
+  FileTextOutlined,
+  PrinterOutlined,
+  ShareAltOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import { adminService } from '@/services/adminService';
 
@@ -212,7 +216,7 @@ const PermissionManagement = () => {
       render: (_, record) => (
         <Space size="small">
           <Button 
-            icon={<EyeOutlined />} 
+            icon={<CheckOutlined />} 
             onClick={() => showDrawer(record)}
             size="small"
           />
@@ -255,7 +259,7 @@ const PermissionManagement = () => {
         className="mb-4"
         title={
           <div className="flex items-center">
-            <KeyOutlined className="mr-2 text-blue-500" />
+            <FileTextOutlined className="mr-2 text-blue-500" />
             <Title level={4} className="mb-0">Permission Management</Title>
           </div>
         }

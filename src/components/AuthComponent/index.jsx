@@ -4,7 +4,7 @@ import LoginForm from "./loginForm";
 import RegisterForm from "./registerForm";
 import { useSelector, useDispatch } from "react-redux";
 import { handleCloseModal, handleShowModal } from "@/store/Reducer/authReducer";
-import { CloseOutlined, LoginOutlined, UserAddOutlined, WarningOutlined } from '@ant-design/icons';
+import { CloseOutlined, LoginOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeartbeat, faStethoscope, faHospital, faUserMd } from '@fortawesome/free-solid-svg-icons';
 import { Alert } from 'antd';
@@ -200,7 +200,7 @@ const AuthComponent = () => {
               }}
               onClick={(e) => _onTabChange(e, MODAL_TYPE.register)}
             >
-              <UserAddOutlined style={{ marginRight: '8px' }} />
+              <UserOutlined style={{ marginRight: '8px' }} />
               ĐĂNG KÝ
             </li>
           </ul>

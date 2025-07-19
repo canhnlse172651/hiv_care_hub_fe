@@ -20,7 +20,6 @@ import {
   Tabs,
 } from 'antd';
 import {
-  UserAddOutlined,
   SearchOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -503,7 +502,7 @@ const DoctorManagement = () => {
                 </Button>
                 <Button 
                   type="primary" 
-                  icon={<UserAddOutlined />} 
+                  icon={<UserOutlined />} 
                   onClick={() => setIsModalOpen(true)}
                 >
                   Add Doctor

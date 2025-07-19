@@ -1,16 +1,14 @@
 import {
+  UserOutlined,
   DashboardOutlined,
-  TeamOutlined,
+  FileTextOutlined,
+  SettingOutlined,
+  MedicineBoxOutlined,
   CalendarOutlined,
   FileDoneOutlined,
-  KeyOutlined,
   SafetyCertificateOutlined,
-  MedicineBoxOutlined,
   DollarOutlined,
-  FileTextOutlined,
   BookOutlined,
-  UserOutlined,
-  SettingOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
@@ -25,13 +23,13 @@ export const sidebarMenuItems = {
     },
     {
       key: 'users',
-      icon: 'TeamOutlined',
+      icon: 'UserOutlined',
       label: 'Quản lý người dùng',
       path: '/admin/users',
     },
     {
       key: 'roles',
-      icon: 'KeyOutlined',
+      icon: 'FileTextOutlined',
       label: 'Quản lý vai trò',
       path: '/admin/roles',
     },
@@ -81,7 +79,7 @@ export const sidebarMenuItems = {
     },
     {
       key: 'schedule',
-      icon: 'TeamOutlined',
+      icon: 'UserOutlined',
       label: 'Lịch làm việc',
       path: '/doctor/schedule',
     },
@@ -113,7 +111,7 @@ export const sidebarMenuItems = {
     // },
     // {
     //   key: 'patients',
-    //   icon: 'TeamOutlined',
+    //   icon: 'UserOutlined',
     //   label: 'Danh sách bệnh nhân',
     //   path: '/staff/patients',
     // },

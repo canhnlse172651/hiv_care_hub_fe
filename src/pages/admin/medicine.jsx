@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Card, Button, Space, Tag, Input, Popconfirm, message, Tooltip } from 'antd';
 import { medicineService } from '@/services/medicineService';
-import { EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const initialForm = {
   name: '',

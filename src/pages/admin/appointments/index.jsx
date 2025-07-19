@@ -1,25 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Table, 
-  Card, 
   Button, 
+  Input, 
+  Select, 
+  DatePicker, 
   Space, 
-  Typography, 
-  Tag,
-  Input,
-  Modal,
-  Select,
-  Popconfirm,
-  message,
-  DatePicker,
-  Badge
+  Tag, 
+  Badge, 
+  Tooltip, 
+  Modal, 
+  Form, 
+  Alert, 
+  Typography,
+  Row,
+  Col,
+  Statistic,
+  Divider,
+  Card
 } from 'antd';
 import { 
-  SearchOutlined,
-  EyeOutlined,
-  CheckOutlined,
-  CloseOutlined,
-  CalendarOutlined
+  UserOutlined, 
+  CalendarOutlined, 
+  ClockCircleOutlined, 
+  CheckOutlined, 
+  ExclamationOutlined, 
+  InfoCircleOutlined,
+  SearchOutlined, 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined,
+  WarningOutlined, 
+  FileTextOutlined, 
+  PrinterOutlined, 
+  ShareAltOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
@@ -214,7 +228,7 @@ const AppointmentList = () => {
       render: (_, record) => (
         <Space size="small">
           <Button
-            icon={<EyeOutlined />}
+            icon={<InfoCircleOutlined />}
             size="small"
             onClick={() => showAppointmentDetails(record)}
           />
@@ -239,7 +253,7 @@ const AppointmentList = () => {
                 cancelText="No"
               >
                 <Button
-                  icon={<CloseOutlined />}
+                  icon={<ExclamationOutlined />}
                   size="small"
                   danger
                 />

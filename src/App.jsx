@@ -63,6 +63,9 @@ import MedicalRecordsPage from "./pages/doctor/medical-records";
 import DoctorSchedule from "./pages/doctor/schedule";
 import TreatmentProtocolPage from "./pages/doctor/regimens";
 import AppointmentDoctorPage from "./pages/doctor/appointment";
+import PatientTreatmentsPage from "./pages/doctor/patient-treatments";
+import TreatmentAnalyticsPage from "./pages/doctor/treatment-analytics";
+import TreatmentPrescriptionPage from './pages/doctor/treatment-prescription';
 
 // Auth Components
 import AuthComponent from "./components/AuthComponent";
@@ -181,6 +184,9 @@ function App() {
           {/* Patient Care */}
           <Route path="consultation/:appointmentId" element={<ConsultationPage />} />
           <Route path="medical-records/:patientId" element={<MedicalRecordsPage />} />
+          <Route path="patient-treatments" element={<PatientTreatmentsPage />} />
+          <Route path="treatment-analytics" element={<TreatmentAnalyticsPage />} />
+          <Route path="treatment-prescription/:appointmentId?/:patientId?" element={<TreatmentPrescriptionPage />} />
           
           {/* Schedule & Protocols */}
           <Route path="schedule" element={<DoctorSchedule />} />

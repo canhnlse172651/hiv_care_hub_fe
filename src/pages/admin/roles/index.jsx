@@ -10,15 +10,29 @@ import {
   Form,
   Popconfirm,
   message,
-  Badge
+  Badge,
+  Drawer,
+  Row,
+  Col,
+  Statistic,
+  Divider,
+  Select,
+  Tooltip,
+  Modal,
+  Alert
 } from 'antd';
 import { 
   PlusOutlined, 
   SearchOutlined,
   EditOutlined,
   DeleteOutlined,
-  EyeOutlined,
-  UserOutlined
+  UserOutlined,
+  CheckOutlined,
+  WarningOutlined,
+  FileTextOutlined,
+  PrinterOutlined,
+  ShareAltOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import { adminService } from '@/services/adminService';
 
@@ -377,7 +391,7 @@ const RoleManagement = () => {
       render: (_, record) => (
         <Space size="small">
           <Button
-            icon={<EyeOutlined />}
+            icon={<InfoCircleOutlined />}
             size="small"
             onClick={() => showRoleDetails(record)}
           />
