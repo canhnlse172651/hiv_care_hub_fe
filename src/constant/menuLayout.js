@@ -1,18 +1,3 @@
-import {
-  UserOutlined,
-  DashboardOutlined,
-  FileTextOutlined,
-  SettingOutlined,
-  MedicineBoxOutlined,
-  CalendarOutlined,
-  FileDoneOutlined,
-  SafetyCertificateOutlined,
-  DollarOutlined,
-  BookOutlined,
-  LogoutOutlined,
-} from '@ant-design/icons';
-import { Link } from 'react-router-dom';
-
 export const sidebarMenuItems = {
   admin: [
     {
@@ -29,13 +14,13 @@ export const sidebarMenuItems = {
     },
     {
       key: 'roles',
-      icon: 'FileTextOutlined',
+      icon: 'SafetyCertificateOutlined',
       label: 'Quản lý vai trò',
       path: '/admin/roles',
     },
     {
       key: 'permissions',
-      icon: 'SafetyCertificateOutlined',
+      icon: 'KeyOutlined',
       label: 'Quản lý quyền',
       path: '/admin/permissions',
     },
@@ -59,13 +44,13 @@ export const sidebarMenuItems = {
     // },
     {
       key: 'medicine',
-      icon: 'MedicineBoxOutlined',
+      icon: 'ExperimentOutlined',
       label: 'Quản lý thuốc',
       path: '/admin/medicine',
     },
     {
       key: 'service',
-      icon: 'MedicineBoxOutlined',
+      icon: 'AppstoreOutlined',
       label: 'Quản lý dịch vụ',
       path: '/admin/service',
     },

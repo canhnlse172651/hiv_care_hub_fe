@@ -45,7 +45,6 @@ import UserManagement from "./pages/admin/usermanagement";
 import RoleManagement from "@/pages/admin/roles";
 import PermissionManagement from "@/pages/admin/permissions";
 import DoctorManagement from "./pages/admin/doctors";
-import DoctorScheduleAdminPage from "./pages/admin/doctors/schedule";
 import AppointmentList from "./pages/admin/appointments";
 import TreatmentTracking from "./pages/admin/treatment-tracking";
 import MedicineManagement from './pages/admin/medicine';
@@ -137,7 +136,6 @@ function App() {
           
           {/* Doctor Management */}
           <Route path="doctors" element={<DoctorManagement />} />
-          <Route path="doctors/:userId/schedule" element={<DoctorScheduleAdminPage />} />
           <Route path="medicine" element={<MedicineManagement />} />
           <Route path="service" element={<ServiceManagement />} />
           

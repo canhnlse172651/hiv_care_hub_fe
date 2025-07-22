@@ -11,7 +11,25 @@ import {
   Badge,
   Breadcrumb,
 } from 'antd';
-import { MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, BellOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  UserOutlined,
+  BellOutlined,
+  SettingOutlined,
+  LogoutOutlined,
+  DashboardOutlined,
+  FileTextOutlined,
+  SafetyCertificateOutlined,
+  MedicineBoxOutlined,
+  CalendarOutlined,
+  FileDoneOutlined,
+  DollarOutlined,
+  BookOutlined,
+  KeyOutlined,
+  ExperimentOutlined,
+  AppstoreOutlined,
+} from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { handleLogout } from '@/store/Reducer/authReducer';
 import { sidebarMenuItems, userMenuItems } from '@/constant/menuLayout';
@@ -23,7 +41,17 @@ const iconMap = {
   UserOutlined: <UserOutlined />,
   SettingOutlined: <SettingOutlined />,
   LogoutOutlined: <LogoutOutlined />,
-  // ...add other icons as needed
+  DashboardOutlined: <DashboardOutlined />,
+  FileTextOutlined: <FileTextOutlined />,
+  SafetyCertificateOutlined: <SafetyCertificateOutlined />,
+  MedicineBoxOutlined: <MedicineBoxOutlined />,
+  CalendarOutlined: <CalendarOutlined />,
+  FileDoneOutlined: <FileDoneOutlined />,
+  DollarOutlined: <DollarOutlined />,
+  BookOutlined: <BookOutlined />,
+  KeyOutlined: <KeyOutlined />,
+  ExperimentOutlined: <ExperimentOutlined />,
+  AppstoreOutlined: <AppstoreOutlined />,
 };
 
 const MainLayout = ({ role }) => {
