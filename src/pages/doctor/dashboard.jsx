@@ -5,6 +5,7 @@ import {
   FileTextOutlined, ScheduleOutlined, RightOutlined, BellOutlined, TeamOutlined, UserOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { Link } from 'react-router-dom';
 import { appointmentService } from '@/services/appointmentService';
 import { localToken } from '@/utils/token';
@@ -13,6 +14,8 @@ import { ensureDoctorId } from '@/utils/doctorId';
 // Import components
 import StatisticCard from './components/StatisticCard';
 import AppointmentCard from './components/AppointmentCard';
+
+dayjs.extend(utc);
 
 const { Title, Text } = Typography;
 
@@ -30,7 +33,7 @@ const DoctorDashboard = () => {
   });
   const [doctorId, setDoctorId] = useState(undefined); // undefined = loading, null = not found
   const today = dayjs().format('DD/MM/YYYY');
-  const todayDate = dayjs().format('YYYY-MM-DD');
+  const todayDate = dayjs().utc().format('YYYY-MM-DD');
 
   useEffect(() => {
     ensureDoctorId().then(id => setDoctorId(id));
@@ -63,9 +66,9 @@ const DoctorDashboard = () => {
       const response = await appointmentService.getAppointmentsByDoctorId(doctorId);
       const allAppointmentsData = response.data?.data || [];
       
-      // Filter for today's appointments only
+      // Filter for today's appointments only (use UTC)
       const todayAppointments = allAppointmentsData.filter(appointment => 
-        dayjs(appointment.appointmentTime).format('YYYY-MM-DD') === todayDate
+        dayjs.utc(appointment.appointmentTime).format('YYYY-MM-DD') === todayDate
       );
       
       // Filter for offline appointments with PENDING status (for waiting list)
@@ -99,9 +102,9 @@ const DoctorDashboard = () => {
     appointment.id?.toString().includes(searchText)
   );
 
-  // Get today's completed appointments
+  // Get today's completed appointments (use UTC)
   const todayCompletedAppointments = allAppointments.filter(appointment => 
-    dayjs(appointment.appointmentTime).format('YYYY-MM-DD') === todayDate &&
+    dayjs.utc(appointment.appointmentTime).format('YYYY-MM-DD') === todayDate &&
     appointment.status === 'COMPLETED'
   );
 
@@ -305,8 +308,8 @@ const DoctorDashboard = () => {
                         <div className="text-right">
                           <div className="font-bold text-blue-600">
                             {allAppointments.filter(apt => {
-                              const hour = dayjs(apt.appointmentTime).hour();
-                              const date = dayjs(apt.appointmentTime).format('YYYY-MM-DD');
+                              const hour = dayjs.utc(apt.appointmentTime).hour();
+                              const date = dayjs.utc(apt.appointmentTime).format('YYYY-MM-DD');
                               return hour >= 8 && hour < 12 && date === todayDate;
                             }).length}
                           </div>
@@ -327,8 +330,8 @@ const DoctorDashboard = () => {
                         <div className="text-right">
                           <div className="font-bold text-green-600">
                             {allAppointments.filter(apt => {
-                              const hour = dayjs(apt.appointmentTime).hour();
-                              const date = dayjs(apt.appointmentTime).format('YYYY-MM-DD');
+                              const hour = dayjs.utc(apt.appointmentTime).hour();
+                              const date = dayjs.utc(apt.appointmentTime).format('YYYY-MM-DD');
                               return hour >= 13 && hour < 17 && date === todayDate;
                             }).length}
                           </div>

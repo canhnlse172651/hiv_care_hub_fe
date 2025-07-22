@@ -66,13 +66,13 @@ const ServiceManagement = () => {
       if (editingId) {
         await servicesService.updateService(editingId, {
           ...form,
-          price: parseFloat(form.price)
+          price: form.price // send as string
         });
         setSuccess('Cập nhật dịch vụ thành công!');
       } else {
         await servicesService.createService({
           ...form,
-          price: parseFloat(form.price)
+          price: form.price // send as string
         });
         setSuccess('Thêm dịch vụ thành công!');
       }
