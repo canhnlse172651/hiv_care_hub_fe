@@ -34,10 +34,13 @@ import ServiceBookingPage from "./pages/landscape/servicebooking";
 import BlogPage from "./pages/landscape/blog";
 import BlogDetailPage from "./pages/landscape/blog/BlogDetail";
 
-// Patient Pages
-import PatientProfilePage from "./pages/patient/profile";
+// Patient Pages - Update imports to use folder structure
+import PatientProfile from "./pages/patient/profile";
+import PatientMedicalRecord from "./pages/patient/medical-record";
 import AppointmentListPage from "./pages/patient/appointments";
-import PatientMedicalRecordPage from "./pages/patient/medical-record";
+import PatientDashboard from "./pages/patient/dashboard";
+import ServiceBookingPage from "./pages/patient/service-booking";
+import PatientTreatment from "./pages/patient/treatment";
 
 // Admin Pages
 import Dashboard from "./pages/admin/dashboard";
@@ -108,9 +111,9 @@ function App() {
              PATIENT PROTECTED ROUTES
           ======================================== */}
           <Route element={<PatientRoute />}>
-            <Route path={PATHS.PATIENT.PROFILE} element={<PatientProfilePage />} />
+            <Route path={PATHS.PATIENT.PROFILE} element={<PatientProfile />} />
             <Route path={PATHS.PATIENT.APPOINTMENTS} element={<AppointmentListPage />} />
-            <Route path={PATHS.PATIENT.MEDICAL_RECORDS} element={<PatientMedicalRecordPage />} />
+            <Route path={PATHS.PATIENT.MEDICAL_RECORDS} element={<PatientMedicalRecord />} />
           </Route>
         </Route>
 
