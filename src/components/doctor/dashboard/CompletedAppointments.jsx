@@ -1,10 +1,10 @@
 import React from 'react';
-import { Card, Avatar, Button, Title } from 'antd';
+import { Card, Avatar, Button, Typography } from 'antd';
 import { CheckCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 
-const { Title: AntTitle } = require('antd/es/typography');
+const { Title } = Typography;
 
 const CompletedAppointments = ({ appointments }) => {
   return (
@@ -14,9 +14,9 @@ const CompletedAppointments = ({ appointments }) => {
           <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
             <CheckCircleOutlined className="text-green-600" />
           </div>
-          <AntTitle level={5} className="mb-0 text-gray-900">
+          <Title level={5} className="mb-0 text-gray-900">
             Đã hoàn thành hôm nay
-          </AntTitle>
+          </Title>
         </div>
 
         <div className="space-y-2">

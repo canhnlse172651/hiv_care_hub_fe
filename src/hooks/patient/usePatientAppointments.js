@@ -118,7 +118,7 @@ export const usePatientAppointments = (userId) => {
   const handleCancelAppointment = async (appointmentId) => {
     confirm({
       title: 'Bạn có chắc chắn muốn hủy lịch hẹn này không?',
-      icon: <ExclamationCircleOutlined />,
+      icon: ExclamationCircleOutlined,
       content: 'Hành động này không thể hoàn tác.',
       okText: 'Có, hủy lịch',
       okType: 'danger',

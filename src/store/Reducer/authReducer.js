@@ -1,4 +1,5 @@
 import { authenService } from "@/services/authenService";
+import { profileService } from "@/services/profileService";
 import { localToken } from "@/utils/token";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { message } from "antd";
@@ -183,14 +184,31 @@ export const handleLogout = createAsyncThunk("auth/handleLogout", async () => {
   }
   localStorage.removeItem("auth");
   localStorage.removeItem("token");
+  localStorage.removeItem("doctorId");
   message.success("Logout success");
 });
 
 export const handleGetProfile = createAsyncThunk(
   "auth/handleGetProfile",
   async () => {
-    const user = authenService.getCurrentUser();
-    return user;
+    try {
+      const response = await profileService.getProfile();
+      console.log('Profile API Response:', response);
+      console.log('Profile Data:', response.data);
+      
+      const profileData = response.data;
+      
+      // Store doctorId in localStorage if it exists
+      if (profileData.doctorId) {
+        localStorage.setItem('doctorId', profileData.doctorId);
+        console.log('Stored doctorId in localStorage:', profileData.doctorId);
+      }
+      
+      return profileData;
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      throw error;
+    }
   }
 );
 

@@ -5,6 +5,8 @@ import {
   PhoneOutlined, VideoCameraOutlined 
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 
 const { Title, Text } = Typography;
 
@@ -45,10 +47,10 @@ const AppointmentCard = ({ appointment, onCancel, getStatusTag }) => (
             <div>
               <Text className="text-xs text-gray-500 block">Thời gian</Text>
               <Text strong className="text-gray-900">
-                {dayjs(appointment.appointmentTime).format('ddd, DD/MM/YYYY')}
+                {dayjs.utc(appointment.appointmentTime).format('ddd, DD/MM/YYYY')}
               </Text>
               <Text className="text-gray-600 block text-sm">
-                {dayjs(appointment.appointmentTime).format('HH:mm')}
+                {dayjs.utc(appointment.appointmentTime).format('HH:mm')}
               </Text>
             </div>
           </div>

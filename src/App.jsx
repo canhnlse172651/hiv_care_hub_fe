@@ -38,9 +38,6 @@ import BlogDetailPage from "./pages/landscape/blog/BlogDetail";
 import PatientProfile from "./pages/patient/profile";
 import PatientMedicalRecord from "./pages/patient/medical-record";
 import AppointmentListPage from "./pages/patient/appointments";
-import PatientDashboard from "./pages/patient/dashboard";
-import ServiceBookingPage from "./pages/patient/service-booking";
-import PatientTreatment from "./pages/patient/treatment";
 
 // Admin Pages
 import Dashboard from "./pages/admin/dashboard";
