@@ -83,9 +83,8 @@ const FilterPanel = ({
             className="rounded-lg"
           >
             <Option value="PENDING">Đang chờ</Option>
-            <Option value="CONFIRMED">Đã xác nhận</Option>
+            <Option value="PAID">Đã thanh toán</Option>
             <Option value="COMPLETED">Hoàn thành</Option>
-            <Option value="CANCELLED">Đã hủy</Option>
           </Select>
         </Col>
 

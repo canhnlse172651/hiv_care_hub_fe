@@ -66,6 +66,16 @@ const OrderModal = ({
     };
   }, [pollingInterval]);
 
+  // Auto-close modal after payment success
+  useEffect(() => {
+    if ((orderStatus === 'COMPLETED' || orderStatus === 'PAID') && visible) {
+      const timer = setTimeout(() => {
+        handleCancel();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [orderStatus, visible]);
+
   const handleConfirm = async () => {
     try {
       const values = await form.validateFields();
@@ -119,6 +129,7 @@ const OrderModal = ({
       ] : null}
       width={700}
       destroyOnClose
+      style={{ top: 60 }} // Move modal up a bit
     >
       <Spin spinning={loading}>
         {!orderCreated ? (
@@ -197,19 +208,6 @@ const OrderModal = ({
           </>
         ) : (
           <>
-            {/* Order Created Success */}
-            <div className="mb-6">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <DollarOutlined className="text-green-600 text-2xl" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Đã tạo mã thanh toán thành công!</h3>
-                <p className="text-gray-600">Mã đơn hàng: <span className="font-mono font-semibold">{orderData.orderCode}</span></p>
-              </div>
-            </div>
-
-            <Divider />
-
             {/* Order Status */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
@@ -252,23 +250,33 @@ const OrderModal = ({
 
             <Divider />
 
-            {/* Payment QR Code */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                <QrcodeOutlined className="mr-2" />
-                Mã QR thanh toán
-              </h3>
-              <div className="text-center">
-                <Image
-                  src={orderData.paymentUrl}
-                  alt="QR Code"
-                  width={200}
-                  height={200}
-                  className="border rounded-lg shadow-md"
-                />
-                <p className="text-sm text-gray-600 mt-2">Quét mã QR để thanh toán</p>
+            {/* Payment QR Code or Success */}
+            {orderStatus === 'COMPLETED' || orderStatus === 'PAID' ? (
+              <div className="mb-6 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <CheckCircleOutlined className="text-green-600 text-4xl" />
+                </div>
+                <div className="text-lg font-semibold text-green-700 mb-2">Thanh toán hoàn tất</div>
+                <div className="text-gray-500">Đang trở về...</div>
               </div>
-            </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                  <QrcodeOutlined className="mr-2" />
+                  Mã QR thanh toán
+                </h3>
+                <div className="text-center">
+                  <Image
+                    src={orderData.paymentUrl}
+                    alt="QR Code"
+                    width={200}
+                    height={200}
+                    className="border rounded-lg shadow-md"
+                  />
+                  <p className="text-sm text-gray-600 mt-2">Quét mã QR để thanh toán</p>
+                </div>
+              </>
+            )}
 
             <Divider />
 
@@ -305,4 +313,4 @@ const OrderModal = ({
   );
 };
 
-export default OrderModal; 
+export default OrderModal;

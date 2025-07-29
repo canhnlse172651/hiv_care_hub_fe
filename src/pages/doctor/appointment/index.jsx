@@ -20,8 +20,8 @@ const AppointmentDoctorPage = () => {
   }, []);
 
   const {
-    appointments,
-    allAppointments,
+    appointments: rawAppointments,
+    allAppointments: rawAllAppointments,
     services,
     loading,
     servicesLoading,
@@ -41,9 +41,18 @@ const AppointmentDoctorPage = () => {
     handleTableChange
   } = useDoctorAppointments(doctorId);
 
+  // Filter and sort appointments for table
+  const allowedStatuses = ['PENDING', 'PAID', 'COMPLETED'];
+  const appointments = (rawAppointments || [])
+    .filter(apt => allowedStatuses.includes((apt.status || '').toUpperCase()))
+    .sort((a, b) => dayjs(a.appointmentTime).valueOf() - dayjs(b.appointmentTime).valueOf());
+  const allAppointments = (rawAllAppointments || [])
+    .filter(apt => allowedStatuses.includes((apt.status || '').toUpperCase()));
+
   const getStatusTag = (status, type) => {
     const statusConfig = {
       'PENDING': { color: 'gold', text: 'Đang chờ xác nhận', icon: <ClockCircleOutlined />, bgColor: 'bg-yellow-50', textColor: 'text-yellow-700' },
+      'PAID': { color: 'cyan', text: 'Đã thanh toán', icon: <CheckOutlined />, bgColor: 'bg-cyan-50', textColor: 'text-cyan-700' },
       'CONFIRMED': { color: 'blue', text: 'Đã xác nhận', icon: <CheckOutlined />, bgColor: 'bg-blue-50', textColor: 'text-blue-700' },
       'COMPLETED': { color: 'green', text: 'Hoàn thành', icon: <CheckOutlined />, bgColor: 'bg-green-50', textColor: 'text-green-700' },
       'CANCELLED': { color: 'red', text: 'Đã hủy', icon: <ExclamationOutlined />, bgColor: 'bg-red-50', textColor: 'text-red-700' }
@@ -195,7 +204,8 @@ const AppointmentDoctorPage = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          {['PENDING', 'CONFIRMED'].includes(record.status.toUpperCase()) && (
+          {/* Only show "Khám ngay" for PAID appointments */}
+          {record.status && record.status.toUpperCase() === 'PAID' && (
             <Button
               type="primary"
               size="small"
@@ -206,7 +216,7 @@ const AppointmentDoctorPage = () => {
               Khám ngay
             </Button>
           )}
-          {record.status.toUpperCase() === 'COMPLETED' && (
+          {record.status && record.status.toUpperCase() === 'COMPLETED' && (
             <Button
               size="small"
               icon={<InfoCircleOutlined />}
@@ -305,6 +315,12 @@ const AppointmentDoctorPage = () => {
             services={services}
             servicesLoading={servicesLoading}
             onClearFilters={clearFilters}
+            // Only allow PENDING, PAID, COMPLETED in status filter
+            statusOptions={[
+              { value: 'PENDING', label: 'Đang chờ xác nhận' },
+              { value: 'PAID', label: 'Đã thanh toán' },
+              { value: 'COMPLETED', label: 'Hoàn thành' }
+            ]}
           />
 
           {/* Table Section */}

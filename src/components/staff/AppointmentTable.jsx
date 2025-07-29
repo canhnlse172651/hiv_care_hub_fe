@@ -21,8 +21,7 @@ const AppointmentTable = ({
   onGenerateInvoice,
   onMarkAsPaid,
   onConfirmAppointment,
-  getStatusTag,
-  getPaymentTag
+  getStatusTag
 }) => {
   const columns = [
     {
@@ -96,65 +95,28 @@ const AppointmentTable = ({
     {
       title: 'Trạng thái',
       key: 'status',
-      width: 120,
+      width: 180, // Increased width for better appearance
+      align: 'center', // Center the content
       render: (_, record) => getStatusTag(record.status),
-    },
-    {
-      title: 'Thanh toán',
-      key: 'paymentStatus',
-      width: 140,
-      render: (_, record) => getPaymentTag(record.paymentStatus, record.invoiceGenerated),
     },
     {
       title: 'Hành động',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          {/* <Button 
-            type="primary" 
-            size="small"
-            onClick={() => onEdit(record)}
-            className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg"
-          >
-            Chi tiết
-          </Button> */}
-          
-          {/* Invoice generation - only for completed appointments */}
-          {record.status === 'COMPLETED' && !record.invoiceGenerated && (
+          {/* Move "Thanh toán" button to PENDING status */}
+          {record.status === 'PENDING' && (
             <Button 
               type="primary" 
               size="small"
-              // icon={<DollarOutlined />}
               onClick={() => onGenerateInvoice(record)}
               className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg"
             >
               Thanh toán
             </Button>
           )}
-          
-          {/* Mark as paid - only for completed appointments with invoice */}
-          {record.status === 'COMPLETED' && 
-           record.invoiceGenerated && 
-           record.paymentStatus === 'pending_payment' && (
-            <Button 
-              type="primary" 
-              icon={<CheckCircleOutlined />}
-              onClick={() => onMarkAsPaid(record)}
-              className="bg-blue-500 hover:bg-blue-600 border-none"
-            >
-              Đánh dấu đã thanh toán
-            </Button>
-          )}
-          
-          {/* View invoice - for appointments with invoices */}
-          {record.invoiceGenerated && (
-            <Button 
-              icon={<FileTextOutlined />}
-              className="border-green-500 text-green-600 hover:bg-green-50"
-            >
-              Xem hóa đơn
-            </Button>
-          )}
+          {/* Remove "Thanh toán" button from COMPLETED status */}
+          {/* Remove Mark as paid and View invoice buttons */}
         </Space>
       ),
     },
@@ -178,4 +140,4 @@ const AppointmentTable = ({
   );
 };
 
-export default AppointmentTable; 
+export default AppointmentTable;

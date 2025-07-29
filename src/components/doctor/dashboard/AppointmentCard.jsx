@@ -79,13 +79,13 @@ const AppointmentCard = ({ appointment, showActions = true, size = 'default', sh
               <div className="flex items-center space-x-1">
                 <CalendarOutlined className="text-blue-500 text-xs" />
                 <span className={`text-gray-600 ${isSmall ? 'text-xs' : 'text-sm'}`}>
-                  {dayjs(appointment.appointmentTime).format('DD/MM/YYYY')}
+                  {dayjs.utc(appointment.appointmentTime).format('DD/MM/YYYY')}
                 </span>
               </div>
               <div className="flex items-center space-x-1">
                 <ClockCircleOutlined className="text-orange-500 text-xs" />
                 <span className={`text-gray-600 ${isSmall ? 'text-xs' : 'text-sm'}`}>
-                  {dayjs(appointment.appointmentTime).format('HH:mm')}
+                  {dayjs.utc(appointment.appointmentTime).format('HH:mm')}
                 </span>
               </div>
             </div>

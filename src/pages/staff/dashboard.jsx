@@ -15,7 +15,8 @@ import {
   CheckCircleOutlined, 
   ClockCircleOutlined, 
   CheckOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  DollarOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { appointmentService } from '@/services/appointmentService';
@@ -48,16 +49,19 @@ const StaffDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [invoices, setInvoices] = useState([]); // Track invoices
   const [loading, setLoading] = useState(false);
+  const [pendingDrawerVisible, setPendingDrawerVisible] = useState(false);
+  const [paidDrawerVisible, setPaidDrawerVisible] = useState(false);
+  const [selectedPaidAppointment, setSelectedPaidAppointment] = useState(null);
   
   useEffect(() => {
     fetchAppointments();
     fetchServices();
   }, []);
 
+  // Remove paymentStatus and invoice logic from appointment mapping, and set paymentStatus based on status
   const fetchAppointments = async () => {
     setLoading(true);
     try {
-      // Try to get all appointments instead of staff-specific endpoint
       const res = await appointmentService.getStaffAppointments({ limit: 1000 });
       console.log('Fetched appointments:', res);
       
@@ -77,11 +81,10 @@ const StaffDashboard = () => {
         status: item.status || 'PENDING',
         reason: item.service?.description || item.notes || '',
         notes: item.notes || '',
-        // Updated payment status logic
-        paymentStatus: item.status === 'PAID' ? 'paid' : 
-                     item.status === 'COMPLETED' ? 'pending_payment' : 'not_applicable',
-        hasInvoice: item.status === 'COMPLETED' || item.status === 'PAID',
-        invoiceGenerated: invoices.some(inv => inv.appointmentId === item.id),
+        // Remove paymentStatus and invoice columns
+        // paymentStatus: ...,
+        // hasInvoice: ...,
+        // invoiceGenerated: ...,
         avatar: item.user?.avatar || '',
         appointmentTime: item.appointmentTime,
         service: item.service,
@@ -153,13 +156,15 @@ const StaffDashboard = () => {
     return textMatch && dateMatch && serviceMatch;
   });
 
-  // Filter appointments by status
+  // Filter appointments by status for each tab
   const pendingAppointments = filteredAppointments.filter(a => a.status === 'PENDING');
-  const completedAppointments = filteredAppointments.filter(a => ['COMPLETED', 'PAID'].includes(a.status));
+  const paidAppointments = filteredAppointments.filter(a => a.status === 'PAID');
+  const completedAppointments = filteredAppointments.filter(a => a.status === 'COMPLETED');
+  const cancelledAppointments = filteredAppointments.filter(a => a.status === 'CANCELLED');
   
   const getStatusTag = (status) => {
     const statusConfig = {
-      'PENDING': { color: 'orange', text: 'Chờ khám', icon: <ClockCircleOutlined /> },
+      'PENDING': { color: 'orange', text: 'Chưa thanh toán', icon: <ClockCircleOutlined /> },
       'CONFIRMED': { color: 'blue', text: 'Đã xác nhận', icon: <CheckCircleOutlined /> },
       'COMPLETED': { color: 'green', text: 'Hoàn thành', icon: <CheckOutlined /> },
       'PAID': { color: 'cyan', text: 'Đã thanh toán', icon: <CheckOutlined /> },
@@ -177,21 +182,6 @@ const StaffDashboard = () => {
         {config.text}
       </Tag>
     );
-  };
-  
-  const getPaymentTag = (paymentStatus, invoiceGenerated) => {
-    switch(paymentStatus) {
-      case 'paid':
-        return <Tag color="green" className="rounded-full">Đã thanh toán</Tag>;
-      case 'pending_payment':
-        return invoiceGenerated ? 
-          <Tag color="orange" className="rounded-full">Chờ thanh toán</Tag> :
-          <Tag color="blue" className="rounded-full">Chưa tạo hóa đơn</Tag>;
-      case 'not_applicable':
-        return <Tag color="gray" className="rounded-full">Chưa áp dụng</Tag>;
-      default:
-        return <Tag color="default" className="rounded-full">{paymentStatus}</Tag>;
-    }
   };
   
   const showDrawer = (appointment) => {
@@ -330,7 +320,23 @@ const StaffDashboard = () => {
     }
   };
   
+  const showPendingDrawer = (appointment) => {
+    setSelectedAppointment(appointment);
+    setPendingDrawerVisible(true);
+  };
 
+  const closePendingDrawer = () => {
+    setPendingDrawerVisible(false);
+  };
+
+  const showPaidDrawer = (appointment) => {
+    setSelectedPaidAppointment(appointment);
+    setPaidDrawerVisible(true);
+  };
+
+  const closePaidDrawer = () => {
+    setPaidDrawerVisible(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -366,7 +372,7 @@ const StaffDashboard = () => {
                 label: (
                   <span className="flex items-center space-x-2">
                     <ClockCircleOutlined />
-                    <span>Chờ khám ({pendingAppointments.length})</span>
+                    <span>Chưa thanh toán ({pendingAppointments.length})</span>
                   </span>
                 ),
                 children: (
@@ -381,7 +387,7 @@ const StaffDashboard = () => {
                         description={
                           <div className="text-center py-8">
                             <ClockCircleOutlined className="text-6xl text-gray-300 mb-4" />
-                            <div className="text-gray-500 text-lg mb-2">Không có lịch hẹn chờ khám</div>
+                            <div className="text-gray-500 text-lg mb-2">Không có lịch hẹn chưa thanh toán</div>
                             <div className="text-gray-400">Tất cả lịch hẹn đã được xử lý</div>
                           </div>
                         }
@@ -391,15 +397,54 @@ const StaffDashboard = () => {
                       <AppointmentTable
                         appointments={pendingAppointments}
                         loading={loading}
-                        onEdit={showDrawer}
+                        onEdit={showPendingDrawer}
                         onGenerateInvoice={handleGenerateInvoice}
                         onMarkAsPaid={handleMarkAsPaid}
                         onConfirmAppointment={handleConfirmAppointment}
                         getStatusTag={getStatusTag}
-                        getPaymentTag={getPaymentTag}
                       />
                     )}
-                                    </div>
+                  </div>
+                )
+              },
+              {
+                key: 'paid',
+                label: (
+                  <span className="flex items-center space-x-2">
+                    <DollarOutlined />
+                    <span>Đã thanh toán ({paidAppointments.length})</span>
+                  </span>
+                ),
+                children: (
+                  <div>
+                    {loading ? (
+                      <div className="flex justify-center items-center py-12">
+                        <Spin size="large" />
+                      </div>
+                    ) : paidAppointments.length === 0 ? (
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description={
+                          <div className="text-center py-8">
+                            <DollarOutlined className="text-6xl text-gray-300 mb-4" />
+                            <div className="text-gray-500 text-lg mb-2">Không có lịch hẹn đã thanh toán</div>
+                            <div className="text-gray-400">Chưa có lịch hẹn nào được thanh toán</div>
+                          </div>
+                        }
+                        className="py-12"
+                      />
+                    ) : (
+                      <AppointmentTable
+                        appointments={paidAppointments}
+                        loading={loading}
+                        onEdit={showPaidDrawer}
+                        onGenerateInvoice={handleGenerateInvoice}
+                        onMarkAsPaid={handleMarkAsPaid}
+                        onConfirmAppointment={handleConfirmAppointment}
+                        getStatusTag={getStatusTag}
+                      />
+                    )}
+                  </div>
                 )
               },
               {
@@ -419,7 +464,26 @@ const StaffDashboard = () => {
                     onMarkAsPaid={handleMarkAsPaid}
                     onConfirmAppointment={handleConfirmAppointment}
                     getStatusTag={getStatusTag}
-                    getPaymentTag={getPaymentTag}
+                  />
+                )
+              },
+              {
+                key: 'cancelled',
+                label: (
+                  <span className="flex items-center space-x-2">
+                    <ExclamationCircleOutlined />
+                    <span>Đã hủy ({cancelledAppointments.length})</span>
+                  </span>
+                ),
+                children: (
+                  <AppointmentTable
+                    appointments={cancelledAppointments}
+                    loading={loading}
+                    onEdit={showDrawer}
+                    onGenerateInvoice={handleGenerateInvoice}
+                    onMarkAsPaid={handleMarkAsPaid}
+                    onConfirmAppointment={handleConfirmAppointment}
+                    getStatusTag={getStatusTag}
                   />
                 )
               }
@@ -427,13 +491,23 @@ const StaffDashboard = () => {
           />
         </Card>
         
-        {/* Appointment Detail Drawer */}
+        {/* Appointment Detail Drawer for PENDING */}
         <AppointmentDrawer
-          visible={drawerVisible}
-          onClose={closeDrawer}
+          visible={pendingDrawerVisible}
+          onClose={closePendingDrawer}
           appointment={selectedAppointment}
           getStatusTag={getStatusTag}
-          getPaymentTag={getPaymentTag}
+          onEdit={showEditModal}
+          onGenerateInvoice={handleGenerateInvoice}
+          onMarkAsPaid={handleMarkAsPaid}
+        />
+
+        {/* Appointment Detail Drawer for PAID */}
+        <AppointmentDrawer
+          visible={paidDrawerVisible}
+          onClose={closePaidDrawer}
+          appointment={selectedPaidAppointment}
+          getStatusTag={getStatusTag}
           onEdit={showEditModal}
           onGenerateInvoice={handleGenerateInvoice}
           onMarkAsPaid={handleMarkAsPaid}
@@ -451,7 +525,18 @@ const StaffDashboard = () => {
         <OrderModal
           visible={orderModalVisible}
           onCancel={handleCancelOrder}
-          onConfirm={handleCreateOrder}
+          onConfirm={async (formValues) => {
+            // On payment order creation, set status to PAID
+            const order = await handleCreateOrder(formValues);
+            if (order) {
+              setAppointments(prev => prev.map(apt =>
+                apt.id === selectedOrderAppointment.id
+                  ? { ...apt, status: 'PAID' }
+                  : apt
+              ));
+            }
+            return order;
+          }}
           appointment={selectedOrderAppointment}
           loading={orderLoading}
           orderService={orderService}
