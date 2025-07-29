@@ -7,6 +7,8 @@ import {
 } from '@ant-design/icons';
 import { localToken } from '@/utils/token';
 import { PATHS } from '@/constant/path';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
 // Import components and hooks
 import { 
@@ -15,6 +17,8 @@ import {
   AppointmentStats 
 } from '@/components/patient/appointments';
 import { usePatientAppointments } from '@/hooks/patient';
+
+dayjs.extend(utc);
 
 const { Title, Text } = Typography;
 
@@ -189,6 +193,7 @@ const AppointmentListPage = () => {
                   appointment={appointment}
                   onCancel={handleCancelAppointment}
                   getStatusTag={getStatusTag}
+                  appointmentTime={dayjs.utc(appointment.appointmentTime).local()}
                 />
               ))}
             </div>

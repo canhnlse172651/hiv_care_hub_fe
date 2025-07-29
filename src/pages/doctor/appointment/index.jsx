@@ -70,7 +70,7 @@ const AppointmentDoctorPage = () => {
   };
 
   const formatAppointmentTime = (appointmentTime) => {
-    return dayjs(appointmentTime).format('HH:mm DD/MM/YYYY');
+    return dayjs.utc(appointmentTime).format('HH:mm DD/MM/YYYY');
   };
 
   const columns = [
@@ -145,13 +145,13 @@ const AppointmentDoctorPage = () => {
           <div className="flex items-center space-x-2">
             <CalendarOutlined className="text-blue-500" />
             <span className="font-semibold text-gray-900">
-              {dayjs(record.appointmentTime).format('DD/MM/YYYY')}
+              {dayjs.utc(record.appointmentTime).format('DD/MM/YYYY')}
             </span>
           </div>
           <div className="flex items-center space-x-2">
             <ClockCircleOutlined className="text-orange-500" />
             <span className="text-gray-700">
-              {dayjs(record.appointmentTime).format('HH:mm')}
+              {dayjs.utc(record.appointmentTime).format('HH:mm')}
             </span>
           </div>
         </div>
@@ -184,7 +184,7 @@ const AppointmentDoctorPage = () => {
       width: 120,
       render: (text) => (
         <div className="text-gray-600 text-sm">
-          {text ? dayjs(text).format('DD/MM/YYYY') : '-'}
+          {text ? dayjs.utc(text).format('DD/MM/YYYY') : '-'}
         </div>
       ),
     },
