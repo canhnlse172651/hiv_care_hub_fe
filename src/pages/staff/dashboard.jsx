@@ -19,6 +19,8 @@ import {
   DollarOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+dayjs.extend(isBetween);
 import { appointmentService } from '@/services/appointmentService';
 import { orderService } from '@/services/orderService';
 import { 
@@ -141,9 +143,10 @@ const StaffDashboard = () => {
     // Date range filter
     let dateMatch = true;
     if (selectedDateRange && selectedDateRange[0] && selectedDateRange[1]) {
-      const appointmentDate = dayjs.utc(appointment.appointmentTime);
-      const startDate = selectedDateRange[0].startOf('day');
-      const endDate = selectedDateRange[1].endOf('day');
+      // Fix: Ensure appointmentDate is a dayjs object
+      const appointmentDate = dayjs(appointment.appointmentTime);
+      const startDate = dayjs(selectedDateRange[0]).startOf('day');
+      const endDate = dayjs(selectedDateRange[1]).endOf('day');
       dateMatch = appointmentDate.isBetween(startDate, endDate, null, '[]');
     }
 
