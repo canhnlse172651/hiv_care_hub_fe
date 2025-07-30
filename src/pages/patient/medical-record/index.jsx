@@ -3,7 +3,7 @@ import {
   Card, Typography, Tabs, Button, Table, Tag, 
   Timeline, Divider, Descriptions, Input, 
   DatePicker, Select, Statistic, Row, Col, Empty, Progress,
-  Badge, Avatar, Tooltip, Alert, Space
+  Badge, Avatar, Tooltip, Alert, Space, Spin, List
 } from 'antd';
 import {
   UserOutlined, SearchOutlined, FileTextOutlined,
@@ -15,6 +15,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { localToken } from '@/utils/token';
 import dayjs from 'dayjs';
+import { patientTreatmentService } from '@/services/patientTreatmentService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -27,10 +28,10 @@ const PatientMedicalRecordPage = () => {
   const [dateRange, setDateRange] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [loading, setLoading] = useState(false);
-  
+
   const auth = localToken.get();
   const currentUser = auth?.user;
-  
+
   // Mock patient data
   const patient = {
     id: 'PT-HIV-10001',
@@ -132,6 +133,24 @@ const PatientMedicalRecordPage = () => {
       trend: 'stable'
     }
   ];
+
+  // --- NEW: Patient Treatments State ---
+  const [treatments, setTreatments] = useState([]);
+  const [treatmentsLoading, setTreatmentsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchTreatments = async () => {
+      setTreatmentsLoading(true);
+      try {
+        const res = await patientTreatmentService.getPatientTreatmentsByPatientId(currentUser?.id);
+        setTreatments(Array.isArray(res.data?.data) ? res.data.data : []);
+      } catch (e) {
+        setTreatments([]);
+      }
+      setTreatmentsLoading(false);
+    };
+    if (currentUser?.id) fetchTreatments();
+  }, [currentUser?.id]);
 
   // Filter medical records
   const filteredRecords = medicalRecords.filter(record => {
@@ -356,154 +375,159 @@ const PatientMedicalRecordPage = () => {
           {/* Main Content */}
           <Col xs={24} lg={16}>
             <Card className="shadow-lg rounded-2xl border-0">
-              <Tabs defaultActiveKey="records" className="medical-records-tabs">
-                <TabPane 
-                  tab={<span><HistoryOutlined /> Lịch sử khám bệnh</span>}
-                  key="records"
-                >
-                  {/* Filters */}
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <Row gutter={[16, 16]}>
-                      <Col xs={24} md={8}>
-                        <Input
-                          placeholder="Tìm kiếm chẩn đoán, bác sĩ..."
-                          prefix={<SearchOutlined />}
-                          value={searchText}
-                          onChange={e => setSearchText(e.target.value)}
-                          allowClear
-                        />
-                      </Col>
-                      <Col xs={24} md={8}>
-                        <RangePicker 
-                          format="DD/MM/YYYY"
-                          placeholder={['Từ ngày', 'Đến ngày']}
-                          onChange={setDateRange}
-                          style={{ width: '100%' }}
-                        />
-                      </Col>
-                      <Col xs={24} md={8}>
-                        <Select 
-                          value={selectedFilter}
-                          onChange={setSelectedFilter}
-                          style={{ width: '100%' }}
-                        >
-                          <Option value="all">Tất cả</Option>
-                          <Option value="routine_checkup">Khám định kỳ</Option>
-                          <Option value="emergency">Cấp cứu</Option>
-                          <Option value="consultation">Tư vấn</Option>
-                        </Select>
-                      </Col>
-                    </Row>
-                  </div>
-                  
-                  <Table
-                    columns={recordsColumns}
-                    dataSource={filteredRecords}
-                    rowKey="id"
-                    pagination={{ pageSize: 10 }}
-                    expandable={{
-                      expandedRowRender: record => (
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                          <Row gutter={[16, 16]}>
-                            <Col span={24}>
-                              <Title level={5}>Chi tiết khám bệnh</Title>
-                            </Col>
-                            <Col xs={24} md={12}>
-                              <div className="mb-4">
-                                <Text strong>Triệu chứng:</Text>
-                                <div className="mt-1">{record.symptoms}</div>
-                              </div>
-                              <div className="mb-4">
-                                <Text strong>Xét nghiệm:</Text>
-                                <div className="mt-1">
-                                  {record.labTests.map(test => (
-                                    <Tag key={test} className="mb-1">{test}</Tag>
-                                  ))}
-                                </div>
-                              </div>
-                            </Col>
-                            <Col xs={24} md={12}>
-                              <div className="mb-4">
-                                <Text strong>Đơn thuốc:</Text>
-                                <div className="mt-1 space-y-1">
-                                  {record.prescription.map((med, idx) => (
-                                    <div key={idx} className="text-sm">
-                                      {med.medication} {med.dose} - {med.frequency} ({med.duration})
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </Col>
-                            <Col span={24}>
-                              <div className="mb-4">
-                                <Text strong>Ghi chú:</Text>
-                                <div className="mt-1">{record.notes}</div>
-                              </div>
-                              <div>
-                                <Text strong>Tái khám:</Text>
-                                <div className="mt-1">{dayjs(record.followupDate).format('DD/MM/YYYY')}</div>
-                              </div>
-                            </Col>
-                          </Row>
-                        </div>
-                      ),
-                      rowExpandable: record => true,
-                    }}
-                  />
-                </TabPane>
-                
-                <TabPane 
-                  tab={<span><ExperimentOutlined /> Kết quả xét nghiệm</span>}
-                  key="lab"
-                >
-                  <Table
-                    columns={labResultsColumns}
-                    dataSource={labResults}
-                    rowKey={(record, index) => `${record.date}-${record.type}-${index}`}
-                    pagination={{ pageSize: 10 }}
-                  />
-                </TabPane>
-                
-                <TabPane 
-                  tab={<span><MedicineBoxOutlined /> Lịch sử phác đồ</span>}
-                  key="regimen"
-                >
-                  <Timeline className="mt-4">
-                    <Timeline.Item 
-                      color="green" 
-                      dot={<MedicineBoxOutlined style={{ fontSize: '16px' }} />}
-                    >
-                      <div className="mb-2">
-                        <Text strong className="text-lg">{patient.currentRegimen}</Text>
-                        <Tag color="green" className="ml-2">Hiện tại</Tag>
-                      </div>
-                      <div className="text-gray-500 mb-2">
-                        Bắt đầu từ: {dayjs(patient.startedTreatment).format('DD/MM/YYYY')}
-                      </div>
-                      <div className="text-sm">
-                        Phác đồ bậc 1 theo hướng dẫn điều trị quốc gia. Hiệu quả tốt, ít tác dụng phụ.
-                      </div>
-                    </Timeline.Item>
-                  </Timeline>
-                </TabPane>
-                
-                <TabPane 
-                  tab={<span><AreaChartOutlined /> Biểu đồ theo dõi</span>}
-                  key="chart"
-                >
-                  <Alert
-                    message="Tính năng đang phát triển"
-                    description="Biểu đồ theo dõi CD4, tải lượng virus và các chỉ số khác sẽ được cập nhật sớm."
-                    type="info"
-                    showIcon
-                    className="mb-4"
-                  />
-                  <Empty 
-                    image={<BarChartOutlined style={{ fontSize: 64, color: '#d9d9d9' }} />}
-                    description="Biểu đồ sẽ hiển thị xu hướng các chỉ số sức khỏe theo thời gian"
-                  />
-                </TabPane>
-              </Tabs>
+              <Typography.Title level={4} style={{ color: '#2563eb', marginBottom: 24 }}>
+                Lịch sử phác đồ điều trị
+              </Typography.Title>
+              {treatmentsLoading ? (
+                <div className="flex justify-center items-center py-16">
+                  <Spin size="large" />
+                </div>
+              ) : (
+                <Row gutter={[24, 24]}>
+                  {(!Array.isArray(treatments) || treatments.length === 0) && (
+                    <Col span={24}>
+                      <Card className="shadow-md rounded-xl text-center">
+                        <Text type="secondary" style={{ fontSize: 18 }}>
+                          Không có phác đồ điều trị nào cho bạn.
+                        </Text>
+                      </Card>
+                    </Col>
+                  )}
+                  {Array.isArray(treatments) && treatments.map(treatment => (
+                    <Col span={24} key={treatment.id}>
+                      <Card
+                        title={
+                          <span style={{ fontWeight: 700, color: '#0ea5e9', fontSize: 20 }}>
+                            Mã điều trị: {treatment.id}
+                          </span>
+                        }
+                        bordered={false}
+                        className="shadow-lg rounded-2xl"
+                        style={{ marginBottom: 24 }}
+                      >
+                        <Row gutter={32} style={{ marginBottom: 12 }}>
+                          <Col xs={24} md={12} style={{ marginBottom: 8 }}>
+                            <div>
+                              <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Bệnh nhân:</span>
+                              <span style={{ color: '#222', fontWeight: 600 }}>{treatment.patient?.name}</span>
+                            </div>
+                            <div>
+                              <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Email:</span>
+                              <span style={{ color: '#222', fontWeight: 600 }}>{treatment.patient?.email}</span>
+                            </div>
+                          </Col>
+                          <Col xs={24} md={12} style={{ marginBottom: 8 }}>
+                            <div>
+                              <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Bác sĩ:</span>
+                              <span style={{ color: '#222', fontWeight: 600 }}>{treatment.doctor?.user?.name}</span>
+                            </div>
+                            <div>
+                              <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Chuyên khoa:</span>
+                              <span style={{ color: '#222', fontWeight: 600 }}>{treatment.doctor?.specialization}</span>
+                            </div>
+                          </Col>
+                          {/* Divider between doctor/specialization and protocol/disease */}
+                          <Col span={24}>
+                            <Divider style={{ margin: '8px 0' }} />
+                          </Col>
+                          <Col xs={24} md={8} style={{ marginBottom: 8 }}>
+                            <div>
+                              <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Phác đồ:</span>
+                              <span style={{ color: '#222', fontWeight: 600 }}>{treatment.protocol?.name}</span>
+                            </div>
+                            <div>
+                              <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Bệnh lý:</span>
+                              <span style={{ color: '#222', fontWeight: 600 }}>{treatment.protocol?.targetDisease}</span>
+                            </div>
+                          </Col>
+                        </Row>
+                        <Divider style={{ margin: '12px 0' }} />
+                        <Row gutter={32} style={{ marginBottom: 12 }}>
+                          <Col xs={24} md={8}>
+                            <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Ngày bắt đầu:</span>
+                            <span style={{ color: '#222', fontWeight: 600 }}>
+                              {treatment.startDate ? new Date(treatment.startDate).toLocaleDateString() : '-'}
+                            </span>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Ngày kết thúc:</span>
+                            <span style={{ color: '#222', fontWeight: 600 }}>
+                              {treatment.endDate ? new Date(treatment.endDate).toLocaleDateString() : '-'}
+                            </span>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Trạng thái:</span>
+                            <Tag color={treatment.isCurrent ? 'green' : 'default'} style={{ fontWeight: 600 }}>
+                              {treatment.isCurrent ? 'Đang điều trị' : 'Đã kết thúc'}
+                            </Tag>
+                          </Col>
+                        </Row>
+                        <Divider style={{ margin: '12px 0' }} />
+                        <Row gutter={32} style={{ marginBottom: 12 }}>
+                          <Col xs={24} md={12}>
+                            <Text strong style={{ color: '#0ea5e9' }}>Thuốc trong phác đồ:</Text>
+                            <List
+                              size="small"
+                              dataSource={treatment.protocol?.medicines || []}
+                              renderItem={item => (
+                                <List.Item>
+                                  <Text>
+                                    <span style={{ color: '#222', fontWeight: 600 }}>{item.medicine?.name}</span>
+                                    {` - ${item.dosage} - ${item.durationValue} ${item.durationUnit} - ${item.schedule}`}
+                                  </Text>
+                                </List.Item>
+                              )}
+                              locale={{ emptyText: <span style={{ color: '#aaa' }}>Không có</span> }}
+                            />
+                          </Col>
+                          <Col xs={24} md={12}>
+                            <Text strong style={{ color: '#f59e42' }}>Thuốc tùy chỉnh:</Text>
+                            <List
+                              size="small"
+                              dataSource={treatment.customMedications || []}
+                              renderItem={item => (
+                                <List.Item>
+                                  <Text>
+                                    <span style={{ color: '#222', fontWeight: 600 }}>{item.medicineName}</span>
+                                    {` - ${item.dosage} - ${item.durationValue} ${item.durationUnit} - ${item.frequency}`}
+                                  </Text>
+                                </List.Item>
+                              )}
+                              locale={{ emptyText: <span style={{ color: '#aaa' }}>Không có</span> }}
+                            />
+                          </Col>
+                        </Row>
+                        <Divider style={{ margin: '12px 0' }} />
+                        <Row style={{ marginBottom: 12 }}>
+                          <Col span={24}>
+                            <Text strong style={{ color: '#555', fontWeight: 500 }}>Ghi chú:</Text>{' '}
+                            <span style={{ color: '#222', fontWeight: 600 }}>{treatment.notes || <span style={{ color: '#aaa' }}>Không có</span>}</span>
+                          </Col>
+                        </Row>
+                        <Divider style={{ margin: '12px 0' }} />
+                        <Row gutter={32}>
+                          <Col xs={24} md={8}>
+                            <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Tổng chi phí:</span>
+                            <span style={{ color: '#16a34a', fontWeight: 700 }}>
+                              {treatment.total?.toLocaleString() || 0} VNĐ
+                            </span>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Người tạo:</span>
+                            <span style={{ color: '#222', fontWeight: 600 }}>{treatment.createdBy?.name}</span>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <span style={{ color: '#555', fontWeight: 500, marginRight: 4 }}>Ngày tạo:</span>
+                            <span style={{ color: '#222', fontWeight: 600 }}>
+                              {treatment.createdAt ? new Date(treatment.createdAt).toLocaleString() : '-'}
+                            </span>
+                          </Col>
+                        </Row>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
             </Card>
           </Col>
         </Row>

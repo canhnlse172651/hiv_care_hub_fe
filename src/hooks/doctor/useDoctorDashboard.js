@@ -36,15 +36,11 @@ export const useDoctorDashboard = (doctorId) => {
       const todayAppointments = allAppointmentsData.filter(appointment => 
         dayjs.utc(appointment.appointmentTime).format('YYYY-MM-DD') === todayDate
       );
-      
-      // Filter for offline appointments with PENDING status (for waiting list)
-      const offlinePendingAppointments = todayAppointments.filter(appointment => 
-        appointment.type === 'OFFLINE' && appointment.status === 'PENDING'
-      );
 
+      // Show all today's appointments, not just pending/offline
       setAllAppointments(allAppointmentsData);
-      setAppointments(offlinePendingAppointments);
-      
+      setAppointments(todayAppointments);
+
       // Calculate statistics for today only
       const stats = {
         totalAppointments: todayAppointments.length,

@@ -45,18 +45,18 @@ const UserTable = ({
       key: 'phoneNumber',
       sorter: true,
     },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => {
-        let color;
-        if (status === 'ACTIVE') color = 'green';
-        else if (status === 'INACTIVE') color = 'volcano';
-        else color = 'red';
-        return <Tag color={color}>{status ? status.toUpperCase() : 'N/A'}</Tag>;
-      },
-    },
+    // {
+    //   title: 'Status',
+    //   dataIndex: 'status',
+    //   key: 'status',
+    //   render: (status) => {
+    //     let color;
+    //     if (status === 'ACTIVE') color = 'green';
+    //     else if (status === 'INACTIVE') color = 'volcano';
+    //     else color = 'red';
+    //     return <Tag color={color}>{status ? status.toUpperCase() : 'N/A'}</Tag>;
+    //   },
+    // },
     {
       title: 'Role',
       dataIndex: ['role', 'name'],

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { appointmentService } from '@/services/appointmentService';
 import { servicesService } from '@/services/servicesService';
 import { message } from 'antd';
+import dayjs from 'dayjs';
 
 export const useDoctorAppointments = (doctorId) => {
   const [appointments, setAppointments] = useState([]);
@@ -50,7 +51,8 @@ export const useDoctorAppointments = (doctorId) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await appointmentService.getAppointmentsByDoctorId(doctorId);
+      // Pass limit: 1000 if supported by your API/service
+      const response = await appointmentService.getAppointmentsByDoctorId(doctorId, { limit: 1000 });
       const appointmentsData = response.data?.data || [];
       setAllAppointments(appointmentsData);
       setPagination(prev => ({ ...prev, total: appointmentsData.length }));

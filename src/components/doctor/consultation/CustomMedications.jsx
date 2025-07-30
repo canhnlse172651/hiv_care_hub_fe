@@ -40,11 +40,13 @@ const CustomMedications = ({ customMedications, medicines, onUpdateMedication, o
                   }}
                   showSearch
                   filterOption={(input, option) =>
-                    option.children.props.children[0].props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                    option?.value?.toLowerCase().includes(input.toLowerCase())
                   }
+                  // Only show the name in the input, not the description
+                  optionLabelProp="value"
                 >
                   {medicines.map((medicine) => (
-                    <Option key={medicine.value} value={medicine.name}>
+                    <Option key={medicine.name} value={medicine.name}>
                       <div>
                         <div><strong>{medicine.name}</strong></div>
                         <div className="text-xs text-gray-500">
@@ -62,16 +64,22 @@ const CustomMedications = ({ customMedications, medicines, onUpdateMedication, o
                   placeholder="VD: 2"
                   value={med.dosage}
                   onChange={(e) => onUpdateMedication?.(index, 'dosage', e.target.value)}
+                  // onChange={(e) => {console.log(e.target.value);}}
                 />
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item label="Đơn vị">
-                <Input
-                  placeholder="VD: viên"
+                <Select
+                  placeholder="Chọn đơn vị"
                   value={med.unit}
-                  onChange={(e) => onUpdateMedication?.(index, 'unit', e.target.value)}
-                />
+                  onChange={(value) => onUpdateMedication?.(index, 'unit', value)}
+                >
+                  <Option value="viên nén">viên nén</Option>
+                  <Option value="viên nang">viên nang</Option>
+                  <Option value="lọ dung dịch">lọ dung dịch</Option>
+                  <Option value="thuốc tiêm">thuốc tiêm</Option>
+                </Select>
               </Form.Item>
             </Col>
           </Row>

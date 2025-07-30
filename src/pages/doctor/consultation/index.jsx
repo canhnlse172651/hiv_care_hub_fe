@@ -112,6 +112,10 @@ const ConsultationPage = () => {
           customMedications={customMedications}
           onProtocolChange={onProtocolChange}
           onAddCustomMedication={addCustomMedication}
+          onRemoveCustomMedication={removeCustomMedication}
+          onUpdateCustomMedication={updateCustomMedication}
+          onUpdateProtocolMedication={updateProtocolMedication}
+          onRemoveProtocolMedication={removeProtocolMedication}
           onFinish={handleFinish}
         />
       </div>

@@ -182,7 +182,7 @@ function App() {
           {/* Patient Care */}
           <Route path="consultation/:appointmentId" element={<ConsultationPage />} />
           <Route path="medical-records/:patientId" element={<MedicalRecordsPage />} />
-          <Route path="patient-treatments" element={<PatientTreatmentsPage />} />
+          <Route path="patient-treatments/:userId" element={<PatientTreatmentsPage />} />
           <Route path="treatment-analytics" element={<TreatmentAnalyticsPage />} />
           <Route path="treatment-prescription/:appointmentId?/:patientId?" element={<TreatmentPrescriptionPage />} />
           

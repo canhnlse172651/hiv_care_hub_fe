@@ -17,7 +17,9 @@ const TreatmentForm = ({
   customMedications,
   onProtocolChange,
   onAddCustomMedication,
-  onFinish
+  onFinish,
+  onUpdateCustomMedication,
+  onRemoveCustomMedication
 }) => {
   return (
     <Card className="lg:col-span-2 shadow-md">
@@ -54,7 +56,7 @@ const TreatmentForm = ({
         {/* Medications Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <Title level={4}>Thuốc trong phác đồ (có thể chỉnh sửa)</Title>
+            <Title level={4}>Thuốc trong phác đồ</Title>
             <Button 
               type="dashed" 
               icon={<PlusOutlined />} 
@@ -71,6 +73,8 @@ const TreatmentForm = ({
           <CustomMedications 
             customMedications={customMedications}
             medicines={medicines}
+            onUpdateMedication={onUpdateCustomMedication}
+            onRemoveMedication={onRemoveCustomMedication}
           />
         </div>
 

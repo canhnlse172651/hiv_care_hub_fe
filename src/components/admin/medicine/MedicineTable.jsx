@@ -10,6 +10,9 @@ const MedicineTable = ({
   uniqueUnits, 
   uniqueDoses 
 }) => {
+  // Debug: log medicines to verify data passed in
+  console.log('MedicineTable medicines:', medicines);
+
   const columns = [
     {
       title: 'Tên thuốc',
@@ -82,7 +85,14 @@ const MedicineTable = ({
   return (
     <Table
       columns={columns}
-      dataSource={medicines.map(med => ({ ...med, key: med.id || med._id }))}
+      dataSource={
+        Array.isArray(medicines)
+          ? medicines.map(med => ({
+              ...med,
+              key: med.id || med._id // Ensure key is present
+            }))
+          : []
+      }
       loading={loading}
       pagination={{ pageSize: 10 }}
       rowKey="key"

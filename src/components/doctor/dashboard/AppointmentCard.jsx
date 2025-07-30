@@ -5,9 +5,15 @@ import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 const AppointmentCard = ({ appointment, showActions = true, size = 'default', showMedicalRecordLink = false }) => {
+  // Only render for PENDING or PAID status
+  if (appointment.status !== 'PENDING' && appointment.status !== 'PAID') {
+    return null;
+  }
+
   const getStatusTag = (status, type) => {
     const statusConfig = {
       'PENDING': { color: 'gold', text: 'Đang chờ', icon: <ClockCircleOutlined /> },
+      'PAID': { color: 'blue', text: 'Đã thanh toán', icon: <CheckCircleOutlined /> },
       'CONFIRMED': { color: 'blue', text: 'Đã xác nhận', icon: <CheckCircleOutlined /> },
       'COMPLETED': { color: 'green', text: 'Hoàn thành', icon: <CheckCircleOutlined /> },
       'CANCELLED': { color: 'red', text: 'Đã hủy', icon: <ExclamationCircleOutlined /> }
@@ -38,10 +44,11 @@ const AppointmentCard = ({ appointment, showActions = true, size = 'default', sh
   return (
     <Card 
       className={`shadow-md hover:shadow-lg transition-all duration-300 border-0 rounded-xl ${isSmall ? 'mb-2' : 'mb-4'}`}
-      bodyStyle={{ padding: isSmall ? '12px' : '20px' }}
+      bodyStyle={{ padding: isSmall ? '16px 20px' : '24px 32px' }}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3 flex-1">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center flex-1 min-w-0 gap-4">
+          {/* Avatar and Info */}
           {showMedicalRecordLink ? (
             <Link to={`/doctor/medical-records/${appointment.user?.id}`}>
               <Avatar 
@@ -59,7 +66,7 @@ const AppointmentCard = ({ appointment, showActions = true, size = 'default', sh
               className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-md" 
             />
           )}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {showMedicalRecordLink ? (
               <Link 
                 to={`/doctor/medical-records/${appointment.user?.id}`}
@@ -72,17 +79,17 @@ const AppointmentCard = ({ appointment, showActions = true, size = 'default', sh
                 {appointment.user?.name || 'Không có tên'}
               </div>
             )}
-            <div className={`text-gray-500 ${isSmall ? 'text-xs' : 'text-sm'}`}>
+            <div className={`text-gray-500 truncate ${isSmall ? 'text-xs' : 'text-sm'}`}>
               {appointment.service?.name || 'Không có dịch vụ'}
             </div>
-            <div className="flex items-center space-x-4 mt-1">
-              <div className="flex items-center space-x-1">
+            <div className="flex items-center gap-6 mt-2">
+              <div className="flex items-center gap-1">
                 <CalendarOutlined className="text-blue-500 text-xs" />
                 <span className={`text-gray-600 ${isSmall ? 'text-xs' : 'text-sm'}`}>
                   {dayjs.utc(appointment.appointmentTime).format('DD/MM/YYYY')}
                 </span>
               </div>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center gap-1">
                 <ClockCircleOutlined className="text-orange-500 text-xs" />
                 <span className={`text-gray-600 ${isSmall ? 'text-xs' : 'text-sm'}`}>
                   {dayjs.utc(appointment.appointmentTime).format('HH:mm')}
@@ -92,19 +99,26 @@ const AppointmentCard = ({ appointment, showActions = true, size = 'default', sh
           </div>
         </div>
         
-        <div className="flex items-center space-x-3">
-          {getStatusTag(appointment.status, appointment.type)}
-          {showActions && appointment.status === 'PENDING' && (
-            <Link to={`/doctor/consultation/${appointment.id}`}>
-              <Button 
-                type="primary" 
-                size={isSmall ? 'small' : 'middle'}
-                className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg"
-              >
-                Khám ngay
-              </Button>
-            </Link>
-          )}
+        {/* Status and Action */}
+        <div className="flex flex-1 flex-row items-center justify-end min-w-[200px]">
+          {/* Status and Type tags */}
+          <div className="flex flex-col items-start gap-2 flex-1">
+            {getStatusTag(appointment.status, appointment.type)}
+          </div>
+          {/* Action button */}
+          <div className="flex flex-col items-end justify-center ml-6">
+            {showActions && appointment.status === 'PAID' && (
+              <Link to={`/doctor/consultation/${appointment.id}`}>
+                <Button 
+                  type="primary" 
+                  size={isSmall ? 'small' : 'middle'}
+                  className="bg-blue-500 hover:bg-blue-600 border-none rounded-lg"
+                >
+                  Khám ngay
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </Card>

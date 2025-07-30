@@ -41,7 +41,7 @@ const Dashboard = () => {
       
       <Row gutter={[16, 16]} className="mt-6">
         <Col xs={24} lg={16}>
-          <RecentUsersTable recentUsers={userStats.recent} />
+          <RecentUsersTable recentUsers={userStats.recent} hideStatus />
         </Col>
         <Col xs={24} lg={8}>
           <RecentActivity />

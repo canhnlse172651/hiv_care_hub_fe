@@ -408,4 +408,4 @@ export const patientTreatmentService = {
       throw error;
     }
   }
-}; 
+};

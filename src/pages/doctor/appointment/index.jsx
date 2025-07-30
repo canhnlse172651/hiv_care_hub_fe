@@ -45,7 +45,7 @@ const AppointmentDoctorPage = () => {
   const allowedStatuses = ['PENDING', 'PAID', 'COMPLETED'];
   const appointments = (rawAppointments || [])
     .filter(apt => allowedStatuses.includes((apt.status || '').toUpperCase()))
-    .sort((a, b) => dayjs(a.appointmentTime).valueOf() - dayjs(b.appointmentTime).valueOf());
+    .sort((a, b) => dayjs(b.appointmentTime).valueOf() - dayjs(a.appointmentTime).valueOf());
   const allAppointments = (rawAllAppointments || [])
     .filter(apt => allowedStatuses.includes((apt.status || '').toUpperCase()));
 
@@ -220,7 +220,7 @@ const AppointmentDoctorPage = () => {
             <Button
               size="small"
               icon={<InfoCircleOutlined />}
-              onClick={() => navigate(`/doctor/consultation/${record.id}`)}
+              onClick={() => navigate(`/doctor/patient-treatments/${record.user?.id}`)}
               className="border-gray-300 rounded-lg hover:border-blue-400 hover:text-blue-600"
             >
               Xem chi tiết

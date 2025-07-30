@@ -55,6 +55,21 @@ const DateSlotSelection = ({
     return hour >= 13 && hour < 18;
   };
 
+  // Only allow booking today if slot is not overdue
+  const now = dayjs();
+
+  // Helper to check if a slot is overdue (for today)
+  const isSlotOverdue = (slot) => {
+    if (!selectedDate) return false;
+    // If selected date is today, check if slot end time is before now
+    if (selectedDate.isSame(now, 'day')) {
+      const [endHour, endMinute] = slot.end.split(':').map(Number);
+      const slotEnd = selectedDate.hour(endHour).minute(endMinute).second(0);
+      return slotEnd.isBefore(now);
+    }
+    return false;
+  };
+
   // Group slots by time
   const morningSlots = slots.filter(slot => isMorning(slot.start));
   const afternoonSlots = slots.filter(slot => isAfternoon(slot.start));
@@ -73,6 +88,7 @@ const DateSlotSelection = ({
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {slots.map(slot => {
           const isSelected = selectedSlot && selectedSlot.start === slot.start && selectedSlot.end === slot.end;
+          const disabled = isSlotOverdue(slot);
           return (
             <button
               key={slot.start + slot.end}
@@ -80,10 +96,13 @@ const DateSlotSelection = ({
                 relative p-4 rounded-xl border-2 transition-all duration-300 text-center group
                 ${isSelected
                   ? 'border-blue-500 bg-blue-500 text-white shadow-lg transform scale-105' 
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md hover:transform hover:scale-102'
+                  : disabled
+                    ? 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md hover:transform hover:scale-102'
                 }
               `}
-              onClick={() => setSelectedSlot(slot)}
+              onClick={() => !disabled && setSelectedSlot(slot)}
+              disabled={disabled}
             >
               {isSelected && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -93,12 +112,8 @@ const DateSlotSelection = ({
                 </div>
               )}
               
-              <div className={`font-bold text-lg mb-1 ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+              <div className={`font-bold text-lg mb-1 ${isSelected ? 'text-white' : disabled ? 'text-gray-400' : 'text-gray-800'}`}>
                 {slot.start} - {slot.end}
-              </div>
-              
-              <div className={`text-sm ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
-                Khả dụng
               </div>
             </button>
           );
@@ -139,7 +154,7 @@ const DateSlotSelection = ({
             <DatePicker
               value={selectedDate}
               onChange={setSelectedDate}
-              disabledDate={(current) => current && (current < today || current > maxDate)}
+              disabledDate={(current) => current && (current.startOf('day').isBefore(today.startOf('day')) || current.startOf('day').isAfter(maxDate.startOf('day')))}
               size="large"
               placeholder="Chọn ngày khám"
               format="DD/MM/YYYY"

@@ -26,28 +26,41 @@ const ProtocolMedications = ({ selectedProtocol, onUpdateMedication, onRemoveMed
           </div>
           
           <Row gutter={16}>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item label="Liều lượng">
                 <Input
-                  placeholder="VD: 1 tablet"
-                  defaultValue={med.dosage}
+                  placeholder="VD: 2"
+                  value={med.dosage}
                   onChange={(e) => onUpdateMedication?.(index, 'dosage', e.target.value)}
                 />
               </Form.Item>
             </Col>
-            <Col span={8}>
+            {/* <Col span={6}>
+              <Form.Item label="Đơn vị">
+                <Select
+                  value={med.unit}
+                  onChange={(value) => onUpdateMedication?.(index, 'unit', value)}
+                >
+                  <Option value="viên nén">viên nén</Option>
+                  <Option value="viên nang">viên nang</Option>
+                  <Option value="lọ dung dịch">lọ dung dịch</Option>
+                  <Option value="thuốc tiêm">thuốc tiêm</Option>
+                </Select>
+              </Form.Item>
+            </Col> */}
+            <Col span={6}>
               <Form.Item label="Thời gian">
                 <Input
                   placeholder="VD: 30"
-                  defaultValue={med.durationValue}
+                  value={med.durationValue}
                   onChange={(e) => onUpdateMedication?.(index, 'durationValue', parseInt(e.target.value) || 0)}
                 />
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col span={6}>
               <Form.Item label="Đơn vị thời gian">
                 <Select
-                  defaultValue={med.durationUnit}
+                  value={med.durationUnit}
                   onChange={(value) => onUpdateMedication?.(index, 'durationUnit', value)}
                 >
                   <Option value="DAY">Ngày</Option>

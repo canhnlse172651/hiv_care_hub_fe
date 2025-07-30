@@ -55,8 +55,8 @@ const GenerateScheduleModal = ({
       {result && (
         <div style={{ marginTop: 24 }}>
           <p><b>{result.message}</b></p>
-          <p>Total Assigned Shifts: {result.totalAssignedShifts}</p>
-          <p>Remaining Shifts: {result.remainingShifts}</p>
+          {/* <p>Total Assigned Shifts: {result.totalAssignedShifts}</p>
+          <p>Remaining Shifts: {result.remainingShifts}</p> */}
           {result.shiftsNeedingDoctors?.length > 0 && (
             <>
               <p>Shifts Needing Doctors:</p>

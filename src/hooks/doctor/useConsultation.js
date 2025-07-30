@@ -176,7 +176,9 @@ export const useConsultation = (appointmentId, currentUser) => {
       message.success('Đã tạo phác đồ điều trị thành công');
       return true;
     } catch (error) {
-      message.error('Không thể tạo phác đồ điều trị.');
+      // Show server message if available, else fallback
+      const errMsg = error?.response?.data?.message?.message || error?.message || 'Không thể tạo phác đồ điều trị.';
+      message.error(errMsg);
       console.error('Error creating treatment:', error);
       return false;
     } finally {

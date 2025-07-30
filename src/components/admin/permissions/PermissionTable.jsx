@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, Button, Space, Tag, Typography, Popconfirm } from 'antd';
 import { 
-  CheckOutlined,
+  EyeOutlined, // changed from CheckOutlined
   EditOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
@@ -62,7 +62,7 @@ const PermissionTable = ({
       render: (_, record) => (
         <Space size="small">
           <Button 
-            icon={<CheckOutlined />} 
+            icon={<EyeOutlined />} 
             onClick={() => onView(record)}
             size="small"
           />

@@ -68,10 +68,10 @@ const HeaderMidle = () => {
       const authDataString = localStorage.getItem('auth');
       const parsedData = authDataString ? JSON.parse(authDataString) : null;
       
-      if (profile) {
+      if (profile && profile.role) {
         setIsAuthenticated(true);
         setCurrentUser(profile);
-      } else if (parsedData?.accessToken) {
+      } else if (parsedData?.accessToken && parsedData?.user) {
         setIsAuthenticated(true);
         setCurrentUser(parsedData.user);
       } else {
@@ -88,6 +88,18 @@ const HeaderMidle = () => {
     };
   }, [profile]);
 
+  // Fallback: get role from currentUser or from localStorage directly
+  let userRole = currentUser?.role;
+  if (!userRole) {
+    const authDataString = localStorage.getItem('auth');
+    const parsedData = authDataString ? JSON.parse(authDataString) : null;
+    userRole = parsedData?.user?.role;
+  }
+
+  // Debug: check what is being used
+  // Remove or comment this out in production
+  console.log('HeaderMidle currentUser:', currentUser, 'userRole:', userRole);
+
   const handleProfileClick = () => navigate(PATHS.PATIENT.PROFILE);
   const handleAppointmentsClick = () => navigate(PATHS.PATIENT.APPOINTMENTS);
   const handlePrescriptionsClick = () => navigate(PATHS.PATIENT.PRESCRIPTIONS);
@@ -97,8 +109,6 @@ const HeaderMidle = () => {
     dispatch(handleLogout());
     navigate("/");
   };
-
-  const userRole = currentUser?.role;
 
   const patientMenu = (
     <Menu>
@@ -249,9 +259,9 @@ const HeaderMidle = () => {
           </Menu.Item>
           
           {/* HIV Test and Pharmacy items */}
-          <Menu.Item key="hiv-test" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
+          {/* <Menu.Item key="hiv-test" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
             <Link to={getRoutePath('hiv-test')}>Xét nghiệm HIV</Link>
-          </Menu.Item>
+          </Menu.Item> */}
           {/* <Menu.Item key="pharmacy" className="px-2 md:px-4 mx-1 font-medium text-sm md:text-base text-gray-800">
             <Link to={getRoutePath('pharmacy')}>Nhà thuốc</Link>
           </Menu.Item> */}

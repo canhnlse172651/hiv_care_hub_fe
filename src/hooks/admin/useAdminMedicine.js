@@ -15,8 +15,8 @@ export const useAdminMedicine = () => {
     setLoading(true);
     try {
       const res = await medicineService.getAllMedicines();
-      const arr = Array.isArray(res.data?.data?.data)
-        ? res.data.data.data
+      const arr = Array.isArray(res.data?.data)
+        ? res.data.data
         : [];
       setMedicines(arr);
     } catch (e) {

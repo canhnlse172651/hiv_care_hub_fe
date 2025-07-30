@@ -130,6 +130,8 @@ const DoctorDashboard = () => {
                         appointment={appointment} 
                         size="small"
                         showMedicalRecordLink={true}
+                        // Only show "Khám ngay" for PAID status
+                        showAction={appointment.status === 'PAID'}
                       />
                     ))}
                   </div>

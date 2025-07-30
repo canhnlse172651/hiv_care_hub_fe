@@ -34,7 +34,8 @@ export const useAdminService = () => {
     try {
       await servicesService.createService({
         ...formData,
-        price: formData.price // send as string
+        price: formData.price, // send as string
+        content: "Khám bệnh"
       });
       setSuccess('Thêm dịch vụ thành công!');
       message.success('Thêm dịch vụ thành công!');

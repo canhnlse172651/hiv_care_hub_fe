@@ -20,16 +20,16 @@ const RecentUsersTable = ({ recentUsers }) => {
       key: 'createdAt',
       render: (text) => dayjs(text).format('DD/MM/YYYY'),
     },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <span className={`font-bold ${status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'}`}>
-          {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
-        </span>
-      ),
-    },
+    // {
+    //   title: 'Status',
+    //   dataIndex: 'status',
+    //   key: 'status',
+    //   render: (status) => (
+    //     <span className={`font-bold ${status === 'ACTIVE' ? 'text-green-500' : 'text-red-500'}`}>
+    //       {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+    //     </span>
+    //   ),
+    // },
   ];
 
   return (

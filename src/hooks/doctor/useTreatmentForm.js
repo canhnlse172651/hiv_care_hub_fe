@@ -89,7 +89,7 @@ export const useTreatmentForm = () => {
         durationUnit: med.durationUnit || 'DAY',
         notes: med.notes || '',
         description: med.description || '',
-        unit: med.unit || 'tablet',
+        unit: med.unit || '',
         price: med.price ? parseFloat(med.price) : 0
       })),
       notes: formValues.notes || '',
