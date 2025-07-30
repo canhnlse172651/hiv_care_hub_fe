@@ -10,7 +10,8 @@ const OrderModal = ({
   onConfirm, 
   appointment, 
   loading = false,
-  orderService
+  orderService,
+  onOrderPaid // <-- add this prop
 }) => {
   const [form] = Form.useForm();
   const [orderCreated, setOrderCreated] = useState(false);
@@ -39,8 +40,13 @@ const OrderModal = ({
           const response = await orderService.getOrderById(orderData.id);
           const newStatus = response.data?.orderStatus;
           setOrderStatus(newStatus);
-          
-          if (newStatus === 'COMPLETED' || newStatus === 'CANCELLED') {
+
+          // Call onOrderPaid if status is PAID or COMPLETED
+          if ((newStatus === 'COMPLETED' || newStatus === 'PAID') && typeof onOrderPaid === 'function') {
+            onOrderPaid(orderData);
+          }
+
+          if (newStatus === 'COMPLETED' || newStatus === 'CANCELLED' || newStatus === 'PAID') {
             clearInterval(interval);
             setPollingInterval(null);
           }
@@ -55,7 +61,7 @@ const OrderModal = ({
         clearInterval(interval);
       };
     }
-  }, [orderData?.id, orderStatus, orderService]);
+  }, [orderData?.id, orderStatus, orderService, onOrderPaid]);
 
   // Cleanup polling on unmount
   useEffect(() => {

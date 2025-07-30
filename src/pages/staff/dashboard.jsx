@@ -338,6 +338,17 @@ const StaffDashboard = () => {
     setPaidDrawerVisible(false);
   };
 
+  // Add this handler to update appointment status when order is paid
+  const handleOrderPaid = (order) => {
+    if (order && selectedOrderAppointment) {
+      setAppointments(prev => prev.map(apt =>
+        apt.id === selectedOrderAppointment.id
+          ? { ...apt, status: 'PAID' }
+          : apt
+      ));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto p-6">
@@ -526,20 +537,14 @@ const StaffDashboard = () => {
           visible={orderModalVisible}
           onCancel={handleCancelOrder}
           onConfirm={async (formValues) => {
-            // On payment order creation, set status to PAID
+            // Only create the order, don't update status here
             const order = await handleCreateOrder(formValues);
-            if (order) {
-              setAppointments(prev => prev.map(apt =>
-                apt.id === selectedOrderAppointment.id
-                  ? { ...apt, status: 'PAID' }
-                  : apt
-              ));
-            }
             return order;
           }}
           appointment={selectedOrderAppointment}
           loading={orderLoading}
           orderService={orderService}
+          onOrderPaid={handleOrderPaid} // <-- pass the handler
         />
       </div>
     </div>
